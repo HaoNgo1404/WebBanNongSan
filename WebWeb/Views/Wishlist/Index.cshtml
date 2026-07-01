@@ -1,0 +1,76 @@
+@model IEnumerable<WebWeb.Models.NongSan>
+@{
+    ViewData["Title"] = "Danh sách yêu thích";
+}
+
+<link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
+
+<div class="container py-5 order-shell">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Yêu thích</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Sản phẩm yêu thích</h1>
+            <p class="text-muted mb-0">Tổng số sản phẩm yêu thích: <strong>@Model.Count()</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (Model.Any())
+            {
+                <a class="btn btn-outline-danger" asp-action="Clear">Xóa tất cả</a>
+            }
+            <a class="btn btn-outline-success" asp-controller="Home" asp-action="Index">Tiếp tục mua sắm</a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5 rounded-4 border-0 shadow-sm bg-light">
+            <i class="bi bi-heartbreak fs-1 d-block mb-3 text-muted"></i>
+            Danh sách yêu thích của bạn đang trống. Hãy thêm sản phẩm bạn yêu thích nhé!
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="order-card shadow-sm h-100 bg-white border rounded-3 p-3 d-flex flex-column">
+                        <div class="position-relative mb-3 overflow-hidden rounded-3" style="height: 280px;">
+                            <img src="@Url.Content("~/images/" + item.HinhAnh)" class="w-100 h-100 object-fit-cover" alt="@item.TenNongSan" />
+                        </div>
+                        
+                        <h5 class="fw-semibold mb-2 text-dark text-truncate">@item.TenNongSan</h5>
+                        <p class="text-muted small mb-3 text-truncate-2 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            @item.MoTa
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3 mt-auto">
+                            <div>
+                                <div class="fw-bold text-success fs-5">@item.GiaBanNiemYet.ToString("N0")₫</div>
+                                <div class="text-muted small">Đơn vị: @item.DonViTinh</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap gap-2 mt-auto pt-2 border-top">
+                            <a class="btn btn-outline-success btn-sm flex-grow-1" asp-controller="Product" asp-action="Detail" asp-route-id="@item.NongSanId">
+                                <i class="bi bi-eye"></i> Xem chi tiết
+                            </a>
+                            <a class="btn btn-success btn-sm flex-grow-1" asp-controller="Cart" asp-action="Add" asp-route-id="@item.NongSanId">
+                                <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                            </a>
+                            <a class="btn btn-outline-danger btn-sm px-2.5" asp-action="Remove" asp-route-id="@item.NongSanId" title="Xóa khỏi yêu thích">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

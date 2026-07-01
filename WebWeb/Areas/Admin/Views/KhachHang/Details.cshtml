@@ -1,0 +1,128 @@
+﻿@model WebWeb.Models.KhachHang
+@{
+    ViewData["Title"] = "Hồ Sơ Khách Hàng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="text-success text-decoration-none small fw-medium">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách khách hàng
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="admin-card p-4 mb-4 text-center">
+            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                <i class="bi bi-person fs-1"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">@Model.HoTen</h4>
+            <p class="text-muted small">Thành viên từ: @Model.NgayDangKy.ToString("dd/MM/yyyy")</p>
+            <div class="badge bg-success-subtle text-success px-3 py-2 border border-success-subtle">
+                <i class="bi bi-gem"></i> Tích lũy: @Model.DiemTichLuy Điểm
+            </div>
+            
+            <hr class="my-4" />
+            
+            <div class="text-start">
+                <h6 class="fw-bold text-dark mb-3">Thông tin liên hệ</h6>
+                <div class="mb-2 small"><strong class="text-muted">Điện thoại:</strong> <span class="d-block fw-medium">@Model.SoDienThoai</span></div>
+                <div class="mb-0 small"><strong class="text-muted">Email:</strong> <span class="d-block fw-medium">@(Model.Email ?? "Chưa cập nhật")</span></div>
+            </div>
+        </div>
+
+        <div class="admin-card p-4">
+            <h6 class="fw-bold text-success mb-3"><i class="bi bi-geo-alt"></i> Sổ địa chỉ nhận hàng (@Model.SoDiaChis.Count)</h6>
+            @if (Model.SoDiaChis != null && Model.SoDiaChis.Any())
+            {
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var dc in Model.SoDiaChis)
+                    {
+                        <div class="p-2 border rounded bg-light小 small">
+                            <i class="bi bi-house-door text-secondary"></i> @dc.DiaChiGiao
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted small mb-0">Khách hàng chưa lưu địa chỉ nào.</p>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            <h5 class="fw-bold text-dark mb-4"><i class="bi bi-clock-history"></i> Lịch sử hoạt động mua sắm</h5>
+            
+            <div class="mb-4">
+                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-cart"></i> Đơn hàng lẻ đã đặt (@Model.DonHangLes.Count)</h6>
+                <div class="table-responsive border rounded bg-white">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Ngày Đặt</th>
+                                <th>Tổng Tiền</th>
+                                <th>Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.DonHangLes.Any())
+                            {
+                                foreach (var dh in Model.DonHangLes.OrderByDescending(d => d.NgayDat))
+                                {
+                                    <tr>
+                                        <td><a class="text-success fw-bold text-decoration-none" asp-area="Admin" asp-controller="DonHangQuanLy" asp-action="Details" asp-route-id="@dh.DonHangLeId">#DHL-@dh.DonHangLeId</a></td>
+                                        <td>@dh.NgayDat.ToString("dd/MM/yyyy")</td>
+                                        <td class="fw-semibold">@((dh.TongTienThucTe ?? dh.TongTienTamTinh).ToString("#,##0")) đ</td>
+                                        <td><span class="small">@dh.TrangThaiDonHang</span></td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="4" class="text-center text-muted py-2">Chưa có dữ liệu đơn lẻ.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-calendar-check"></i> Gói đăng ký định kỳ (@Model.GoiDangKyDinhKies.Count)</h6>
+                <div class="table-responsive border rounded bg-white">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã Gói</th>
+                                <th>Tần Suất</th>
+                                <th>Tổng Tiền</th>
+                                <th>Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.GoiDangKyDinhKies.Any())
+                            {
+                                foreach (var g in Model.GoiDangKyDinhKies.OrderByDescending(x => x.NgayBatDau))
+                                {
+                                    <tr>
+                                        <td><a class="text-success fw-bold text-decoration-none" asp-area="Admin" asp-controller="DonHangQuanLy" asp-action="DetailsDinhKy" asp-route-id="@g.GoiId">#GOI-@g.GoiId</a></td>
+                                        <td>@g.TanSuatGiao (@g.ThuTrongTuan)</td>
+                                        <td class="fw-semibold text-success">@g.TongTienGoi.ToString("#,##0") đ</td>
+                                        <td><span class="small">@g.TrangThaiGoi</span></td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="4" class="text-center text-muted py-2">Chưa đăng ký gói định kỳ nào.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

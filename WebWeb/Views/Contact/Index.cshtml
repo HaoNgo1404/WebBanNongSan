@@ -1,0 +1,59 @@
+@{
+    ViewData["Title"] = "Liên hệ Green Fresh";
+}
+
+<link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
+
+<div class="container py-5 order-shell">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Liên hệ</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="order-card shadow-sm h-100">
+                <h2 class="h4 fw-bold mb-3">Liên hệ với Green Fresh</h2>
+                <p class="text-muted">TODO: Cập nhật thông tin liên hệ thật khi có dữ liệu chính thức.</p>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3"><i class="bi bi-telephone-fill text-success me-2"></i> Hotline: 0123 456 789</li>
+                    <li class="mb-3"><i class="bi bi-envelope-fill text-success me-2"></i> Email: support@greenfresh.vn</li>
+                    <li class="mb-3"><i class="bi bi-geo-alt-fill text-success me-2"></i> Địa chỉ: 123 Đường Nông Sản, TP.HCM</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="order-card shadow-sm h-100">
+                <h4 class="fw-semibold mb-3">Gửi tin nhắn</h4>
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Họ tên</label>
+                            <input class="form-control" placeholder="Nhập họ tên" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input class="form-control" placeholder="Nhập email" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Tiêu đề</label>
+                            <input class="form-control" placeholder="Nhập tiêu đề" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Nội dung</label>
+                            <textarea class="form-control" rows="5" placeholder="Bạn cần hỗ trợ gì?"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success mt-4">Gửi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-card shadow-sm mt-4">
+        <h4 class="fw-semibold mb-3">Google Map</h4>
+        <div class="bg-light rounded-4 p-5 text-center text-muted">TODO: Chèn bản đồ thật sau.</div>
+    </div>
+</div>

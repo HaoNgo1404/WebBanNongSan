@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo Thống Kê Doanh Thu";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Báo cáo & Thống kê hệ thống</h3>
+            <p class="text-muted mb-0">Theo dõi doanh thu đơn hàng, số lượng khách hàng và sản phẩm bán chạy.</p>
+        </div>
+    </div>
+
+    <div class="admin-panel p-3 mb-4">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Từ ngày</label>
+                <input type="date" name="tuNgay" class="form-control" value="@ViewBag.TuNgay" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Đến ngày</label>
+                <input type="date" name="denNgay" class="form-control" value="@ViewBag.DenNgay" />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-success w-100 admin-btn"><i class="bi bi-filter"></i> Lọc dữ liệu</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="p-4 bg-light border rounded shadow-sm text-center">
+                <div class="text-success mb-2" style="font-size: 2rem;"><i class="bi bi-cash-stack"></i></div>
+                <h5 class="text-muted fw-semibold">Tổng doanh thu</h5>
+                <h3 class="fw-bold text-success">@string.Format("{0:#,##0}", ViewBag.TongDoanhThu) đ</h3>
+                <small class="text-muted">(Đơn lẻ: @string.Format("{0:#,##0}", ViewBag.DoanhThuDonLe) đ + Định kỳ: @string.Format("{0:#,##0}", ViewBag.DoanhThuGoiDinhKy) đ)</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 bg-light border rounded shadow-sm text-center">
+                <div class="text-info mb-2" style="font-size: 2rem;"><i class="bi bi-people-fill"></i></div>
+                <h5 class="text-muted fw-semibold">Khách hàng mới</h5>
+                <h3 class="fw-bold text-info">@ViewBag.TongKhachHang</h3>
+                <small class="text-muted">Tài khoản đăng ký mới trong kỳ</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 bg-light border rounded shadow-sm text-center">
+                <div class="text-warning mb-2" style="font-size: 2rem;"><i class="bi bi-bag-check-fill"></i></div>
+                <h5 class="text-muted fw-semibold">Tỷ lệ hoàn thành</h5>
+                <h3 class="fw-bold text-warning">100%</h3>
+                <small class="text-muted">Dữ liệu tính từ hóa đơn thành công</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-panel p-4">
+        <h4 class="fw-bold mb-3 text-dark"><i class="bi bi-graph-up-arrow text-success"></i> Top 5 nông sản bán chạy nhất</h4>
+        <div class="table-responsive">
+            <table class="admin-table table align-middle">
+                <thead>
+                    <tr class="bg-success text-white">
+                        <th style="width: 10%;">Thứ hạng</th>
+                        <th>Tên Nông Sản</th>
+                        <th class="text-end">Số lượng bán ra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int index = 1;
+                        var topProducts = ViewBag.TopNongSan as List<WebWeb.Areas.Admin.Controllers.TopNongSanViewModel>;
+                    }
+                    @if (topProducts != null && topProducts.Any())
+                    {
+                        foreach (var item in topProducts)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary text-white">#@index</span></td>
+                                <td class="fw-semibold text-dark">@item.TenNongSan</td>
+                                <td class="text-end text-success fw-bold">@item.SoLuongBan.ToString("#,##0")</td>
+                            </tr>
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">Không có dữ liệu trong khoảng thời gian này.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,84 @@
+﻿@model WebWeb.Models.KhuyenMai
+@{
+    ViewData["Title"] = "Sửa Khuyến Mãi";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Chỉnh sửa chương trình ưu đãi</h3>
+            <p class="text-muted mb-0">Cập nhật lại các điều kiện ràng buộc của mã #@Model.VoucherCode.</p>
+        </div>
+        <a class="btn btn-outline-secondary rounded-2 btn-sm" asp-action="Index"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    </div>
+
+    <div class="admin-form-panel p-4 border rounded-3 bg-white">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="KhuyenMaiId" />
+            <input type="hidden" asp-for="SoLuotDaDung" />
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="TenChuongTrinh" class="form-label fw-medium text-dark">Tên chương trình</label>
+                    <input asp-for="TenChuongTrinh" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="VoucherCode" class="form-label fw-medium text-dark">Mã Voucher</label>
+                    <input asp-for="VoucherCode" class="form-control font-monospace" style="text-transform: uppercase;" required />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label asp-for="LoaiGiamGia" class="form-label fw-medium text-dark">Loại giảm giá</label>
+                    <select asp-for="LoaiGiamGia" class="form-select">
+                        <option value="1">Giảm theo phần trăm (%)</option>
+                        <option value="2">Giảm theo số tiền cố định (đ)</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="MucGiam" class="form-label fw-medium text-dark">Mức giảm</label>
+                    <input asp-for="MucGiam" class="form-control" type="number" step="0.01" required />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="SoLuotPhatHanh" class="form-label fw-medium text-dark">Số lượt phát hành</label>
+                    <input asp-for="SoLuotPhatHanh" class="form-control" type="number" required />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="GiaTriDonToiThieu" class="form-label fw-medium text-dark">Đơn hàng tối thiểu (đ)</label>
+                    <input asp-for="GiaTriDonToiThieu" class="form-control" type="number" step="0.01" required />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="SoTienGiamToiDa" class="form-label fw-medium text-dark">Số tiền giảm tối đa (đ)</label>
+                    <input asp-for="SoTienGiamToiDa" class="form-control" type="number" step="0.01" required />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-5">
+                    <label asp-for="NgayBatDau" class="form-label fw-medium text-dark">Ngày bắt đầu</label>
+                    <input asp-for="NgayBatDau" class="form-control" type="datetime-local" required />
+                </div>
+                <div class="col-md-5">
+                    <label asp-for="NgayKetThuc" class="form-label fw-medium text-dark">Ngày kết thúc</label>
+                    <input asp-for="NgayKetThuc" class="form-control" type="datetime-local" required />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input asp-for="TrangThai" class="form-check-input" type="checkbox" />
+                        <label asp-for="TrangThai" class="form-check-label fw-medium text-dark">Kích hoạt</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success px-4 rounded-2">Cập nhật</button>
+                <a class="btn btn-outline-secondary px-4 rounded-2" asp-action="Index">Hủy bỏ</a>
+            </div>
+        </form>
+    </div>
+</div>

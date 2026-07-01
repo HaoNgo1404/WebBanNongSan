@@ -1,0 +1,112 @@
+﻿@model WebWeb.Models.KhuyenMai
+@{
+    ViewData["Title"] = "Chi Tiết Khuyến Mãi";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="text-success text-decoration-none small fw-medium">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách khuyến mãi
+    </a>
+</div>
+
+<div class="admin-card p-4">
+    <!-- Header thông tin chính -->
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">@Model.TenChuongTrinh</h4>
+            <p class="text-muted small mb-0">Mã định danh hệ thống: #VOUCHER-@Model.KhuyenMaiId</p>
+        </div>
+        <div>
+            <span class="badge bg-light text-success border border-success px-3 py-2 fs-6 font-monospace fw-bold">
+                @Model.VoucherCode
+            </span>
+        </div>
+    </div>
+
+    <!-- Khối lưới thông số cấu hình mã giảm giá -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded-3 bg-light h-100">
+                <small class="text-muted d-block mb-1">Loại chiết khấu</small>
+                <span class="fw-bold text-dark fs-6">
+                    @(Model.LoaiGiamGia == 1 ? "Giảm giá theo phần trăm (%)" : "Giảm giá theo số tiền cố định")
+                </span>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded-3 bg-light h-100">
+                <small class="text-muted d-block mb-1">Mức giảm thiết lập</small>
+                <span class="fw-bold text-danger fs-5">
+                    @(Model.LoaiGiamGia == 1 ? Model.MucGiam.ToString("0") + "%" : Model.MucGiam.ToString("#,##0") + " đ")
+                </span>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded-3 bg-light h-100">
+                <small class="text-muted d-block mb-1">Đơn hàng tối thiểu</small>
+                <span class="fw-semibold text-dark fs-6">@Model.GiaTriDonToiThieu.ToString("#,##0") đ</span>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded-3 bg-light h-100">
+                <small class="text-muted d-block mb-1">Giảm tối đa (Nếu giảm %)</small>
+                <span class="fw-semibold text-dark fs-6">
+                    @(Model.SoTienGiamToiDa > 0 ? Model.SoTienGiamToiDa.ToString("#,##0") + " đ" : "Không giới hạn")
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tiến độ sử dụng & Thời gian -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="p-4 border rounded-3 bg-light-subtle h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart"></i> Giới hạn và Tần suất sử dụng</h5>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1 small fw-medium">
+                        <span class="text-secondary">Tỷ lệ lượt sử dụng hiện tại:</span>
+                        <span class="text-dark">@Model.SoLuotDaDung / @Model.SoLuotPhatHanh lượt</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: @((double)Model.SoLuotDaDung / Model.SoLuotPhatHanh * 100)%"></div>
+                    </div>
+                </div>
+
+                <ul class="list-unstyled mb-0 small text-secondary">
+                    <li class="mb-2"><i class="bi bi-dot text-success"></i> Số lượt còn lại có thể sử dụng: <strong class="text-dark">@(Model.SoLuotPhatHanh - Model.SoLuotDaDung) đợt</strong></li>
+                    <li><i class="bi bi-dot text-success"></i> Trạng thái bật tắt cấu hình: <strong class="@(Model.TrangThai == true ? "text-success" : "text-danger")">@(Model.TrangThai == true ? "Cho phép áp dụng" : "Đang khóa chặn")</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="p-4 border rounded-3 bg-light-subtle h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar3"></i> Chu kỳ hiệu lực</h5>
+                <div class="d-flex flex-column gap-3 small">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded bg-success text-white p-2 d-flex align-items-center justify-content-center" style="width:35px; height:35px;">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Ngày kích hoạt</small>
+                            <span class="fw-semibold text-dark">@Model.NgayBatDau.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded bg-danger text-white p-2 d-flex align-items-center justify-content-center" style="width:35px; height:35px;">
+                            <i class="bi bi-calendar-x"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Ngày hết hạn</small>
+                            <span class="fw-semibold text-dark">@Model.NgayKetThuc.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

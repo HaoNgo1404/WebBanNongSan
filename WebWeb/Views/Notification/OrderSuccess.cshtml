@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5 text-center">
+    <div class="card p-5 shadow border-0 rounded-4 mx-auto" style="max-width: 550px; background: #ffffff;">
+        <div class="mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle text-success" 
+                 style="width: 90px; height: 90px; font-size: 45px;">
+                <i class="bi bi-check-circle-fill animate__animated animate__zoomIn"></i>
+            </div>
+        </div>
+        
+        <h2 class="fw-bold text-dark mb-2">Đặt Hàng Thành Công!</h2>
+        <p class="text-secondary mb-4">
+            Cảm ơn bạn đã tin tưởng lựa chọn nông sản sạch của chúng tôi.<br />
+            Mã đơn hàng của bạn là: <strong class="text-success">#@ViewBag.OrderId</strong>. Hệ thống đang tiến hành xử lý đơn hàng.
+        </p>
+
+        <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mt-2">
+            <a asp-controller="Order" asp-action="OrderHistory" class="btn btn-outline-success rounded-pill px-4 py-2.5 fw-bold">
+                <i class="bi bi-clock-history"></i> Xem lịch sử đơn hàng
+            </a>
+            
+            <a asp-controller="Home" asp-action="Index" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm">
+                <i class="bi bi-bag-plus"></i> Tiếp tục mua hàng
+            </a>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>

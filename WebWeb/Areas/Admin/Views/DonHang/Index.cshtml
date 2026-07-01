@@ -1,0 +1,127 @@
+﻿@model IEnumerable<WebWeb.Models.DonHangLe>
+@{
+    ViewData["Title"] = "Quản Lý Đơn Hàng Lẻ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex border-bottom mb-4">
+        <a class="nav-link active fw-bold text-success border-bottom border-2 border-success pb-2 pe-3 text-decoration-none" 
+           asp-area="Admin" asp-controller="DonHang" asp-action="Index">Đơn hàng lẻ</a>
+        <a class="nav-link text-muted pb-2 ps-3 text-decoration-none" 
+           asp-area="Admin" asp-controller="DonHang" asp-action="IndexDinhKy">Đơn hàng định kỳ</a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Danh sách đơn hàng lẻ</h3>
+            <p class="text-muted mb-0">Quản lý toàn bộ các đơn hàng mua lẻ trực tiếp từ khách hàng hệ thống và vãng lai.</p>
+        </div>
+    </div>
+
+    <div class="admin-panel p-4">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Số điện thoại</th>
+                        <th>Ngày Đặt</th>
+                        <th>Khung Giờ Giao</th>
+                        <th>Tổng Tiền</th>
+                        <th>Thanh Toán</th>
+                        <th>Trạng Thái Đơn</th>
+                        <th>Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">#DHL-@item.DonHangLeId</td>
+                                <td>
+                                    @if (item.KhachHangId != null && item.KhachHang != null)
+                                    {
+                                         @item.KhachHang.HoTen
+                                    }
+                                    else
+                                    {
+                                         @item.NameCusNonAccount
+                                    }
+                                </td>
+                                <td>
+                                    @(item.KhachHangId != null ? item.KhachHang?.SoDienThoai : item.PhoneNonAccount)
+                                </td>
+                                <td>@item.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><span class="badge bg-light text-dark border">@item.KhungGioGiaoHang</span></td>
+                                <td class="text-success fw-bold">@((item.TongTienThucTe ?? item.TongTienTamTinh).ToString("#,##0")) đ</td>
+                                <td>
+                                    @if (item.TrangThaiThanhToan == "Đã thanh toán")
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Đã thanh toán</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">Chờ thanh toán</span>
+                                    }
+                                </td>
+                                <td>
+                                    @switch (item.TrangThaiDonHang)
+                                    {
+                                        case "Đang xử lý":
+                                            <span class="text-warning fw-medium"><i class="bi bi-clock-history"></i> Đang xử lý</span>
+                                            break;
+                                        case "Đang giao":
+                                            <span class="text-primary fw-medium"><i class="bi bi-truck"></i> Đang giao</span>
+                                            break;
+                                        case "Đã giao":
+                                            <span class="text-success fw-medium"><i class="bi bi-check-circle-fill"></i> Đã giao</span>
+                                            break;
+                                        case "Đã hủy":
+                                            <span class="text-danger fw-medium"><i class="bi bi-x-circle-fill"></i> Đã hủy</span>
+                                            break;
+                                        default:
+                                            <span class="text-secondary fw-medium">@item.TrangThaiDonHang</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-nowrap">
+                                    <a class="btn btn-outline-secondary btn-sm rounded-2 px-3 text-nowrap" asp-area="Admin" asp-controller="DonHang" asp-action="Details" asp-route-id="@item.DonHangLeId">
+                                        <i class="bi bi-eye"></i> Chi tiết
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.DonHangLeId" class="btn btn-sm btn-outline-danger rounded-3">
+                                        <i class="bi bi-trash"></i> Xóa đơn
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">Không có đơn hàng lẻ nào trong hệ thống.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

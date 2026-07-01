@@ -1,0 +1,22 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<div class="dashboard-sidebar">
+    <div class="profile-summary">
+        <div class="avatar-circle">AN</div>
+        <div>
+            <h5>Nguyễn An</h5>
+            <p class="text-muted mb-0">Thành viên Green Fresh</p>
+        </div>
+    </div>
+    <ul class="dashboard-nav">
+        <li><a class="@(currentAction == "Profile" ? "active" : "")" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> Hồ sơ</a></li>
+        <li><a class="@(currentAction == "Addresses" ? "active" : "")" asp-controller="Account" asp-action="Addresses"><i class="bi bi-geo-alt"></i> Địa chỉ</a></li>
+        <li><a class="@(currentAction == "Orders" ? "active" : "")" asp-controller="Order" asp-action="OrderHistory"><i class="bi bi-bag"></i> Đơn hàng</a></li>
+        <li><a class="@(currentAction == "GoiDinhKy" ? "active" : "")" asp-controller="Order" asp-action="LichSuGoiDinhKy"><i class="bi bi-bag"></i> Gói định kỳ</a></li>
+        <li><a class="@(currentAction == "Wishlist" ? "active" : "")" asp-controller="Wishlist" asp-action="Index"><i class="bi bi-heart"></i> Yêu thích</a></li>
+        <li><a class="@(currentAction == "ChangePassword" ? "active" : "")" asp-controller="Account" asp-action="ChangePassword"><i class="bi bi-shield-lock"></i> Đổi mật khẩu</a></li>
+        <li><a class="@(currentAction == "Logout" ? "active" : "")" asp-controller="Account" asp-action="Logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>
+    </ul>
+</div>

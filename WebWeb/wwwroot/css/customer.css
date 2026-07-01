@@ -1,0 +1,119 @@
+.order-shell {
+  color: #1f2937;
+}
+
+.order-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 1.25rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-confirmed {
+  background: #fff7e6;
+  color: #b45309;
+}
+
+.status-preparing {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-shipping {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.timeline {
+  position: relative;
+  margin-left: 0.5rem;
+  padding-left: 1.5rem;
+  border-left: 2px solid #e5e7eb;
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 1.25rem;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: -2.15rem;
+  top: 0.2rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: #fff;
+  border: 2px solid #d1d5db;
+  color: #6b7280;
+}
+
+.timeline-item.completed .timeline-icon {
+  background: #2e7d32;
+  border-color: #2e7d32;
+  color: #fff;
+}
+
+.timeline-item.current .timeline-icon {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: #fff;
+}
+
+.review-stars {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.review-star {
+  border: none;
+  background: transparent;
+  color: #d1d5db;
+  font-size: 2rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.review-star:hover,
+.review-star:focus {
+  color: #f59e0b;
+}
+
+@media (max-width: 768px) {
+  .order-card {
+    padding: 1rem;
+  }
+
+  .timeline {
+    margin-left: 0.25rem;
+  }
+}

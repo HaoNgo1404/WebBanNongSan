@@ -1,0 +1,76 @@
+@model WebWeb.Models.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Đăng ký Gói nông sản định kỳ";
+}
+
+<div class="container mt-4">
+    <h2><i class="bi bi-calendar-check text-success"></i> Đăng ký Gói nông sản định kỳ</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-7">
+            <form asp-action="DatGoiDinhKy" method="post" class="card p-4 shadow-sm border-success">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <h5 class="text-success mb-3">Cấu hình lịch trình giao gói định kỳ</h5>
+                <div class="mb-3">
+                    <label class="form-label">Sổ địa chỉ nhận hàng</label>
+                    <select asp-for="DiaChiId" class="form-select">
+                        <option value="1">Nhà riêng - 123 Nguyễn Văn Cừ, Quận 5, TP.HCM</option>
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tần suất giao định kỳ</label>
+                        <select asp-for="TanSuatGiao" class="form-select">
+                            <option value="HangTuan">Hàng tuần (1 tuần/lần)</option>
+                            <option value="CachTuan">Cách tuần (2 tuần/lần)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Thứ cố định giao trong tuần</label>
+                        <select asp-for="ThuTrongTuan" class="form-select">
+                            <option value="Thu 2">Thứ 2 hàng tuần</option>
+                            <option value="Thu 7">Thứ 7 hàng tuần</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Thời hạn duy trì gói</label>
+                    <select asp-for="SoThangDangKy" class="form-select">
+                        <option value="1">Gói 01 Tháng</option>
+                        <option value="3">Gói 03 Tháng</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Hình thức thanh toán</label>
+                    <div class="form-check"><input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="VNPAY" checked><label class="form-check-label">Thanh toán trả trước qua VNPAY</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="MOMO"><label class="form-check-label">Thanh toán trả trước qua MoMo</label></div>
+                </div>
+
+                @for (int i = 0; i < Model.Items.Count; i++) {
+                    <input type="hidden" name="Items[@i].NongSanId" value="@Model.Items[i].NongSanId" />
+                    <input type="hidden" name="Items[@i].SoLuongDat" value="@Model.Items[i].SoLuongDat" />
+                    <input type="hidden" name="Items[@i].DonGiaThoiDiem" value="@Model.Items[i].DonGiaThoiDiem" />
+                }
+
+                <div class="d-flex gap-2 mt-3">
+                    <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary py-2.5 rounded-3 fw-bold flex-grow-1">
+                        <i class="bi bi-arrow-left"></i> QUAY LẠI GIỎ HÀNG
+                    </a>
+                    
+                    <button type="submit" class="btn btn-success py-2.5 rounded-3 fw-bold flex-grow-1">
+                        XÁC NHẬN ĐĂNG KÝ GÓI ĐỊNH KỲ
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-5">
+             @await Html.PartialAsync("_CheckoutSummary", Model)
+        </div>
+    </div>
+</div>

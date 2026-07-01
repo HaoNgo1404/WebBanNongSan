@@ -1,0 +1,61 @@
+﻿@model WebWeb.Models.NhaVuon
+@{
+    ViewData["Title"] = "Chi tiết Nhà vườn";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold mb-1">Chi tiết nhà vườn đối tác</h2>
+            <p class="text-muted mb-0">Hồ sơ thông tin chi tiết lưu trên hệ thống quản trị.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-outline-secondary admin-btn" asp-area="Admin" asp-controller="NhaVuon" asp-action="Index"><i class="bi bi-arrow-left"></i> Quay lại</a>
+            <a class="btn btn-success admin-btn" asp-area="Admin" asp-controller="NhaVuon" asp-action="Edit" asp-route-id="@Model.NhaVuonId"><i class="bi bi-pencil"></i> Chỉnh sửa</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="admin-panel p-4">
+                <h5 class="fw-semibold mb-3 text-success"><i class="bi bi-geo-alt me-2"></i>Hồ sơ nhà cung cấp</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted mb-1">Tên đối tác nhà vườn</label>
+                        <div class="p-2 border rounded bg-light fw-bold text-dark">@Model.TenNhaVuon</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted mb-1">Số điện thoại liên hệ</label>
+                        <div class="p-2 border rounded bg-light fw-medium text-secondary">@(string.IsNullOrEmpty(Model.SoDienThoai) ? "Chưa cung cấp" : Model.SoDienThoai)</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted mb-1">Chứng nhận tiêu chuẩn</label>
+                        <div class="p-2 border rounded bg-light text-success fw-semibold">
+                            <i class="bi bi-patch-check me-1"></i> @(string.IsNullOrEmpty(Model.ChungNhanAnToan) ? "Chưa có chứng nhận" : Model.ChungNhanAnToan)
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted mb-1">Địa chỉ nông trại</label>
+                        <div class="p-2 border rounded bg-light">@(string.IsNullOrEmpty(Model.DiaChi) ? "Chưa cập nhật" : Model.DiaChi)</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted mb-1">Câu chuyện nhà vườn & Quy trình canh tác</label>
+                        <div class="p-3 border rounded bg-light text-dark" style="white-space: pre-line; line-height: 1.6;">
+                            @(string.IsNullOrWhiteSpace(Model.CauChuyenNhaVuon) ? "Không có câu chuyện cụ thể được mô tả." : Model.CauChuyenNhaVuon)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="admin-panel p-4">
+                <h5 class="fw-semibold mb-3 text-secondary"><i class="bi bi-info-circle me-2"></i>Phân định hệ thống</h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2 py-2 border-bottom"><strong>Mã nhà vườn:</strong> <span class="badge bg-dark float-end">#NV-@Model.NhaVuonId</span></li>
+                    <li class="py-2"><strong>Loại đối tác:</strong> <span class="badge bg-primary float-end">Nhà cung ứng nông sản</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

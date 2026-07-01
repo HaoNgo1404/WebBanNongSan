@@ -1,0 +1,119 @@
+﻿@model WebWeb.Models.GoiDangKyDinhKy
+@{
+    ViewData["Title"] = "Chi Tiết Gói Định Kỳ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="mb-3">
+    <a asp-action="IndexDinhKy" class="text-success text-decoration-none small fw-medium">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách đơn định kỳ
+    </a>
+</div>
+
+<div class="admin-card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">Chi tiết gói đăng ký #GOI-@Model.GoiId</h4>
+            <p class="text-muted small mb-0">Thời hạn gói: từ @Model.NgayBatDau.ToString("dd/MM/yyyy") đến @Model.NgayKetThuc.ToString("dd/MM/yyyy")</p>
+        </div>
+        <div>
+            <span class="badge bg-success px-3 py-2 fs-7">@Model.TrangThaiGoi</span>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="p-3 border rounded-3 bg-light-subtle h-100">
+                <h6 class="fw-bold text-success mb-3"><i class="bi bi-person-check"></i> Chủ hộ đăng ký</h6>
+                <p class="mb-1"><strong>Khách hàng:</strong> @Model.KhachHang?.HoTen</p>
+                <p class="mb-1"><strong>Email liên hệ:</strong> @Model.KhachHang?.Email</p>
+                <p class="mb-0"><strong>Địa chỉ nhận nông sản:</strong> @Model.DiaChi?.DiaChiGiao</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="p-3 border rounded-3 bg-light-subtle h-100">
+                <h6 class="fw-bold text-success mb-3"><i class="bi bi-alarm"></i> Tần suất thiết lập</h6>
+                <p class="mb-1"><strong>Chu kỳ lặp lại:</strong> <span class="badge bg-info text-dark">@Model.TanSuatGiao</span></p>
+                <p class="mb-1"><strong>Ngày giao cố định:</strong> <span class="text-dark fw-medium">@Model.ThuTrongTuan</span></p>
+                <p class="mb-0"><strong>Tổng giá trị hợp đồng gói:</strong> <span class="text-success fw-bold">@Model.TongTienGoi.ToString("#,##0") đ</span></p>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="fw-bold text-dark mb-3">Sản phẩm nhận mỗi đợt</h5>
+    <div class="table-responsive border rounded-3 mb-5">
+        <table class="table table-hover align-middle mb-0" style="font-size: 14.5px;">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Tên Nông Sản Định Kỳ</th>
+                    <th class="text-center">Số Lượng Giao Mỗi Đợt</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sp in Model.ChiTietGoiDinhKies)
+                {
+                    <tr>
+                        <td class="ps-3 fw-semibold text-dark">@sp.NongSan?.TenNongSan</td>
+                        <td class="text-center fw-bold text-success">@sp.SoLuongMoiDot kg / bó</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-range"></i> Nhật ký và Tiến độ các đợt giao hàng</h5>
+    <div class="admin-panel p-3">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã Đợt</th>
+                        <th>Ngày Giao Dự Kiến / Thực Tế</th>
+                        <th>Trọng Lượng Thực Tế Đợt</th>
+                        <th>Nhân Viên Phụ Trách</th>
+                        <th>Trạng Thái Đợt Giao</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.DotGiaoDinhKies != null && Model.DotGiaoDinhKies.Any())
+                    {
+                        @foreach (var dot in Model.DotGiaoDinhKies.OrderBy(d => d.NgayGiaoThucTe))
+                        {
+                            <tr>
+                                <td class="fw-bold">#DOT-@dot.DotGiaoId</td>
+                                <td>
+                                    <span class="fw-medium text-dark">@dot.NgayGiaoThucTe.ToString("dd/MM/yyyy")</span>
+                                </td>
+                                <td class="text-primary fw-medium">
+                                    @(dot.TrongLuongThucTeDot.HasValue ? dot.TrongLuongThucTeDot.Value.ToString("0.##") + " kg" : "Chờ cập nhật cân nặng")
+                                </td>
+                                <td>@(dot.NhanVien?.HoTen ?? "Chưa phân công")</td>
+                                <td>
+                                    @if (dot.TrangThaiGiao == "Đã giao")
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle"></i> Đã giao hoàn tất</span>
+                                    }
+                                    else if (dot.TrangThaiGiao == "Đang giao")
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-truck"></i> Đang vận chuyển</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-hourglass-split"></i> Chờ đến ngày giao</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">Chưa có lịch trình đợt giao nào được khởi tạo cho gói này.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

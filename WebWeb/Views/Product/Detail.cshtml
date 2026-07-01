@@ -1,0 +1,215 @@
+@model WebWeb.Models.NongSan
+@using System.Text.Json
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = Model.TenNongSan;
+
+    // ĐỌC MỚI: Lấy danh sách ID đã thích từ ViewBag do Controller truyền sang
+    var likedIds = ViewBag.LikedProductIds as List<int> ?? new List<int>();
+    // Kiểm tra xem ID của sản phẩm hiện tại đã nằm trong danh sách yêu thích chưa
+    bool isFavorite = likedIds.Contains(Model.NongSanId);
+}
+
+<div class="product-detail-page">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.TenNongSan</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="detail-gallery-card">
+                <img src="@Url.Content("~/images/" + Model.HinhAnh)" style="width:100%; height:100%; object-fit:cover;" class="rounded shadow-sm border"
+                     alt="@Model.TenNongSan" />
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="detail-info-card">
+                <span class="section-label">Nông sản sạch</span>
+                <h1>@Model.TenNongSan</h1>
+                <div class="detail-rating">
+                    <span class="stars">★★★★★</span>
+                    <span class="text-muted">4.9 • 128 đánh giá</span>
+                </div>
+                <div class="detail-price">@Model.GiaBanNiemYet.ToString("N0") VNĐ / @Model.DonViTinh</div>
+                <p class="detail-description">
+                    @(string.IsNullOrWhiteSpace(Model.MoTa) ? "Chưa có mô tả chi tiết cho sản phẩm này." : Model.MoTa)
+                </p>
+
+                <div class="detail-metadata">
+                    <div><span>Đơn vị:</span> @Model.DonViTinh</div>
+                    <div><span>Xuất xứ:</span> @(Model.NhaVuon != null ? Model.NhaVuon.DiaChi ?? "Đang cập nhật" : "Đang cập nhật")</div>
+                    <div><span>Nhà vườn:</span> @(Model.NhaVuon != null ? Model.NhaVuon.TenNhaVuon : "Đang cập nhật")</div>
+                    <div><span>Tình trạng:</span> Còn hàng</div>
+                </div>
+
+                <div class="d-flex align-items-center g-3 mb-4 mt-2 gap-3">
+    
+                    <!-- Form Thêm vào giỏ hàng (bên trái & giữa) -->
+                    <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex align-items-center gap-3 flex-grow-1 mb-0">
+                        <input type="hidden" name="id" value="@Model.NongSanId" />
+
+                        <!-- Bộ tăng giảm số lượng -->
+                        <div class="input-group input-group-quantity rounded-3 overflow-hidden border" style="max-width: 140px; height: 48px;">
+                            <button class="btn btn-link px-3 text-dark text-decoration-none" type="button" id="btn-minus">
+                                <i class="bi bi-dash-lg"></i>
+                            </button>
+                            <input type="number" id="input-quantity" name="quantity" class="form-control text-center border-0 bg-transparent fw-bold" value="1" min="1" readonly style="width: 50px;">
+                            <button class="btn btn-link px-3 text-dark text-decoration-none" type="button" id="btn-plus">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+
+                        <!-- Nút Thêm giỏ hàng -->
+                        <button type="submit" class="btn btn-success rounded-3 px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 flex-grow-1" style="height: 48px;">
+                            <i class="bi bi-cart-plus-fill fs-5"></i> THÊM VÀO GIỎ HÀNG
+                        </button>
+                    </form>
+
+                    <!-- Khối nút Wishlist dạng HÌNH VUÔNG bo góc nhẹ -->
+                    <div class="wishlist-wrapper">
+                        @if (isFavorite)
+                        {
+                            <button id="btn-wishlist" 
+                                data-url="@Url.Action(isFavorite ? "Remove" : "Add", "Wishlist", new { id = Model.NongSanId })" 
+                                class="btn @(isFavorite ? "btn-danger" : "btn-outline-danger") d-flex align-items-center justify-content-center border-2 rounded-4" 
+                                style="width: 48px; height: 48px;"
+                                title="@(isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích")">
+                            
+                            <i class="bi @(isFavorite ? "bi-heart-fill text-white" : "bi-heart") fs-4"></i>
+                        </button>
+                        }
+                        else
+                        {
+                            <button type="button" 
+                                    id="btn-wishlist"
+                                    class="btn btn-outline-secondary rounded-3 d-flex align-items-center justify-content-center shadow-sm bg-white" 
+                                    data-url="@Url.Action("Add", "Wishlist", new { id = Model.NongSanId })"
+                                    style="width: 48px; height: 48px; min-width: 48px;">
+                                <i class="bi bi-heart fs-5 text-secondary"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-tabs mt-5">
+        <ul class="nav nav-tabs" id="productTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">Mô tả chi tiết</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">Thông tin</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Đánh giá</button>
+            </li>
+        </ul>
+        <div class="tab-content mt-4">
+            <div class="tab-pane fade show active" id="description" role="tabpanel">
+                <div class="detail-panel">
+                    <h4>Về sản phẩm này</h4>
+                    <p>@(string.IsNullOrWhiteSpace(Model.MoTa) ? "Sản phẩm đang được cập nhật thông tin chi tiết." : Model.MoTa)</p>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="info" role="tabpanel">
+                <div class="detail-panel">
+                    <h4>Thông tin sản phẩm</h4>
+                    <ul class="check-list">
+                        <li><i class="bi bi-check2-circle"></i> Chất lượng được kiểm định bởi nhà vườn</li>
+                        <li><i class="bi bi-check2-circle"></i> Xuất xứ rõ ràng và minh bạch</li>
+                        <li><i class="bi bi-check2-circle"></i> Giao hàng trong khung giờ linh hoạt</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="reviews" role="tabpanel">
+                <div class="detail-panel">
+                    @if (Model.DanhGiaSanPhams != null && Model.DanhGiaSanPhams.Any())
+                    {
+                        <div class="row g-3">
+                            @foreach (var review in Model.DanhGiaSanPhams)
+                            {
+                                <div class="col-12">
+                                    <div class="review-item">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <strong>Khách hàng #@review.KhachHangId</strong>
+                                            <span class="text-warning">@for (var i = 0; i < review.SoSao; i++) { <i class="bi bi-star-fill"></i> }</span>
+                                        </div>
+                                        <p class="text-muted mb-2">Ngày đánh giá: @review.NgayDanhGia.ToString("dd/MM/yyyy")</p>
+                                        <p class="mb-0">@review.BinhLuan</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border rounded-4" role="alert">Sản phẩm này chưa có lượt đánh giá nào.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // =================================================================
+        // SỰ KIỆN NÚT TĂNG GIẢM SỐ LƯỢNG
+        // =================================================================
+        const btnGiam = document.getElementById('btn-minus');
+        const btnTang = document.getElementById('btn-plus');
+        const inputSoLuong = document.getElementById('input-quantity');
+
+        if (btnGiam && btnTang && inputSoLuong) {
+            // Xử lý khi ấn nút tăng (+)
+            btnTang.addEventListener('click', function () {
+                let currentVal = parseInt(inputSoLuong.value) || 1;
+                let maxVal = parseInt(inputSoLuong.getAttribute('max')) || 100;
+                
+                if (currentVal < maxVal) {
+                    inputSoLuong.value = currentVal + 1;
+                }
+            });
+
+            // Xử lý khi ấn nút giảm (-)
+            btnGiam.addEventListener('click', function () {
+                let currentVal = parseInt(inputSoLuong.value) || 1;
+                let minVal = parseInt(inputSoLuong.getAttribute('min')) || 1;
+                
+                if (currentVal > minVal) {
+                    inputSoLuong.value = currentVal - 1;
+                }
+            });
+        }
+
+        // =================================================================
+        // SỰ KIỆN NÚT YÊU THÍCH (WISH LIST) SẴN CÓ CỦA HÀO
+        // =================================================================
+        document.getElementById('btn-wishlist').addEventListener('click', function () {
+            const button = this;
+            const url = button.getAttribute('data-url');
+
+            // Gửi yêu cầu xử lý ngầm lên Controller mà không tải lại trang
+            fetch(url, {
+                method: 'POST', // hoặc GET tùy thuộc cấu hình nhưng mặc định fetch gọi được ngay
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Sau khi xử lý thành công, tự động tải lại trang để cập nhật trạng thái trái tim mới
+                    window.location.reload();
+                } else {
+                    alert('Có lỗi xảy ra, vui lòng thử lại!');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+}

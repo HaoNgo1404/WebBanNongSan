@@ -1,0 +1,116 @@
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+}
+
+<link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
+
+<div class="container py-5 order-shell">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Order" asp-action="Index">Đơn hàng</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Chi tiết đơn hàng #FARM-1001</h1>
+            <p class="text-muted mb-0">Đặt ngày 20/06/2026 • Trạng thái: Chờ xác nhận</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary" asp-controller="Order" asp-action="Index">Quay lại</a>
+            <a class="btn btn-outline-warning" asp-controller="Order" asp-action="Review" asp-route-id="1001">Đánh giá</a>
+            <a class="btn btn-success" asp-controller="Order" asp-action="Tracking" asp-route-id="1001">Theo dõi đơn</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="order-card shadow-sm mb-4">
+                <h5 class="fw-semibold mb-3">Thông tin đơn hàng</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Mã đơn</p>
+                        <p class="fw-semibold mb-0">#FARM-1001</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Ngày đặt</p>
+                        <p class="fw-semibold mb-0">20/06/2026</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Phương thức thanh toán</p>
+                        <p class="fw-semibold mb-0">Thanh toán khi nhận hàng</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Phương thức giao hàng</p>
+                        <p class="fw-semibold mb-0">Giao hàng tiết kiệm</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-card shadow-sm mb-4">
+                <h5 class="fw-semibold mb-3">Danh sách sản phẩm</h5>
+                <div class="d-flex justify-content-between border-bottom py-3">
+                    <div>
+                        <h6 class="mb-1">Rau cải xanh hữu cơ</h6>
+                        <p class="text-muted mb-0">Số lượng: 2</p>
+                    </div>
+                    <span class="fw-semibold">40.000đ</span>
+                </div>
+                <div class="d-flex justify-content-between border-bottom py-3">
+                    <div>
+                        <h6 class="mb-1">Táo đỏ Mỹ</h6>
+                        <p class="text-muted mb-0">Số lượng: 1</p>
+                    </div>
+                    <span class="fw-semibold">80.000đ</span>
+                </div>
+                <div class="d-flex justify-content-between py-3">
+                    <div>
+                        <h6 class="mb-1">Cà chua cherry</h6>
+                        <p class="text-muted mb-0">Số lượng: 2</p>
+                    </div>
+                    <span class="fw-semibold">60.000đ</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="order-card shadow-sm mb-4">
+                <h5 class="fw-semibold mb-3">Thông tin người nhận</h5>
+                <p class="fw-semibold mb-1">Nguyễn Văn A</p>
+                <p class="text-muted mb-1">0909 123 456</p>
+                <p class="text-muted mb-0">nguyenvana@example.com</p>
+            </div>
+
+            <div class="order-card shadow-sm mb-4">
+                <h5 class="fw-semibold mb-3">Địa chỉ giao hàng</h5>
+                <p class="text-muted mb-0">123 Đường Lê Lợi, Phường 3, Quận 1, TP. Hồ Chí Minh</p>
+            </div>
+
+            <div class="order-card shadow-sm">
+                <h5 class="fw-semibold mb-3">Tóm tắt thanh toán</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Tạm tính</span>
+                    <span>500.000đ</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Giảm giá</span>
+                    <span>-20.000đ</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Phí vận chuyển</span>
+                    <span>20.000đ</span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold pt-2 border-top mt-2">
+                    <span>Tổng tiền</span>
+                    <span>540.000đ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-light border mt-4 mb-0">
+        <strong>TODO:</strong> Hiển thị dữ liệu đơn hàng thực tế khi Backend hoàn thiện.
+    </div>
+</div>

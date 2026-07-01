@@ -1,0 +1,54 @@
+@model WebWeb.Models.LoHang
+@{
+    ViewData["Title"] = "Lập Chứng Từ Nhập Kho";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="mb-4">
+        <h3 class="fw-bold mb-1">Tiến hành lập phiếu & Nhập kho nông sản</h3>
+        <p class="text-muted">Hệ thống sẽ tự động đồng bộ hóa tạo Phiếu Nhập và thêm Lô hàng vào kho cùng lúc.</p>
+    </div>
+
+    <div class="admin-form-panel p-4 bg-white border rounded shadow-sm">
+        <form asp-action="NhapKho" method="post">
+            @Html.AntiForgeryToken()
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Nhân viên tiếp nhận phiếu</label>
+                    <select name="nhanVienId" class="form-select" asp-items="ViewBag.NhanVienId" required></select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Đối tác nhà vườn cung ứng</label>
+                    <select name="nhaVuonId" class="form-select" asp-items="ViewBag.NhaVuonId" required></select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Chọn sản phẩm nông sản</label>
+                    <select name="nongSanId" class="form-select" asp-items="ViewBag.NongSanId" required></select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Số lượng thực nhập</label>
+                    <input name="soLuongNhap" type="number" class="form-control" min="1" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Đơn giá nhập kho (đ)</label>
+                    <input name="donGiaNhap" type="number" step="0.01" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Thời gian nhập kho</label>
+                    <input name="ngayNhap" type="datetime-local" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Hạn sử dụng nông sản</label>
+                    <input name="ngayHetHan" type="date" class="form-control" />
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2-circle me-1"></i> Xác nhận nhập kho</button>
+                <a class="btn btn-outline-secondary" asp-action="LoHangList">Hủy bỏ</a>
+            </div>
+        </form>
+    </div>
+</div>

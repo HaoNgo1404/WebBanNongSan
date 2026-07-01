@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Blog Green Fresh";
+}
+
+<link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
+
+<div class="container py-5 order-shell">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Blog</li>
+        </ol>
+    </nav>
+
+    <div class="text-center mb-5">
+        <h1 class="h2 fw-bold mb-2">Blog Green Fresh </h1>
+        <p class="text-muted mb-0">Khám phá câu chuyện, mẹo chọn nông sản và những cập nhật mới từ nông trại của chúng tôi.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-xl-4">
+            <div class="order-card shadow-sm h-100">
+                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80" class="img-fluid rounded-3 mb-3" alt="Bài viết" />
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-success">Nông sản</span>
+                    <span class="text-muted small">20/06/2026</span>
+                </div>
+                <h5 class="fw-semibold mb-2">Cách chọn rau củ tươi ngon theo mùa</h5>
+                <p class="text-muted small mb-3">TODO: Viết nội dung thật về cách chọn sản phẩm an toàn và thơm ngon.</p>
+                <a class="btn btn-outline-success btn-sm" asp-controller="Blog" asp-action="Details" asp-route-id="1">Đọc tiếp</a>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="order-card shadow-sm h-100">
+                <img src="https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=900&q=80" class="img-fluid rounded-3 mb-3" alt="Bài viết" />
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-info text-dark">Mẹo hay</span>
+                    <span class="text-muted small">18/06/2026</span>
+                </div>
+                <h5 class="fw-semibold mb-2">Bảo quản trái cây đúng cách để giữ vị ngọt</h5>
+                <p class="text-muted small mb-3">TODO: Mô tả cách bảo quản và giữ hương vị tự nhiên lâu hơn.</p>
+                <a class="btn btn-outline-success btn-sm" asp-controller="Blog" asp-action="Details" asp-route-id="2">Đọc tiếp</a>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="order-card shadow-sm h-100">
+                <img src="https://images.unsplash.com/photo-1464965911861-746a04bca7d8?auto=format&fit=crop&w=900&q=80" class="img-fluid rounded-3 mb-3" alt="Bài viết" />
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-warning text-dark">Khuyến mãi</span>
+                    <span class="text-muted small">15/06/2026</span>
+                </div>
+                <h5 class="fw-semibold mb-2">Những sản phẩm mới trong tuần này</h5>
+                <p class="text-muted small mb-3">TODO: Cập nhật danh sách sản phẩm mới và ưu đãi hấp dẫn.</p>
+                <a class="btn btn-outline-success btn-sm" asp-controller="Blog" asp-action="Details" asp-route-id="3">Đọc tiếp</a>
+            </div>
+        </div>
+    </div>
+</div>

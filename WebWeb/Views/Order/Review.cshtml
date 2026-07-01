@@ -1,0 +1,54 @@
+@{
+    ViewData["Title"] = "Đánh giá đơn hàng";
+}
+
+<link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
+
+<div class="container py-5 order-shell">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Order" asp-action="Index">Đơn hàng</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Đánh giá</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="order-card shadow-sm p-4">
+                <h1 class="h3 fw-bold mb-2">Đánh giá đơn hàng #FARM-1001</h1>
+                <p class="text-muted mb-4">Chia sẻ trải nghiệm của bạn để giúp khách hàng khác tin tưởng Fresh Farm hơn.</p>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Đánh giá của bạn</label>
+                    <div class="review-stars" aria-label="Đánh giá sao">
+                        <button type="button" class="review-star">★</button>
+                        <button type="button" class="review-star">★</button>
+                        <button type="button" class="review-star">★</button>
+                        <button type="button" class="review-star">★</button>
+                        <button type="button" class="review-star">★</button>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="reviewContent" class="form-label fw-semibold">Nội dung đánh giá</label>
+                    <textarea id="reviewContent" class="form-control" rows="5" placeholder="Hãy kể ngắn gọn trải nghiệm nhận hàng, chất lượng sản phẩm và thái độ hỗ trợ..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label for="reviewImage" class="form-label fw-semibold">Tải ảnh minh họa (UI)</label>
+                    <input id="reviewImage" class="form-control" type="file" multiple />
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-success">Gửi đánh giá</button>
+                    <a class="btn btn-outline-secondary" asp-controller="Order" asp-action="Details" asp-route-id="1001">Quay lại</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-light border mt-4 mb-0">
+        <strong>TODO:</strong> Kết nối form đánh giá với Backend khi hoàn thiện.
+    </div>
+</div>

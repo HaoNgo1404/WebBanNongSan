@@ -1,0 +1,122 @@
+@model WebWeb.Models.DonHangLe
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.DonHangLeId;
+}
+
+<div class="container mt-5 mb-5">
+    <div class="mb-4">
+        <a asp-action="OrderHistory" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left"></i> Quay lại lịch sử đơn hàng
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 p-4 rounded-3 bg-white">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                    <i class="bi bi-box-seam text-success"></i> Danh sách nông sản đã đặt
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle">
+                        <thead>
+                            <tr class="table-light text-muted small">
+                                <th>Nông sản</th>
+                                <th class="text-center">Số lượng đặt</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.ChiTietDonHangLes != null)
+                            {
+                                foreach (var ct in Model.ChiTietDonHangLes)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">@ct.NongSan?.TenNongSan</div>
+                                            <small class="text-muted">Mã: #@ct.NongSanId</small>
+                                        </td>
+                                        <td class="text-center">@ct.SoLuongDat</td>
+                                        <td class="text-end">@string.Format("{0:N0}", ct.DonGiaThoiDiem) đ</td>
+                                        <td class="text-end fw-bold text-dark">@string.Format("{0:N0}", ct.SoLuongDat * ct.DonGiaThoiDiem) đ</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <hr class="text-muted" />
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="text-secondary fw-semibold">Tổng số tiền tạm tính:</span>
+                    <h4 class="fw-bold text-success mb-0">@string.Format("{0:N0}", Model.TongTienTamTinh) đ</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 p-4 rounded-3 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                    <i class="bi bi-geo-alt-fill text-danger"></i> Thông tin giao nhận hàng
+                </h5>
+                <p class="mb-2"><strong>Địa chỉ cụ thể:</strong> 
+                    @(Model.DiaChi != null ? Model.DiaChi.DiaChiGiao ?? Model.AddressNonAccount : "Chưa có sổ địa chỉ / Mặc định")
+                </p>
+                <p class="mb-2"><strong>Khung giờ giao hàng:</strong> <span class="badge bg-light text-dark border">@Model.KhungGioGiaoHang</span></p>
+                <p class="mb-2"><strong>Phương thức thanh toán:</strong> <span class="text-uppercase fw-semibold text-secondary">@Model.PhuongThucThanhToan</span></p>
+                <p class="mb-0"><strong>Trạng thái thanh toán:</strong> @Model.TrangThaiThanhToan</p>
+            </div>
+
+            <div class="card shadow-sm border-0 p-4 rounded-3 bg-white">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                    <i class="bi bi-info-circle-fill text-primary"></i> Tiến độ đơn hàng lẻ
+                </h5>
+                <div class="p-3 bg-light rounded-3 mb-3">
+                    <p class="mb-1">Trạng thái hiện tại: 
+                        <span id="detailStatusText" class="fw-bold text-success">@Model.TrangThaiDonHang</span>
+                    </p>
+                    <small class="text-muted">Hệ thống đang điều phối và xử lý đơn.</small>
+                </div>
+
+                @if (Model.TrangThaiDonHang == "Chờ xử lý")
+                {
+                    <button type="button" id="btnHuyDetail" class="btn btn-danger w-100 rounded-3 fw-bold py-2" 
+                            onclick="cancelOrderLeDetail('@Model.DonHangLeId')">
+                        <i class="bi bi-trash3"></i> Yêu cầu hủy đơn hàng này
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function cancelOrderLeDetail(orderId) {
+        if (confirm(`Hào có chắc chắn muốn hủy đơn hàng #${orderId} này không?`)) {
+            
+            fetch(`@Url.Action("HuyDonHangLe", "Order")?id=${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // Đổi chữ trạng thái trên màn hình chi tiết
+                    document.getElementById("detailStatusText").innerText = "Đã hủy";
+                    document.getElementById("detailStatusText").className = "fw-bold text-secondary";
+                    // Ẩn nút hủy đi
+                    const btn = document.getElementById("btnHuyDetail");
+                    if (btn) btn.remove();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                alert("Đã xảy ra lỗi khi thực hiện hủy đơn hàng!");
+            });
+        }
+    }
+</script>

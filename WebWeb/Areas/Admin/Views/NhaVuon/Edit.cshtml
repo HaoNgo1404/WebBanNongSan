@@ -1,0 +1,54 @@
+﻿@model WebWeb.Models.NhaVuon
+@{
+    ViewData["Title"] = "Chỉnh sửa Nhà vườn";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold mb-1">Chỉnh sửa đối tác nhà vườn</h2>
+            <p class="text-muted mb-0">Cập nhật hồ sơ nhà cung cấp #NV-@Model.NhaVuonId</p>
+        </div>
+        <a class="btn btn-outline-secondary admin-btn" asp-area="Admin" asp-controller="NhaVuon" asp-action="Index"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    </div>
+
+    <div class="admin-form-panel">
+        <form asp-area="Admin" asp-controller="NhaVuon" asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="NhaVuonId" />
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Tên nhà vườn</label>
+                    <input asp-for="TenNhaVuon" class="form-control" required />
+                    <span asp-validation-for="TenNhaVuon" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Số điện thoại liên hệ</label>
+                    <input asp-for="SoDienThoai" class="form-control" />
+                    <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Chứng nhận an toàn</label>
+                    <input asp-for="ChungNhanAnToan" class="form-control" />
+                    <span asp-validation-for="ChungNhanAnToan" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Địa chỉ vùng trồng</label>
+                    <input asp-for="DiaChi" class="form-control" />
+                    <span asp-validation-for="DiaChi" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Câu chuyện nhà vườn</label>
+                    <textarea asp-for="CauChuyenNhaVuon" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="CauChuyenNhaVuon" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-success admin-btn px-4" type="submit"><i class="bi bi-check-circle me-1"></i> Cập nhật hồ sơ</button>
+                <a class="btn btn-outline-secondary admin-btn" asp-area="Admin" asp-controller="NhaVuon" asp-action="Index">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

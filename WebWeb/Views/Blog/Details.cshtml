@@ -1,0 +1,40 @@
+@{
+    ViewData["Title"] = "Chi tiết bài viết";
+}
+
+<link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
+
+<div class="container py-5 order-shell">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Blog" asp-action="Index">Blog</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="order-card shadow-sm p-4">
+                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80" class="img-fluid rounded-4 mb-4" alt="Ảnh bài viết" />
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-success">Nông sản</span>
+                    <span class="text-muted small">20/06/2026</span>
+                </div>
+                <h1 class="h3 fw-bold mb-3">Cách chọn rau củ tươi ngon theo mùa</h1>
+                <p class="text-muted">TODO: Thay bằng nội dung bài viết thật khi Backend hoàn thiện.</p>
+                <p class="text-muted">Fresh Farm luôn mong muốn mang đến cho khách hàng những trải nghiệm mua sắm an toàn, tươi mới và đáng tin cậy. Nội dung chi tiết sẽ được cập nhật sau.</p>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="order-card shadow-sm">
+                <h5 class="fw-semibold mb-3">Bài viết liên quan</h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="py-2 border-bottom"><a class="text-success" asp-controller="Blog" asp-action="Details" asp-route-id="2">Bảo quản trái cây đúng cách</a></li>
+                    <li class="py-2 border-bottom"><a class="text-success" asp-controller="Blog" asp-action="Details" asp-route-id="3">Những sản phẩm mới trong tuần này</a></li>
+                    <li class="py-2"><a class="text-success" asp-controller="Blog" asp-action="Details" asp-route-id="4">Lợi ích của thực phẩm sạch</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

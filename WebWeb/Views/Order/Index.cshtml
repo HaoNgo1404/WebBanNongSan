@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+
+<link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
+
+<div class="container py-5 order-shell">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Đơn hàng của tôi</h1>
+            <p class="text-muted mb-0">Theo dõi trạng thái, xem chi tiết và đánh giá sản phẩm sau khi nhận hàng.</p>
+        </div>
+        <a class="btn btn-outline-success" asp-controller="Home" asp-action="Index">Tiếp tục mua sắm</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="order-card shadow-sm">
+                <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <h5 class="mb-0 fw-semibold">Đơn #FARM-1001</h5>
+                            <span class="status-badge status-confirmed">Chờ xác nhận</span>
+                        </div>
+                        <p class="text-muted mb-2">Ngày đặt: 20/06/2026</p>
+                        <p class="text-muted mb-0">Số lượng sản phẩm: 3 món</p>
+                    </div>
+                    <div class="text-lg-end">
+                        <p class="fw-bold mb-1">Tổng tiền: 540.000đ</p>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <a class="btn btn-outline-success btn-sm" asp-controller="Order" asp-action="Details" asp-route-id="1001">Xem chi tiết</a>
+                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Order" asp-action="Tracking" asp-route-id="1001">Theo dõi</a>
+                            <a class="btn btn-outline-warning btn-sm" asp-controller="Order" asp-action="Review" asp-route-id="1001">Đánh giá</a>
+                            <a class="btn btn-outline-danger btn-sm" asp-controller="Order" asp-action="Cancel" asp-route-id="1001">Hủy đơn</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="order-card shadow-sm">
+                <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <h5 class="mb-0 fw-semibold">Đơn #FARM-1002</h5>
+                            <span class="status-badge status-preparing">Đang chuẩn bị</span>
+                        </div>
+                        <p class="text-muted mb-2">Ngày đặt: 22/06/2026</p>
+                        <p class="text-muted mb-0">Số lượng sản phẩm: 5 món</p>
+                    </div>
+                    <div class="text-lg-end">
+                        <p class="fw-bold mb-1">Tổng tiền: 820.000đ</p>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <a class="btn btn-outline-success btn-sm" asp-controller="Order" asp-action="Details" asp-route-id="1002">Xem chi tiết</a>
+                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Order" asp-action="Tracking" asp-route-id="1002">Theo dõi</a>
+                            <a class="btn btn-outline-warning btn-sm" asp-controller="Order" asp-action="Review" asp-route-id="1002">Đánh giá</a>
+                            <a class="btn btn-outline-danger btn-sm" asp-controller="Order" asp-action="Cancel" asp-route-id="1002">Hủy đơn</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="order-card shadow-sm">
+                <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <h5 class="mb-0 fw-semibold">Đơn #FARM-1003</h5>
+                            <span class="status-badge status-completed">Hoàn thành</span>
+                        </div>
+                        <p class="text-muted mb-2">Ngày đặt: 18/06/2026</p>
+                        <p class="text-muted mb-0">Số lượng sản phẩm: 2 món</p>
+                    </div>
+                    <div class="text-lg-end">
+                        <p class="fw-bold mb-1">Tổng tiền: 320.000đ</p>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <a class="btn btn-outline-success btn-sm" asp-controller="Order" asp-action="Details" asp-route-id="1003">Xem chi tiết</a>
+                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Order" asp-action="Tracking" asp-route-id="1003">Theo dõi</a>
+                            <a class="btn btn-outline-warning btn-sm" asp-controller="Order" asp-action="Review" asp-route-id="1003">Đánh giá</a>
+                            <a class="btn btn-outline-danger btn-sm" asp-controller="Order" asp-action="Cancel" asp-route-id="1003">Hủy đơn</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-light border mt-4 mb-0">
+        <strong>TODO:</strong> Hiển thị dữ liệu đơn hàng thực tế khi Backend hoàn thiện.
+    </div>
+</div>

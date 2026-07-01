@@ -1,0 +1,49 @@
+@model WebWeb.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="account-shell">
+    <div class="account-card auth-card">
+        <div class="auth-brand">
+            <div class="brand-icon"><i class="bi bi-flower3"></i></div>
+            <div>
+                <h3>Fresh Farm</h3>
+                <p>Tạo tài khoản mới</p>
+            </div>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+        <form asp-action="Register" method="post" class="auth-form">
+            <div class="mb-3">
+                <label class="form-label">Họ tên</label>
+                <input asp-for="FullName" class="form-control" placeholder="Nhập họ tên" />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" placeholder="Nhập email" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Số điện thoại</label>
+                <input asp-for="PhoneNumber" class="form-control" placeholder="Nhập số điện thoại" />
+                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+            <div class="mb-3">
+                <label class="form-label">Xác nhận mật khẩu</label>
+                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+            </div>
+            <button type="submit" class="btn btn-success w-100 mb-3">Đăng ký</button>
+            <p class="text-center text-muted mb-0">Đã có tài khoản? <a asp-action="Login" class="text-success fw-semibold">Đăng nhập</a></p>
+        </form>
+    </div>
+</div>

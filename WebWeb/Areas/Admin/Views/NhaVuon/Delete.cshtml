@@ -1,0 +1,30 @@
+﻿@model WebWeb.Models.NhaVuon
+@{
+    ViewData["Title"] = "Xóa Nhà vườn";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold mb-1">Xác nhận gỡ bỏ nhà vườn</h2>
+            <p class="text-muted mb-0">Thao tác này sẽ xóa vĩnh viễn dữ liệu đối tác khỏi hệ thống.</p>
+        </div>
+        <a class="btn btn-outline-secondary admin-btn" asp-area="Admin" asp-controller="NhaVuon" asp-action="Index"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    </div>
+
+    <div class="admin-empty-state text-center py-5 border rounded bg-white shadow-sm">
+        <div class="mb-3 text-danger"><i class="bi bi-exclamation-triangle-fill" style="font-size: 3.5rem;"></i></div>
+        <h4 class="fw-bold text-dark mb-2">Bạn thực sự có muốn xóa nhà vườn này không?</h4>
+        <p class="text-muted mb-4">Nhà vườn <strong class="text-danger">@Model.TenNhaVuon</strong> (#NV-@Model.NhaVuonId) tại <strong>@(Model.DiaChi ?? "chưa rõ địa chỉ")</strong> sẽ bị gỡ bỏ.</p>
+        
+        <form asp-area="Admin" asp-controller="NhaVuon" asp-action="Delete" method="post" class="d-inline-block">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="NhaVuonId" name="id" />
+            <div class="d-flex gap-2 justify-content-center">
+                <button type="submit" class="btn btn-danger admin-btn px-4"><i class="bi bi-trash3 me-1"></i> Thực hiện xóa</button>
+                <a class="btn btn-outline-secondary admin-btn px-4" asp-area="Admin" asp-controller="NhaVuon" asp-action="Index">Hủy bỏ</a>
+            </div>
+        </form>
+    </div>
+</div>

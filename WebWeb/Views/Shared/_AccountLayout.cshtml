@@ -1,0 +1,9 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<div class="account-shell">
+    <div class="account-card @(currentAction == "Profile" || currentAction == "Addresses" ? "dashboard-card" : "auth-card")">
+        @RenderBody()
+    </div>
+</div>

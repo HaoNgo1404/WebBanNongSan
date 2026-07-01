@@ -1,0 +1,102 @@
+﻿@model IEnumerable<WebWeb.Models.NongSan>
+@{
+    ViewData["Title"] = "Nông sản";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold mb-1">Nông sản</h2>
+            <p class="text-muted mb-0">Quản lý danh mục nông sản và hệ thống giá bán.</p>
+        </div>
+        <a class="btn btn-success admin-btn" asp-area="Admin" asp-controller="NongSan" asp-action="Create"><i class="bi bi-plus-lg"></i> Thêm mới</a>
+    </div>
+
+    <div class="admin-panel p-4">
+        <form method="get" asp-area="Admin" asp-controller="NongSan" asp-action="Index">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                <div class="position-relative" style="max-width: 360px; width: 100%;">
+                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                    <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm kiếm nông sản..." />
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm admin-btn">Tìm kiếm</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Hình ảnh</th>
+                        <th>Tên nông sản</th>
+                        <th>Danh mục</th>
+                        <th>Nhà vườn</th>
+                        <th>Giá bán niêm yết</th>
+                        <th>Sai số (%)</th>
+                        <th>ĐVT</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>#NS-@item.NongSanId</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                    {
+                                        <img src="@Url.Content("~/images/" + item.HinhAnh)" style="width:50px; height:40px; object-fit:cover;" class="rounded" />
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Không có</span>
+                                    }
+                                </td>
+                                <td class="fw-semibold">@item.TenNongSan</td>
+                                <td>@(item.DanhMuc?.TenDanhMuc ?? "Chưa phân loại")</td>
+                                <td>@(item.NhaVuon?.TenNhaVuon ?? "Chưa rõ")</td>
+                                <td class="text-success fw-bold">@item.GiaBanNiemYet.ToString("#,##0") đ</td>
+                                <td>± @item.SaiSoChoPhep %</td>
+                                <td>@item.DonViTinh</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Details" asp-route-id="@item.NongSanId"><i class="bi bi-eye"></i></a>
+                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Edit" asp-route-id="@item.NongSanId"><i class="bi bi-pencil"></i></a>
+                                        <a class="btn btn-outline-danger btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Delete" asp-route-id="@item.NongSanId"><i class="bi bi-trash"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">Không tìm thấy nông sản nào.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

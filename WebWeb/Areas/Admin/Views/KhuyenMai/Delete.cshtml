@@ -1,0 +1,29 @@
+﻿@model WebWeb.Models.KhuyenMai
+@{
+    ViewData["Title"] = "Xóa Khuyến Mãi";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Xác nhận gỡ bỏ chương trình</h3>
+            <p class="text-muted mb-0">Hành động này không thể hoàn tác sau khi thực hiện.</p>
+        </div>
+        <a class="btn btn-outline-secondary rounded-2 btn-sm" asp-action="Index"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    </div>
+
+    <div class="p-4 border border-danger-subtle rounded-3 bg-danger-subtle bg-opacity-10 mb-4 text-center">
+        <div class="text-danger mb-3"><i class="bi bi-exclamation-triangle fs-1"></i></div>
+        <h5 class="fw-bold text-dark mb-2">Bạn có chắc chắn muốn xóa khuyến mãi này không?</h5>
+        <p class="text-secondary mb-0">Chương trình: <strong>@Model.TenChuongTrinh</strong> (Mã: <code class="text-success fw-bold">@Model.VoucherCode</code>) sẽ bị loại bỏ khỏi danh sách.</p>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="KhuyenMaiId" />
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger px-4 rounded-2">Xác nhận xóa hẳn</button>
+            <a class="btn btn-outline-secondary px-4 rounded-2" asp-action="Index">Hủy hành động</a>
+        </div>
+    </form>
+</div>

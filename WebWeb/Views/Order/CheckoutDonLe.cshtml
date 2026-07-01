@@ -1,0 +1,99 @@
+@model WebWeb.Models.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Thanh toán Đơn hàng lẻ trực tuyến";
+}
+
+<div class="container mt-4">
+    <h2><i class="bi bi-cart-check"></i> Thanh toán Đơn hàng lẻ</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-7">
+            <form asp-action="DatDonHangLe" method="post" class="card p-4 shadow-sm">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <h5 class="mb-3 fw-bold text-dark"><i class="bi bi-geo-alt-fill text-danger"></i> Thông tin nhận nông sản</h5>
+
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-success">
+                            <i class="bi bi-person-check-fill"></i> Sổ địa chỉ tài khoản của bạn
+                        </label>
+                        <select asp-for="DiaChiId" class="form-select border-success py-2">
+                            <option value="1">Nhà riêng - 123 Nguyễn Văn Cừ, Quận 5, TP.HCM</option>
+                        </select>
+                        <small class="text-muted d-block mt-1">Hệ thống tự động sử dụng thông tin liên hệ trong hồ sơ tài khoản của bạn.</small>
+                    </div>
+                    
+                    <input type="hidden" asp-for="EmailCusNonAccount" value="@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value" />
+                }
+                else
+                {
+                    <div class="bg-light p-3 rounded-3 border border-dashed mb-3">
+                        <p class="text-warning small mb-2 fw-semibold">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Bạn đang đặt hàng với tư cách Khách vãng lai.
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên người nhận nông sản <span class="text-danger">*</span></label>
+                            <input type="text" asp-for="NameCusNonAccount" class="form-control" placeholder="Nhập đầy đủ họ tên..." required />
+                            <span asp-validation-for="NameCusNonAccount" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                            <input type="tel" asp-for="PhoneNonAccount" class="form-control" placeholder="Ví dụ: 0912345678..." required />
+                            <span asp-validation-for="PhoneNonAccount" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label fw-bold">Địa chỉ giao hàng cụ thể <span class="text-danger">*</span></label>
+                            <textarea asp-for="AddressNonAccount" class="form-control" rows="2" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..." required></textarea>
+                            <span asp-validation-for="AddressNonAccount" class="text-danger small"></span>
+                        </div>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Khung giờ giao hàng nhận nông sản</label>
+                    <select asp-for="KhungGioGiaoHang" class="form-select py-2">
+                        <option value="Sáng (07:00 - 11:00)">Sáng (07:00 - 11:00)</option>
+                        <option value="Chiều (13:00 - 17:00)">Chiều (13:00 - 17:00)</option>
+                        <option value="Tối (18:00 - 21:00)">Tối (18:00 - 21:00)</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold d-block">Phương thức thanh toán đơn lẻ</label>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="COD" checked>
+                        <label class="form-check-label">Thanh toán khi nhận hàng (COD)</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="VNPAY">
+                        <label class="form-check-label">Cổng VNPAY</label>
+                    </div>
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="MOMO">
+                        <label class="form-check-label">Ví MoMo</label>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary py-2.5 rounded-3 fw-bold flex-grow-1">
+                        <i class="bi bi-arrow-left"></i> QUAY LẠI GIỎ HÀNG
+                    </a>
+                    
+                    <button type="submit" class="btn btn-primary py-2.5 rounded-3 fw-bold flex-grow-1">
+                        XÁC NHẬN ĐẶT ĐƠN HÀNG LẺ
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="col-md-5">
+             @await Html.PartialAsync("_CheckoutSummary", Model)
+        </div>
+    </div>
+</div>

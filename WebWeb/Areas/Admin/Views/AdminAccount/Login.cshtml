@@ -1,0 +1,202 @@
+@model WebWeb.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập Hệ thống Quản trị";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Green Fresh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <style>
+        :root {
+            --primary-color: #198754;
+            --primary-hover: #146c43;
+            --bg-gradient: linear-gradient(135deg, #f4f7f6 0%, #e9f5ee 100%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+            padding: 15px;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(25, 135, 84, 0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .login-header {
+            background: #ffffff;
+            padding: 40px 35px 20px 35px;
+            text-align: center;
+        }
+
+        .brand-icon {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(25, 135, 84, 0.1);
+            color: var(--primary-color);
+            font-size: 28px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+        }
+
+        .login-body {
+            padding: 10px 35px 40px 35px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-right: none;
+            color: #6c757d;
+            border-radius: 10px 0 0 10px;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .form-control {
+            border-left: none;
+            border-radius: 0 10px 10px 0;
+            padding: 11px 15px;
+            font-size: 15px;
+            background-color: #ffffff;
+        }
+
+        .form-control:focus {
+            border-color: #dee2e6;
+            box-shadow: none;
+            background-color: #ffffff;
+        }
+
+        .input-group:focus-within .input-group-text,
+        .input-group:focus-within .form-control {
+            border-color: var(--primary-color);
+            background-color: #ffffff;
+        }
+
+        .btn-login {
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .back-to-home {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .back-to-home a {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-to-home a:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-card">
+            
+            <div class="login-header">
+                <div class="brand-icon">
+                    <i class="bi bi-flower3"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Green Fresh Admin</h4>
+                <p class="text-muted small mb-0">Vui lòng đăng nhập để vào hệ thống quản trị portal</p>
+            </div>
+
+            <div class="login-body">
+                <form asp-area="Admin" asp-controller="AdminAccount" asp-action="Login" method="post" autocomplete="off">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label">Tài khoản Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="admin@greenfresh.com" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" required />
+                        </div>
+                    </div>
+
+                    <div class="text-danger small mb-3 text-center" asp-validation-summary="ModelOnly"></div>
+
+                    <button type="submit" class="btn btn-login w-100">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Đăng Nhập
+                    </button>
+                </form>
+                
+                <div class="back-to-home">
+                    <a asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-arrow-left me-1"></i> Quay về trang chủ cửa hàng
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

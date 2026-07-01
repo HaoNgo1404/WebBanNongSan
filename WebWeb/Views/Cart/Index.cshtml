@@ -1,0 +1,112 @@
+@model IEnumerable<WebWeb.Models.GioHang>
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    var tongTien = Model.Sum(item => item.ThanhTien);
+    var phiVanChuyen = tongTien > 0 ? 15000 : 0; // Nếu giỏ hàng có đồ thì phí 15k, trống thì 0k
+    var tongThanhToan = tongTien + phiVanChuyen;
+}
+
+<div class="cart-page">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Giỏ hàng</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="cart-card p-4 bg-white border rounded-3 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1 fw-bold">Giỏ hàng của bạn</h2>
+                        <p class="text-muted mb-0">@Model.Count() loại sản phẩm trong giỏ</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        @if (Model.Any())
+                        {
+                            <a asp-action="Clear" class="btn btn-outline-danger">Xóa sạch giỏ</a>
+                        }
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-success">Tiếp tục mua hàng</a>
+                    </div>
+                </div>
+
+                @if (!Model.Any())
+                {
+                    <div class="alert alert-info text-center py-5 rounded-4 border-0 bg-light">
+                        <i class="bi bi-cart-x fs-1 d-block mb-3 text-muted"></i>
+                        Giỏ hàng của bạn đang trống rỗng. Hãy chọn mua nông sản nhé!
+                    </div>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        <div class="cart-item d-flex align-items-center justify-content-between border-bottom py-3 gap-3">
+                            <img src="@Url.Content("~/images/" + item.HinhAnh)" alt="@item.TenNongSan" class="rounded-3 object-fit-cover" style="width: 80px; height: 80px;" />
+                            
+                            <div class="cart-item-info flex-grow-1">
+                                <h5 class="fw-semibold mb-1">@item.TenNongSan</h5>
+                                <p class="text-muted small mb-0">Đơn vị: @item.DonViTinh</p>
+                                <div class="price-row mt-1">
+                                    <span class="price text-success fw-bold">@item.Gia.ToString("N0") VNĐ</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Bộ điều khiển số lượng -->
+                            <div class="quantity-control d-flex align-items-center border rounded-3 overflow-hidden">
+                                <a asp-action="Update" asp-route-id="@item.NongSanId" asp-route-quantity="@(item.SoLuong - 1)" class="btn btn-light btn-sm border-0 px-3 py-1">-</a>
+                                <span class="px-3 fw-medium">@item.SoLuong</span>
+                                <a asp-action="Update" asp-route-id="@item.NongSanId" asp-route-quantity="@(item.SoLuong + 1)" class="btn btn-light btn-sm border-0 px-3 py-1">+</a>
+                            </div>
+                            
+                            <div class="cart-item-total fw-bold text-dark text-end" style="min-width: 110px;">
+                                @item.ThanhTien.ToString("N0") VNĐ
+                            </div>
+                            
+                            <a asp-action="Remove" asp-route-id="@item.NongSanId" class="btn btn-outline-danger btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- CỘT TỔNG KẾT ĐƠN HÀNG (Bên phải) -->
+        <div class="col-lg-4">
+            <div class="summary-card p-4 bg-white border rounded-3 shadow-sm">
+                <h4 class="fw-bold mb-4 border-bottom pb-2">Tóm tắt đơn hàng</h4>
+                <div class="summary-row d-flex justify-content-between mb-2">
+                    <span class="text-muted">Tổng tiền</span>
+                    <strong>@tongTien.ToString("N0") VNĐ</strong>
+                </div>
+                <div class="summary-row d-flex justify-content-between mb-2">
+                    <span class="text-muted">Phí vận chuyển</span>
+                    <strong>@phiVanChuyen.ToString("N0") VNĐ</strong>
+                </div>
+                <hr />
+                <div class="summary-row total d-flex justify-content-between mb-4 fs-5 fw-bold text-success">
+                    <span>Tổng thanh toán</span>
+                    <span>@tongThanhToan.ToString("N0") VNĐ</span>
+                </div>
+                
+                @if (Model.Any())
+                {
+                    <a href="@Url.Action("CheckoutDonLe", "Order")" class="btn btn-primary w-100 mb-2 py-2.5 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2" style="text-decoration: none;">
+                        <i class="bi bi-bag-check-fill"></i> ĐẶT ĐƠN HÀNG LẺ
+                    </a>
+
+                    <a href="@Url.Action("CheckoutDinhKy", "Order")" class="btn btn-success w-100 mb-2 py-2.5 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2" style="text-decoration: none;">
+                        <i class="bi bi-calendar-check-fill"></i> ĐĂNG KÝ GÓI ĐỊNH KỲ
+                    </a>
+                }
+                else
+                {
+                    <button class="btn btn-secondary w-100 mb-2 py-2.5 rounded-3 fw-bold" disabled>Giỏ hàng trống</button>
+                }
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-success w-100 py-2.5 rounded-3">Tiếp tục mua hàng</a>
+            </div>
+        </div>
+    </div>
+</div>

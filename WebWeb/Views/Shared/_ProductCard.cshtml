@@ -1,0 +1,27 @@
+@model WebWeb.Models.NongSan
+
+<div class="product-card h-100">
+    <div class="product-card-image">
+        <img src="@Url.Content("~/images/" + Model.HinhAnh)" style="width:100%; height:200px; object-fit:cover;" class="rounded-top"
+             alt="@Model.TenNongSan" />
+        <span class="product-badge">Sạch & tươi</span>
+        <button class="product-fav-btn" type="button" aria-label="Yêu thích">
+            <i class="bi bi-heart"></i>
+        </button>
+    </div>
+    <div class="product-card-body">
+        <div class="product-meta">
+            <span class="text-muted small">@(Model.DanhMuc?.TenDanhMuc ?? "Nông sản")</span>
+            <span class="text-muted small"><i class="bi bi-star-fill text-warning"></i> 4.8</span>
+        </div>
+        <h5 class="product-card-title">@Model.TenNongSan</h5>
+        <p class="product-card-text">@Model.DonViTinh</p>
+        <div class="product-card-footer">
+            <div>
+                <div class="price">@Model.GiaBanNiemYet.ToString("N0") VNĐ</div>
+                <div class="text-muted small">Từ @(string.IsNullOrWhiteSpace(Model.NhaVuon?.TenNhaVuon) ? "Fresh Farm" : Model.NhaVuon.TenNhaVuon)</div>
+            </div>
+            <a asp-controller="Product" asp-action="Detail" asp-route-id="@Model.NongSanId" class="btn btn-success btn-sm">Chi tiết</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,162 @@
+﻿@model WebWeb.Areas.Admin.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="h3 fw-bold text-success mb-1"><i class="bi bi-speedometer2"></i> Hệ Thống Thống Kê & Báo Cáo</h2>
+            <p class="text-muted mb-0">Theo dõi doanh thu kinh doanh nông sản và hiệu suất bán hàng tổng quan.</p>
+        </div>
+        <div>
+            <form method="get" action="@Url.Action("Index")" class="d-flex gap-2 align-items-center">
+                <label class="text-nowrap fw-semibold text-muted mb-0">Chọn năm:</label>
+                <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 120px;">
+                    @for (int y = DateTime.Now.Year - 2; y <= DateTime.Now.Year; y++)
+                    {
+                        if (y == ViewBag.SelectedYear)
+                        {
+                            <option value="@y" selected>Năm @y</option>
+                        }
+                        else
+                        {
+                            <option value="@y">Năm @y</option>
+                        }
+                    }
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="p-3 border rounded shadow-sm bg-light d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Tổng Doanh Thu</h6>
+                    <h4 class="fw-bold text-success mb-0">@Model.TongDoanhThu.ToString("#,##0") đ</h4>
+                </div>
+                <div class="fs-1 text-success opacity-50"><i class="bi bi-currency-dollar"></i></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 border rounded shadow-sm bg-light d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Đơn Hàng Mới</h6>
+                    <h4 class="fw-bold text-primary mb-0">@Model.SoDonHangMoi đơn</h4>
+                </div>
+                <div class="fs-1 text-primary opacity-50"><i class="bi bi-cart-check"></i></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 border rounded shadow-sm bg-light d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Khách Hàng</h6>
+                    <h4 class="fw-bold text-warning mb-0">@Model.SoKhachHang user</h4>
+                </div>
+                <div class="fs-1 text-warning opacity-50"><i class="bi bi-people"></i></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 border rounded shadow-sm bg-light d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Lợi Nhuận Gộp</h6>
+                    <h4 class="fw-bold text-info mb-0">@Model.TongLoiNhuan.ToString("#,##0") đ</h4>
+                </div>
+                <div class="fs-1 text-info opacity-50"><i class="bi bi-graph-up-arrow"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="p-3 border rounded shadow-sm bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-line-fill text-success"></i> Thống kê doanh thu theo tháng</h5>
+                <div style="position: relative; height:320px;">
+                    <canvas id="chartDoanhThuThang"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="p-3 border rounded shadow-sm bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill text-warning"></i> Top 5 nông sản bán chạy</h5>
+                <div style="position: relative; height:320px;" class="d-flex align-items-center justify-content-center">
+                    <canvas id="chartTopNongSan"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Nhận dữ liệu an toàn từ Model C# ép kiểu sang JSON JavaScript
+    const labelThangs = @Html.Raw(Json.Serialize(Model.LabelThangs));
+    const dataDoanhThu = @Html.Raw(Json.Serialize(Model.DataDoanhThuThang));
+
+    const topNongSanNames = @Html.Raw(Json.Serialize(Model.TopNongSanNames));
+    const topNongSanQuantities = @Html.Raw(Json.Serialize(Model.TopNongSanQuantities));
+
+    // 1. Khởi tạo Biểu đồ Cột Doanh Thu Theo Tháng
+    const ctxBar = document.getElementById('chartDoanhThuThang').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: labelThangs,
+            datasets: [{
+                label: 'Doanh thu thực nhận (đđ)',
+                data: dataDoanhThu,
+                backgroundColor: 'rgba(40, 167, 69, 0.75)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString('vi-VN') + ' đ';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Khởi tạo Biểu đồ Tròn Top 5 Nông Sản Bán Chạy
+    const ctxPie = document.getElementById('chartTopNongSan').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'doughnut', // Dạng bánh donut hiện đại giống thiết kế prototype
+        data: {
+            labels: topNongSanNames.length > 0 ? topNongSanNames : ["Chưa có dữ liệu"],
+            datasets: [{
+                data: topNongSanQuantities.length > 0 ? topNongSanQuantities : [1],
+                backgroundColor: [
+                    '#28a745', // Xanh lá
+                    '#ffc107', // Vàng
+                    '#17a2b8', // Xanh lục bảo
+                    '#dc3545', // Đỏ
+                    '#6c757d'  // Xám đám mây
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, padding: 15 }
+                }
+            }
+        }
+    });
+</script>

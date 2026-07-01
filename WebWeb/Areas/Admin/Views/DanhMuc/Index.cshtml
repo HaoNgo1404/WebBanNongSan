@@ -1,0 +1,85 @@
+﻿@model IEnumerable<WebWeb.Models.DanhMuc>
+@{
+    ViewData["Title"] = "Danh mục";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold mb-1">Danh mục nông sản</h2>
+            <p class="text-muted mb-0">Quản lý các nhóm ngành hàng và phân loại hệ thống.</p>
+        </div>
+        <a class="btn btn-success admin-btn" asp-area="Admin" asp-controller="DanhMuc" asp-action="Create"><i class="bi bi-plus-lg"></i> Thêm mới</a>
+    </div>
+
+    <div class="admin-panel p-4">
+        <form method="get" asp-area="Admin" asp-controller="DanhMuc" asp-action="Index">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                <div class="position-relative" style="max-width: 360px; width: 100%;">
+                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                    <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm kiếm danh mục..." />
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm admin-btn">Tìm kiếm</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%">Mã danh mục</th>
+                        <th style="width: 30%">Tên danh mục</th>
+                        <th style="width: 25%">Loại hàng</th>
+                        <th style="width: 30%">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">#DM-@item.DanhMucId</td>
+                                <td class="fw-semibold text-dark">@item.TenDanhMuc</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-2 py-1">@item.LoaiHang</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="DanhMuc" asp-action="Details" asp-route-id="@item.DanhMucId"><i class="bi bi-eye"></i> Chi tiết</a>
+                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="DanhMuc" asp-action="Edit" asp-route-id="@item.DanhMucId"><i class="bi bi-pencil"></i> Sửa</a>
+                                        <a class="btn btn-outline-danger btn-sm" asp-area="Admin" asp-controller="DanhMuc" asp-action="Delete" asp-route-id="@item.DanhMucId"><i class="bi bi-trash"></i> Xóa</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">Không tìm thấy danh mục nào phù hợp.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

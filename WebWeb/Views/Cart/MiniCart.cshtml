@@ -1,0 +1,48 @@
+@model IEnumerable<WebWeb.Models.GioHang>
+@{
+    Layout = null;
+    var tongTienMini = Model.Sum(item => item.ThanhTien);
+}
+
+<div class="mini-cart-dropdown shadow-lg border rounded-3 bg-white" style="min-width: 320px;">
+    <div class="mini-cart-header p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold text-success"><i class="bi bi-cart3 me-2"></i>Giỏ hàng gần đây</h6>
+        <span class="badge bg-success rounded-pill">@Model.Sum(item => item.SoLuong) sản phẩm</span>
+    </div>
+    
+    <div class="mini-cart-body p-2" style="max-height: 280px; overflow-y: auto;">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-4 text-muted small">
+                <i class="bi bi-cart-x fs-4 d-block mb-1"></i>
+                Chưa có sản phẩm nào
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <div class="mini-cart-item d-flex align-items-center gap-3 p-2 border-bottom-0 rounded-2 hover-bg-light mb-2">
+                    <img src="@Url.Content("~/images/" + item.HinhAnh)" alt="@item.TenNongSan" class="rounded object-fit-cover" style="width: 50px; height: 50px;" />
+                    <div class="flex-grow-1 overflow-hidden">
+                        <h6 class="mb-0 text-dark text-truncate small fw-semibold">@item.TenNongSan</h6>
+                        <small class="text-muted d-block">@item.SoLuong x @item.Gia.ToString("N0")₫</small>
+                    </div>
+                    <a asp-controller="Cart" asp-action="Remove" asp-route-id="@item.NongSanId" class="text-danger small p-1" title="Xóa">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </div>
+            }
+        }
+    </div>
+    
+    <div class="mini-cart-footer p-3 bg-light border-top rounded-bottom-3">
+        <div class="d-flex justify-content-between fw-bold mb-3 text-dark">
+            <span>Tổng tiền:</span>
+            <span class="text-danger">@tongTienMini.ToString("N0") VNĐ</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-success btn-sm w-100 py-2 fw-medium rounded-2">Xem giỏ hàng</a>
+        </div>
+    </div>
+</div>

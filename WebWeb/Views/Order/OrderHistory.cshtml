@@ -1,0 +1,159 @@
+@model IEnumerable<WebWeb.Models.DonHangLe>
+@{
+    ViewData["Title"] = "Lịch sử mua hàng";
+}
+
+<div class="account-dashboard">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <partial name="_AccountSidebar" />
+        </div>
+        <div class="col-lg-9">
+            <div class="dashboard-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <p class="section-label mb-0 text-success fw-bold text-uppercase small">Đơn hàng</p>
+                        <h2 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-success"></i> Lịch sử đơn hàng lẻ</h2>
+                    </div>    
+                </div>
+
+                <div class="order-list">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                    }
+
+                    @if (Model == null || !Model.Any())
+                    {
+                        <div class="card text-center p-5 border-0 shadow-sm bg-light rounded-3">
+                            <div class="card-body">
+                                <i class="bi bi-bag-x text-muted" style="font-size: 3.5rem;"></i>
+                                <h4 class="mt-3 text-secondary">Bạn chưa có đơn hàng lẻ nào!</h4>
+                                <p class="text-muted">Hãy lấp đầy giỏ hàng bằng những nông sản tươi ngon từ Fresh Farm ngay hôm nay.</p>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-success px-4 py-2 mt-2 rounded-pill fw-bold">Tiếp tục mua sắm</a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive card p-3 shadow-sm border-0 rounded-3">
+                            <table class="table table-hover align-middle mb-0 text-center">
+                                <thead class="table-light text-secondary">
+                                    <tr>
+                                        <th>Mã đơn hàng</th>
+                                        <th>Ngày đặt</th>
+                                        <th>Phương thức</th>
+                                        <th>Thanh toán</th>
+                                        <th>Tổng tiền tạm tính</th>
+                                        <th>Trạng thái đơn hàng</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-dark">#@item.DonHangLeId</td>
+                                            <td>@item.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border">@item.PhuongThucThanhToan</span>
+                                            </td>
+                                            <td>
+                                                @if (item.TrangThaiThanhToan == "Đã thanh toán")
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success">Đã thanh toán</span>
+                                                }
+                                                else if (item.TrangThaiThanhToan == "Chờ thanh toán")
+                                                {
+                                                    <span class="badge bg-warning-subtle text-warning border border-warning">Chờ thanh toán</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger">@item.TrangThaiThanhToan</span>
+                                                }
+                                            </td>
+                                            <td class="fw-bold text-success">@string.Format("{0:N0}", item.TongTienTamTinh) đ</td>
+                                            <td>
+                                                @switch (item.TrangThaiDonHang)
+                                                {
+                                                    case "Chờ duyệt":
+                                                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Chờ duyệt</span>
+                                                        break;
+                                                    case "Đang giao":
+                                                        <span class="badge bg-info text-white"><i class="bi bi-truck"></i> Đang giao</span>
+                                                        break;
+                                                    case "Đã giao":
+                                                        <span class="badge bg-success text-white"><i class="bi bi-check-circle-fill"></i> Đã hoàn thành</span>
+                                                        break;
+                                                    case "Đã hủy":
+                                                        <span class="badge bg-secondary text-white"><i class="bi bi-x-circle-fill"></i> Đã hủy</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-light text-dark">@item.TrangThaiDonHang</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td class="text-nowrap">
+                                                <a asp-action="OrderHistoryDetail" asp-route-id="@item.DonHangLeId" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-medium">
+                                                    <i class="bi bi-eye"></i> Xem chi tiết
+                                                </a>
+                                                @if (item.TrangThaiDonHang == "Chờ xử lý")
+                                                {
+                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium ms-1"
+                                                            onclick="cancelOrderLe('@item.DonHangLeId', this)">
+                                                        <i class="bi bi-x-circle"></i> Hủy đơn
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>    
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function cancelOrderLe(orderId, buttonElement) {
+            if (confirm(`Hào có chắc chắn muốn hủy đơn hàng #${orderId} này không?`)) {
+                
+                // Gọi API ngầm lên Controller
+                fetch(`@Url.Action("HuyDonHangLe", "Order")?id=${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        
+                        // Tìm hàng và cập nhật lại trạng thái hiển thị trực tiếp mà không cần reload trang
+                        const row = buttonElement.closest('tr');
+                        if (row) {
+                            // Cập nhật lại cột Trạng thái hiển thị chữ "Đã hủy"
+                            const statusCell = row.querySelector('td:nth-child(5)'); // Đếm thứ tự cột trạng thái của bạn
+                            if (statusCell) {
+                                statusCell.innerHTML = '<span class="badge bg-secondary text-white"><i class="bi bi-x-circle-fill"></i> Đã hủy</span>';
+                            }
+                            // Ẩn nút hủy vừa bấm đi
+                            buttonElement.remove();
+                        }
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi:", error);
+                    alert("Đã xảy ra lỗi kết nối khi thực hiện hủy đơn hàng!");
+                });
+            }
+        }
+    </script>
+}

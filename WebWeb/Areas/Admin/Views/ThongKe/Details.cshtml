@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Chi tiết Thống kê";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold mb-1">Chi tiết thống kê</h2>
+            <p class="text-muted mb-0">Thông tin mẫu cho module thống kê.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-outline-secondary admin-btn" href="@Url.Action("Index")"><i class="bi bi-arrow-left"></i> Quay lại</a>
+            <a class="btn btn-success admin-btn" href="@Url.Action("Edit", new { id = 1 })"><i class="bi bi-pencil"></i> Chỉnh sửa</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="admin-panel p-4">
+                <h5 class="fw-semibold mb-3">Thông tin chính</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Tên</label>
+                        <div class="fw-semibold">Ví dụ thống kê</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Trạng thái</label>
+                        <div><span class="admin-badge admin-badge--success">Hoạt động</span></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted">Mô tả</label>
+                        <div>Xem báo cáo tổng hợp và xu hướng hoạt động.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="admin-panel p-4">
+                <h5 class="fw-semibold mb-3">Meta</h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><strong>Mã:</strong> #THONGKE-001</li>
+                    <li class="mb-2"><strong>Người tạo:</strong> Admin</li>
+                    <li class="mb-2"><strong>Cập nhật:</strong> 28/06/2026</li>
+                    <li><strong>Loại:</strong> Báo cáo</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-light border mt-4 mb-0">
+        <small><strong>TODO:</strong> Hiển thị dữ liệu thực từ backend và liên kết với các module liên quan.</small>
+    </div>
+</div>

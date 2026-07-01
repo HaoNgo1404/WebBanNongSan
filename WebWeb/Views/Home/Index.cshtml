@@ -1,0 +1,249 @@
+﻿@model IEnumerable<WebWeb.Models.NongSan>
+
+@{
+    ViewData["Title"] = "Trang chủ";
+    var featuredProducts = Model.Take(8).ToList();
+    var seasonalProducts = Model.ToList(); // Lấy toàn bộ để nếu > 4 sản phẩm thì tự sinh slide trượt
+}
+
+<section class="hero-section">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <div class="hero-copy">
+                <span class="hero-badge">Green Fresh • Nông sản sạch</span>
+                <h1>Đặt hàng nông sản tươi ngon trực tiếp từ nhà vườn.</h1>
+                <p>Khám phá rau củ, trái cây và thực phẩm sạch được chọn lọc kỹ lưỡng, giao tận nơi trong ngày.</p>
+                <div class="hero-actions">
+                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@(featuredProducts.FirstOrDefault()?.NongSanId ?? 1)" class="btn btn-success btn-lg">Mua ngay</a>
+                    <a href="#products" class="btn btn-outline-light btn-lg">Xem sản phẩm</a>
+                </div>
+                <div class="hero-stats">
+                    <div>
+                        <strong>100%</strong>
+                        <span>Sạch</span>
+                    </div>
+                    <div>
+                        <strong>24h</strong>
+                        <span>Giao nhanh</span>
+                    </div>
+                    <div>
+                        <strong>4.9/5</strong>
+                        <span>Đánh giá</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="hero-card">
+                <div class="hero-card-inner">
+                    <h3>Sản phẩm nổi bật</h3>
+                    <p>Đa dạng chủng loại với mức giá hợp lý, phù hợp cho gia đình và doanh nghiệp.</p>
+                    <ul>
+                        <li><i class="bi bi-check-circle"></i> Truy xuất nguồn gốc</li>
+                        <li><i class="bi bi-check-circle"></i> Đóng gói an toàn</li>
+                        <li><i class="bi bi-check-circle"></i> Theo mùa và cập nhật hàng ngày</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="section-label">Danh mục</p>
+            <h2>Khám phá nông sản theo nhu cầu</h2>
+        </div>
+        <a asp-controller="Product" asp-action="DanhMuc" asp-route-id="@(featuredProducts.FirstOrDefault()?.NongSanId ?? 1)" class="text-success fw-semibold">Xem thêm</a>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-pill">
+                <i class="bi bi-tree"></i>
+                <div>
+                    <h5>Rau củ sạch</h5>
+                    <p>Giàu dinh dưỡng, được thu hoạch mỗi ngày.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-pill">
+                <i class="bi bi-flower1"></i>
+                <div>
+                    <h5>Trái cây tươi</h5>
+                    <p>Hương vị ngọt tự nhiên và đa dạng theo mùa.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-pill">
+                <i class="bi bi-egg-fried"></i>
+                <div>
+                    <h5>Thực phẩm nguyên chất</h5>
+                    <p>Phù hợp cho bữa ăn gia đình và kinh doanh.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-block" id="products">
+    <div class="section-heading d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <p class="section-label">Sản phẩm nổi bật</p>
+            <h2>Chọn những mặt hàng được yêu thích nhất</h2>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-success rounded-circle p-2" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev" style="width:40px; height:40px;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn btn-outline-success rounded-circle p-2" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next" style="width:40px; height:40px;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="featuredCarousel" class="carousel slide" data-bs-ride="false">
+        <div class="carousel-inner">
+            @{
+                int featuredCount = featuredProducts.Count;
+                int chunkSize = 4; // Định cấu hình hiển thị đúng 4 sản phẩm/slide
+                for (int i = 0; i < featuredCount; i += chunkSize)
+                {
+                    var chunk = featuredProducts.Skip(i).Take(chunkSize).ToList();
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        <div class="row g-4">
+                            @foreach (var item in chunk)
+                            {
+                                <div class="col-lg-3 col-md-6">
+                                    <partial name="_ProductCard" model="item" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <p class="section-label">Theo mùa</p>
+            <h2>Gợi ý nông sản tươi mới mỗi tuần</h2>
+        </div>
+        @if (seasonalProducts.Count > 4)
+        {
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-success rounded-circle p-2" type="button" data-bs-target="#seasonalCarousel" data-bs-slide="prev" style="width:40px; height:40px;">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn btn-outline-success rounded-circle p-2" type="button" data-bs-target="#seasonalCarousel" data-bs-slide="next" style="width:40px; height:40px;">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        }
+    </div>
+
+    <div id="seasonalCarousel" class="carousel slide" data-bs-ride="false">
+        <div class="carousel-inner">
+            @{
+                int seasonalCount = seasonalProducts.Count;
+                for (int i = 0; i < seasonalCount; i += chunkSize)
+                {
+                    var chunk = seasonalProducts.Skip(i).Take(chunkSize).ToList();
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        <div class="row g-4">
+                            @foreach (var item in chunk)
+                            {
+                                <div class="col-lg-3 col-md-6">
+                                    <partial name="_ProductCard" model="item" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-6">
+            <div class="info-card">
+                <p class="section-label">Vì sao chọn Fresh Farm</p>
+                <h2>Cam kết mang lại trải nghiệm mua sắm nông sản thật sự an tâm.</h2>
+                <p>Fresh Farm kết nối khách hàng với nhà vườn, giữ nguyên chất lượng sản phẩm từ đầu đến tay người tiêu dùng.</p>
+                <ul class="check-list">
+                    <li><i class="bi bi-check2-circle"></i> Nguồn gốc rõ ràng</li>
+                    <li><i class="bi bi-check2-circle"></i> Đóng gói chuyên nghiệp</li>
+                    <li><i class="bi bi-check2-circle"></i> Hỗ trợ giao hàng linh hoạt</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="timeline-card">
+                <h5>Quy trình từ nhà vườn đến khách hàng</h5>
+                <div class="timeline-item">
+                    <span>01</span>
+                    <div><strong>Thu hoạch</strong><p>Chọn lọc sản phẩm tươi nhất tại nhà vườn.</p></div>
+                </div>
+                <div class="timeline-item">
+                    <span>02</span>
+                    <div><strong>Đóng gói</strong><p>Đảm bảo vệ sinh, giữ độ tươi và giảm hao hụt.</p></div>
+                </div>
+                <div class="timeline-item">
+                    <span>03</span>
+                    <div><strong>Giao hàng</strong><p>Vận chuyển đúng thời gian và điều kiện tốt nhất.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="section-label">Khách hàng nói gì</p>
+            <h2>Những phản hồi tích cực từ người mua</h2>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>“Rau củ rất tươi, giao đúng giờ và giá hợp lý. Tôi sẽ tiếp tục đặt hàng.”</p>
+                <strong>Minh Anh</strong>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>“Mùi vị và độ tươi vượt mong đợi, phù hợp cho gia đình tôi.”</p>
+                <strong>Hương Trần</strong>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>“Fresh Farm giúp doanh nghiệp của tôi có nguồn hàng ổn định và chất lượng.”</p>
+                <strong>Quang Vũ</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-block newsletter-card">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+            <p class="section-label">Tin tức & ưu đãi</p>
+            <h2>Đăng ký nhận thông tin nông sản mới và khuyến mãi hấp dẫn.</h2>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <button class="btn btn-light btn-lg">Đăng ký ngay</button>
+        </div>
+    </div>
+</section>

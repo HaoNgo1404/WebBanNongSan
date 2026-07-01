@@ -1,0 +1,60 @@
+﻿@model WebWeb.Models.LoHang
+@{
+    ViewData["Title"] = "Xác Nhận Xóa Lô Hàng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-danger mb-1"><i class="bi bi-exclamation-triangle-fill"></i> Xác nhận xóa lô hàng</h2>
+            <p class="text-muted mb-0">Hành động này sẽ gỡ bỏ vĩnh viễn dữ liệu lịch sử lô hàng ra khỏi hệ thống.</p>
+        </div>
+        <a class="btn btn-outline-secondary admin-btn" asp-action="LoHangList"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    </div>
+
+    <div class="admin-panel p-4 bg-white border border-danger-subtle rounded shadow-sm mb-4">
+        <h5 class="fw-bold text-dark mb-3">Thông tin hồ sơ hủy bỏ:</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <span class="text-muted d-block">Mã số lô hàng:</span>
+                <strong class="text-dark">#LH-@Model.LoHangId</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted d-block">Mã chứng từ liên kết:</span>
+                <strong class="text-primary">#PN-@Model.PhieuNhapId</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted d-block">Nông sản:</span>
+                <strong class="text-success">@(Model.NongSan?.TenNongSan ?? "Không rõ")</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted d-block">Số lượng nhập kho:</span>
+                <strong class="text-dark">@Model.SoLuongNhap</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted d-block">Thời gian cập bến:</span>
+                <strong class="text-dark">@Model.NgayNhapKho.ToString("dd/MM/yyyy HH:mm")</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted d-block">Hạn sử dụng:</span>
+                <strong class="text-danger">@Model.HanSuDung.ToString("dd/MM/yyyy")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-empty-state border border-dashed rounded p-4 text-center bg-light">
+        <div class="text-danger fs-1 mb-2"><i class="bi bi-trash3"></i></div>
+        <div class="fw-semibold text-dark mb-1">Bạn chắc chắn muốn xóa mục này?</div>
+        <p class="text-muted small mb-0">Mọi báo cáo hao hụt và dữ liệu tồn kho liên đới thuộc mã lô #LH-@Model.LoHangId có thể bị ảnh hưởng.</p>
+    </div>
+
+    <form asp-action="DeleteLoHang" method="post" class="mt-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="LoHangId" />
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-danger px-4"><i class="bi bi-trash"></i> Thực hiện xóa</button>
+            <a class="btn btn-outline-secondary px-4" asp-action="LoHangList">Hủy</a>
+        </div>
+    </form>
+</div>

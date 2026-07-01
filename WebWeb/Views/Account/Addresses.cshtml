@@ -1,0 +1,225 @@
+@using System.Text.Encodings.Web
+@model IEnumerable<WebWeb.Models.SoDiaChi>
+@{
+    ViewData["Title"] = "Quản lý địa chỉ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="account-dashboard">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <partial name="_AccountSidebar" />
+        </div>
+        <div class="col-lg-9">
+            <div class="dashboard-content card p-4 shadow-sm border-0 rounded-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <p class="section-label mb-0 text-success fw-bold text-uppercase small">Tài khoản</p>
+                        <h2 class="mb-0 fw-bold text-dark">Quản lý sổ địa chỉ</h2>
+                    </div>
+                    <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="openAddressModal(0)">
+                        <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
+                    </button>
+                </div>
+
+                <div class="address-list d-flex flex-column gap-3">
+                    @if (Model == null || !Model.Any())
+                    {
+                        <div class="text-center py-5 bg-light rounded-4 border border-dashed">
+                            <i class="bi bi-geo text-muted fs-1"></i>
+                            <p class="text-muted mt-2 mb-0">Bạn chưa lưu địa chỉ giao hàng nào.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <div class="address-card p-3 border rounded-4 bg-light @(item.IsDefault ? "border-success bg-success-subtle bg-opacity-10" : "")">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h5 class="mb-1 fw-bold text-dark">
+                                            @item.TenNguoiNhan 
+                                            @if (!string.IsNullOrEmpty(item.LoaiDiaChi))
+                                            {
+                                                <span class="badge bg-secondary small ms-2 fw-normal">@item.LoaiDiaChi</span>
+                                            }
+                                        </h5>
+                                        <p class="text-muted mb-0 small"><i class="bi bi-telephone"></i> @item.SoDienThoaiNhan</p>
+                                    </div>
+                                    @if (item.IsDefault)
+                                    {
+                                        <span class="badge bg-success rounded-pill px-2.5 py-1 shadow-sm"><i class="bi bi-check-circle-fill"></i> Mặc định</span>
+                                    }
+                                </div>
+                                <p class="mb-3 text-dark"><i class="bi bi-geo-alt"></i> @item.DiaChiGiao</p>
+                                <div class="address-actions d-flex gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" 
+                                            onclick="openAddressModal(@item.DiaChiId, '@JavaScriptEncoder.Default.Encode(item.TenNguoiNhan)', '@item.SoDienThoaiNhan', '@JavaScriptEncoder.Default.Encode(item.DiaChiGiao)', '@item.LoaiDiaChi', @item.IsDefault.ToString().ToLower())">
+                                        <i class="bi bi-pencil-square"></i> Sửa
+                                    </button>
+                                    
+                                    @if (!item.IsDefault)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="deleteAddress(@item.DiaChiId)">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </button>
+                                        <button class="btn btn-outline-success btn-sm rounded-pill px-3" onclick="setDefaultAddress(@item.DiaChiId)">
+                                            Đặt mặc định
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addressModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="modalTitle">Địa chỉ nhận hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addressForm">
+                    <input type="hidden" id="DiaChiId" name="DiaChiId" value="0" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Tên người nhận <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3" id="TenNguoiNhan" name="TenNguoiNhan" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Số điện thoại nhận <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control rounded-3" id="SoDienThoaiNhan" name="SoDienThoaiNhan" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Địa chỉ giao hàng cụ thể <span class="text-danger">*</span></label>
+                        <textarea class="form-control rounded-3" id="DiaChiGiao" name="DiaChiGiao" rows="2" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Loại địa chỉ</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="LoaiDiaChi" id="typeNhaRieng" value="Nhà riêng" checked>
+                                <label class="form-check-label" for="typeNhaRieng">Nhà riêng</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="LoaiDiaChi" id="typeVanPhong" value="Văn phòng">
+                                <label class="form-check-label" for="typeVanPhong">Văn phòng / Cơ quan</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2" id="divDefaultCheckbox">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="IsDefault" name="IsDefault" value="true">
+                            <label class="form-check-label small text-secondary fw-bold" for="IsDefault">Đặt làm địa chỉ nhận hàng mặc định</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" onclick="submitAddressForm()">Lưu lại</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Gọi hiển thị Modal (id = 0 là Thêm mới, id > 0 là sửa)
+        function openAddressModal(id, name = '', phone = '', address = '', type = 'Nhà riêng', isDefault = false) {
+            document.getElementById('addressForm').reset();
+            document.getElementById('DiaChiId').value = id;
+            
+            if (id === 0) {
+                document.getElementById('modalTitle').innerText = "Thêm địa chỉ giao nhận mới";
+                document.getElementById('divDefaultCheckbox').style.display = "block";
+            } else {
+                document.getElementById('modalTitle').innerText = "Cập nhật địa chỉ nhận hàng";
+                document.getElementById('TenNguoiNhan').value = name;
+                document.getElementById('SoDienThoaiNhan').value = phone;
+                document.getElementById('DiaChiGiao').value = address;
+                
+                if (type === 'Văn phòng') {
+                    document.getElementById('typeVanPhong').checked = true;
+                } else {
+                    document.getElementById('typeNhaRieng').checked = true;
+                }
+
+                // Nếu đang là địa chỉ mặc định rồi thì ẩn checkbox mặc định đi (bắt buộc phải giữ mặc định)
+                if (isDefault) {
+                    document.getElementById('divDefaultCheckbox').style.display = "none";
+                    document.getElementById('IsDefault').checked = true;
+                } else {
+                    document.getElementById('divDefaultCheckbox').style.display = "block";
+                    document.getElementById('IsDefault').checked = false;
+                }
+            }
+            
+            var myModal = new bootstrap.Modal(document.getElementById('addressModal'));
+            myModal.show();
+        }
+
+        // Thực hiện gửi dữ liệu Lưu (Add/Edit) thông qua AJAX Fetch ngầm
+        function submitAddressForm() {
+            const form = document.getElementById('addressForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const formData = new FormData(form);
+            // Đảm bảo xử lý đúng giá trị checkbox boolean switch của ASP.NET
+            if (!formData.has('IsDefault')) {
+                formData.append('IsDefault', 'false');
+            }
+
+            fetch('@Url.Action("SaveAddress", "Account")', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => console.error("Lỗi:", err));
+        }
+
+        // Đặt địa chỉ mặc định nhanh
+        function setDefaultAddress(id) {
+            fetch('@Url.Action("SetDefaultAddress", "Account")?id=' + id, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => { if (data.success) window.location.reload(); })
+            .catch(err => console.error(err));
+        }
+
+        // Gửi lệnh xóa địa chỉ lẻ
+        function deleteAddress(id) {
+            if (confirm("Hào có chắc chắn muốn xóa địa chỉ này khỏi sổ tay không?")) {
+                fetch('@Url.Action("DeleteAddress", "Account")?id=' + id, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => console.error(err));
+            }
+        }
+    </script>
+}

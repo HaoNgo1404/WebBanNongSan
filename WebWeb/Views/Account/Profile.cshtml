@@ -1,0 +1,147 @@
+@model WebWeb.Models.KhachHang
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    var hoTen = Model?.HoTen ?? "Khách hàng";
+    var email = Model?.Email ?? "";
+    var soDienThoai = Model?.SoDienThoai ?? "";
+}
+
+<div class="account-dashboard">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <partial name="_AccountSidebar" />
+        </div>
+        <div class="col-lg-9">
+            <div class="dashboard-content card p-4 shadow-sm border-0 rounded-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <p class="section-label mb-0 text-success fw-bold text-uppercase small">Tài khoản</p>
+                        <h2 class="mb-0 fw-bold text-dark">Thông tin cá nhân</h2>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-action="ChangePassword" class="btn btn-outline-danger rounded-pill px-3 fw-bold">Đổi mật khẩu</a>
+                    </div>
+                </div>
+
+                <div class="profile-card p-3 border rounded-4 bg-light">
+                    <form id="profileForm">
+                        <div class="row g-4 align-items-center">
+                            <div class="col-md-3 text-center">
+                                <div class="avatar-large mx-auto d-flex align-items-center justify-content-center rounded-circle text-white shadow-sm" 
+                                     style="background-color: #198754; font-weight: bold; font-size: 32px; width: 90px; height: 90px;">
+                                    @(hoTen.Length > 0 ? hoTen.Substring(0, 1).ToUpper() : "U")
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary small fw-bold">Họ tên</label>
+                                        <div id="view-hoten" class="form-control bg-white border-0 fw-semibold py-2">@hoTen</div>
+                                        <input type="text" id="input-hoten" name="hoTen" class="form-control rounded-3 d-none" value="@hoTen" required />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary small fw-bold">Email</label>
+                                        <div id="view-email" class="form-control bg-white border-0 fw-semibold py-2">@email</div>
+                                        <input type="email" id="input-email" name="email" class="form-control rounded-3 d-none" value="@email" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary small fw-bold">Số điện thoại</label>
+                                        <div id="view-phone" class="form-control bg-white border-0 fw-semibold py-2">@soDienThoai</div>
+                                        <input type="text" id="input-phone" name="phone" class="form-control rounded-3 d-none" value="@soDienThoai" required />
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 d-flex justify-content-end gap-2">
+                                    <button type="button" id="btn-edit" class="btn btn-success rounded-pill px-4 fw-bold">
+                                        <i class="bi bi-pencil-square"></i> Chỉnh sửa hồ sơ
+                                    </button>
+
+                                    <button type="button" id="btn-cancel" class="btn btn-outline-secondary rounded-pill px-3 d-none">Hủy bỏ</button>
+                                    <button type="button" id="btn-save" class="btn btn-primary rounded-pill px-4 fw-bold d-none">Lưu thay đổi</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const btnEdit = document.getElementById('btn-edit');
+        const btnCancel = document.getElementById('btn-cancel');
+        const btnSave = document.getElementById('btn-save');
+
+        const viewHoTen = document.getElementById('view-hoten');
+        const viewEmail = document.getElementById('view-email');
+        const inputHoTen = document.getElementById('input-hoten');
+        const inputEmail = document.getElementById('input-email');
+
+        // Bấm Chỉnh sửa: Ẩn text hiện ô nhập liệu
+        btnEdit.addEventListener('click', function () {
+            viewHoTen.classList.add('d-none');
+            viewEmail.classList.add('d-none');
+            btnEdit.classList.add('d-none');
+
+            inputHoTen.classList.remove('d-none');
+            inputEmail.classList.remove('d-none');
+            btnCancel.classList.remove('d-none');
+            btnSave.classList.remove('d-none');
+        });
+
+        // Bấm Hủy bỏ: Khôi phục lại trạng thái ban đầu
+        btnCancel.addEventListener('click', function () {
+            inputHoTen.classList.add('d-none');
+            inputEmail.classList.add('d-none');
+            btnCancel.classList.add('d-none');
+            btnSave.classList.add('d-none');
+
+            viewHoTen.classList.remove('d-none');
+            viewEmail.classList.remove('d-none');
+            btnEdit.classList.remove('d-none');
+
+            // Reset lại giá trị gốc ban đầu trong ô input nếu người dùng gõ dở
+            inputHoTen.value = viewHoTen.innerText.trim();
+            inputEmail.value = viewEmail.innerText.trim();
+        });
+
+        // Bấm Lưu: Gửi AJAX lên Server cập nhật DB
+        btnSave.addEventListener('click', function () {
+            const form = document.getElementById('profileForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            formData.append('hoTen', inputHoTen.value);
+            formData.append('email', inputEmail.value);
+
+            fetch('@Url.Action("UpdateProfile", "Account")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Tải lại trang để đồng bộ cookie danh tính mới nhất
+                    window.location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi:", err);
+                alert("Đã xảy ra sự cố kết nối mạng!");
+            });
+        });
+    </script>
+}

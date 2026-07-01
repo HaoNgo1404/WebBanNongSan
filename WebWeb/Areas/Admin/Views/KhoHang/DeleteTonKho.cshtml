@@ -1,0 +1,57 @@
+﻿@model WebWeb.Models.LoHang
+@{
+    ViewData["Title"] = "Xác Nhận Hủy Tồn Kho";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-danger mb-1"><i class="bi bi-exclamation-octagon-fill"></i> Xác nhận xóa tồn kho nông sản</h2>
+            <p class="text-muted mb-0">Hành động này sẽ xóa bỏ dữ liệu tồn kho hiện tại của lô hàng này.</p>
+        </div>
+        <a class="btn btn-outline-secondary admin-btn" asp-action="Index"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    </div>
+
+    <div class="admin-panel p-4 bg-white border border-danger-subtle rounded shadow-sm mb-4">
+        <h5 class="fw-bold text-dark mb-3">Thông tin lượng tồn kho sắp hủy:</h5>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <span class="text-muted d-block">Tên nông sản:</span>
+                <strong class="text-dark fs-5">@(Model.NongSan?.TenNongSan ?? "Không rõ")</strong>
+            </div>
+            <div class="col-md-6">
+                <span class="text-muted d-block">Nhà cung ứng (Nhà vườn):</span>
+                <strong class="text-dark">@(Model.PhieuNhapKho?.NhaVuon?.TenNhaVuon ?? "Không rõ")</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted d-block">Số lượng tồn thực tế hiện tại:</span>
+                <strong class="text-danger fs-5">@Model.SoLuongTon</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted d-block">Đơn giá nhập:</span>
+                <strong class="text-success">@Model.DonGiaNhap.ToString("#,##0") đ</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted d-block">Hạn sử dụng:</span>
+                <strong class="text-dark">@Model.HanSuDung.ToString("dd/MM/yyyy")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-warning d-flex align-items-center p-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3 fs-4"></i>
+        <div>
+            <strong>Cảnh báo quan trọng:</strong> Khi thực hiện xóa, số lượng tồn <span class="badge bg-danger">@Model.SoLuongTon</span> của sản phẩm này sẽ biến mất hoàn toàn khỏi kho và không thể tính toán vào luồng bán hàng lẻ/bán sỉ.
+        </div>
+    </div>
+
+    <form asp-action="DeleteTonKho" method="post" class="mt-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="LoHangId" />
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-danger px-4"><i class="bi bi-trash-fill"></i> Xác nhận xóa khỏi kho</button>
+            <a class="btn btn-outline-secondary px-4" asp-action="Index">Hủy bỏ</a>
+        </div>
+    </form>
+</div>
