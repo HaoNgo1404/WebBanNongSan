@@ -1,0 +1,133 @@
+@{
+    ViewData["Title"] = "Lập Phiếu Tất Toán Công Nợ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var nhaVuon = ViewBag.NhaVuon as WebWeb.Models.NhaVuon;
+    decimal congNoHienTai = ViewBag.CongNoHienTai;
+}
+
+<div class="container-fluid px-4 py-3">
+    <!-- Đường dẫn quay lại danh sách -->
+    <div class="mb-3">
+        <a asp-action="DanhSachCongNo" class="btn btn-link text-success p-0 fw-bold text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách công nợ
+        </a>
+    </div>
+
+    <h2 class="fw-bold text-dark mb-4">
+        <i class="bi bi-file-earmark-medical text-success"></i> Tiến Trình Lập Phiếu Tất Toán Công Nợ
+    </h2>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm mb-3">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- CỘT TRÁI: HIỂN THỊ TỔNG QUAN ĐỐI TÁC -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="bi bi-house-door"></i> Hồ sơ đối tác</h5>
+                
+                <table class="table table-borderless align-middle sm-text mb-0">
+                    <tr>
+                        <td class="text-muted" style="width: 35%;">Tên nhà vườn:</td>
+                        <td class="fw-bold text-dark">@nhaVuon?.TenNhaVuon</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Số điện thoại:</td>
+                        <td class="text-dark">@(nhaVuon?.SoDienThoai ?? "---")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Địa chỉ liên hệ:</td>
+                        <td class="text-dark small">@(nhaVuon?.DiaChi ?? "---")</td>
+                    </tr>
+                    <tr class="border-top">
+                        <td class="text-danger fw-bold pt-3">Số nợ tích lũy:</td>
+                        <td class="fw-bold text-danger fs-5 pt-3">@congNoHienTai.ToString("#,##0") đ</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: FORM NHẬP THÔNG TIN THANH TOÁN -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white border-start border-4 border-success">
+                <h5 class="fw-bold text-success pb-2 mb-3"><i class="bi bi-cash-coin"></i> Thông tin giải ngân thực tế</h5>
+                
+                <form asp-action="LuuPhieuTatToan" method="post" onsubmit="return confirm('Hào có chắc chắn muốn xác nhận thanh toán giải ngân số tiền công nợ này không?');">
+                    @Html.AntiForgeryToken()
+                    <!-- Gửi kèm Id của nhà vườn ẩn bên dưới -->
+                    <input type="hidden" name="nhaVuonId" value="@nhaVuon?.NhaVuonId" />
+
+                    <!-- Ô số tiền (Mặc định điền toàn bộ dư nợ hiện tại) -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Số tiền chi trả tất toán (VNĐ): <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" class="form-control fw-bold text-danger bg-light" name="soTienThucChi" 
+                                   value="@congNoHienTai" max="@congNoHienTai" min="1000" step="1000" required readonly />
+                            <span class="input-group-text bg-light text-muted fw-bold">VNĐ</span>
+                        </div>
+                        <span class="form-text text-muted small">Hệ thống đang thiết lập chi trả toàn bộ dư nợ tích lũy để dứt điểm công nợ đợt này.</span>
+                    </div>
+
+                    <!-- Lựa chọn nhân viên thực hiện thanh toán -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Nhân viên thực hiện lập phiếu:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-person-badge"></i></span>
+                            <!-- Lấy trực tiếp tên từ phiên đăng nhập Cookie/Claims hiển thị lên màn hình -->
+                            <input type="text" class="form-control bg-light text-dark fw-medium" 
+                                value="@User.Identity?.Name" readonly />
+                        </div>
+                        <span class="form-text text-muted small">Hệ thống tự động ghi nhận theo tài khoản đang đăng nhập của bạn để lưu lịch sử kiểm toán.</span>
+                    </div>
+
+                    <!-- Lựa chọn hình thức thanh toán -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Hình thức chi trả:</label>
+                        <select class="form-select rounded-3" name="phuongThuc" id="selectPhuongThuc" onchange="toggleMaGiaoDich()">
+                            <option value="1">Chuyển khoản ngân hàng (Ủy nhiệm chi)</option>
+                            <option value="2">Chi trả trực tiếp bằng tiền mặt</option>
+                        </select>
+                    </div>
+
+                    <!-- Ô điền mã giao dịch khi chuyển khoản -->
+                    <div class="mb-4" id="divMaGiaoDich">
+                        <label class="form-label small fw-bold text-secondary">Mã giao dịch ngân hàng (Bỏ trống nếu chưa có):</label>
+                        <input type="text" class="form-control font-monospace" name="maGiaoDich" id="txtMaGiaoDich"
+                            style="text-transform: uppercase;" placeholder="Ví dụ: FT260682345 (Có thể bổ sung sau)" />
+                    </div>
+
+                    <!-- Nút hành động bấm lưu -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="DanhSachCongNo" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="bi bi-check-lg"></i> Xác nhận hoàn thành & In phiếu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript nhỏ xử lý ẩn hiện trường nhập mã giao dịch theo phương thức -->
+<!-- JavaScript cập nhật lại để không bắt buộc nhập mã giao dịch -->
+<script>
+    function toggleMaGiaoDich() {
+        var phuongThuc = document.getElementById("selectPhuongThuc").value;
+        var divMaGiaoDich = document.getElementById("divMaGiaoDich");
+        var txtMaGiaoDich = document.getElementById("txtMaGiaoDich");
+        
+        if (phuongThuc === "2") {
+            // Nếu chọn Tiền mặt: Ẩn luôn ô nhập
+            divMaGiaoDich.style.display = "none";
+            txtMaGiaoDich.value = "";
+        } else {
+            // Nếu chọn Chuyển khoản: Hiện ô nhập nhưng KHÔNG bắt buộc (không thêm required)
+            divMaGiaoDich.style.display = "block";
+        }
+    }
+</script>

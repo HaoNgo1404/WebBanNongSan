@@ -41,61 +41,61 @@
             </div>
         </form>
 
-        
-
         <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Mã KH</th>
-                        <th>Họ Và Tên</th>
-                        <th>Thông Tin Liên Hệ</th>
-                        <th>Ngày Đăng Ký</th>
-                        <th>Điểm Tích Lũy</th>
-                        <th>Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
+            <div class="khachhang-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã KH</th>
+                            <th>Họ Và Tên</th>
+                            <th>Thông Tin Liên Hệ</th>
+                            <th>Ngày Đăng Ký</th>
+                            <th>Điểm Tích Lũy</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-secondary">#KH-@item.KhachHangId</td>
+                                    <td class="fw-semibold text-dark">@item.HoTen</td>
+                                    <td class="contact-info">
+                                        <div><i class="bi bi-telephone me-1 text-muted"></i> @item.SoDienThoai</div>
+                                        @if (!string.IsNullOrEmpty(item.Email))
+                                        {
+                                            <small class="text-muted"><i class="bi bi-envelope me-1"></i> @item.Email</small>
+                                        }
+                                    </td>
+                                    <td>@item.NgayDangKy.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-bold">
+                                            <i class="bi bi-star-fill me-1"></i> @item.DiemTichLuy điểm
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a class="btn btn-outline-secondary btn-sm rounded-2 px-3" asp-action="Details" asp-route-id="@item.KhachHangId">
+                                            <i class="bi bi-eye"></i> Xem hồ sơ
+                                        </a>
+                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="KhachHang" asp-action="Edit" asp-route-id="@item.KhachHangId"><i class="bi bi-pencil"></i> Sửa</a>
+                                        <a asp-area="Admin" asp-controller="KhachHang" asp-action="Delete" asp-route-id="@item.KhachHangId" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td class="fw-bold text-secondary">#KH-@item.KhachHangId</td>
-                                <td class="fw-semibold text-dark">@item.HoTen</td>
-                                <td class="contact-info">
-                                    <div><i class="bi bi-telephone me-1 text-muted"></i> @item.SoDienThoai</div>
-                                    @if (!string.IsNullOrEmpty(item.Email))
-                                    {
-                                        <small class="text-muted"><i class="bi bi-envelope me-1"></i> @item.Email</small>
-                                    }
-                                </td>
-                                <td>@item.NgayDangKy.ToString("dd/MM/yyyy")</td>
-                                <td>
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-bold">
-                                        <i class="bi bi-star-fill me-1"></i> @item.DiemTichLuy điểm
-                                    </span>
-                                </td>
-                                <td>
-                                    <a class="btn btn-outline-secondary btn-sm rounded-2 px-3" asp-action="Details" asp-route-id="@item.KhachHangId">
-                                        <i class="bi bi-eye"></i> Xem hồ sơ
-                                    </a>
-                                    <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="KhachHang" asp-action="Edit" asp-route-id="@item.KhachHangId"><i class="bi bi-pencil"></i> Sửa</a>
-                                    @* <a asp-area="Admin" asp-controller="KhachHang" asp-action="Delete" asp-route-id="@item.KhachHangId" class="btn btn-sm btn-danger">
-                                        <i class="bi bi-trash"></i> Xóa
-                                    </a> *@
-                                </td>
+                                <td colspan="6" class="text-center text-muted py-4">Không tìm thấy thành viên nào phù hợp.</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Không tìm thấy thành viên nào phù hợp.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

@@ -30,6 +30,23 @@
             </div>
 
             <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="NongSanId" class="form-label fw-medium text-dark">Giới hạn theo Nông Sản (Tùy chọn)</label>
+                    <select asp-for="NongSanId" class="form-select" asp-items="ViewBag.NongSanId">
+                        <option value="">-- Áp dụng cho tất cả sản phẩm --</option>
+                    </select>
+                    <small class="text-muted">Chọn nếu chỉ muốn mã này giảm riêng cho 1 loại nông sản cụ thể.</small>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="DanhMucId" class="form-label fw-medium text-dark">Giới hạn theo Danh Mục (Tùy chọn)</label>
+                    <select asp-for="DanhMucId" class="form-select" asp-items="ViewBag.DanhMucId">
+                        <option value="">-- Áp dụng cho tất cả danh mục --</option>
+                    </select>
+                    <small class="text-muted">Chọn nếu muốn áp dụng mã cho toàn bộ sản phẩm thuộc nhóm này.</small>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
                 <div class="col-md-4">
                     <label asp-for="LoaiGiamGia" class="form-label fw-medium text-dark">Loại giảm giá</label>
                     <select asp-for="LoaiGiamGia" class="form-select">

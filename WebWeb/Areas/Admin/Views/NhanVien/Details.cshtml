@@ -1,0 +1,94 @@
+@model WebWeb.Models.NhanVien
+@{
+    ViewData["Title"] = "Chi Tiết Nhân Viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="text-success text-decoration-none small fw-medium">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách nhân viên
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="admin-card p-4">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1">Hồ sơ nhân viên #NV-@Model.NhanVienId</h4>
+                    <p class="text-muted small mb-0">Thông tin chi tiết tài khoản và lịch sử hoạt động trên hệ thống.</p>
+                </div>
+                <div>
+                    @if (Model.TrangThai == true)
+                    {
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill fw-bold">Đang hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1.5 rounded-pill fw-bold">Ngừng hoạt động</span>
+                    }
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light bg-opacity-50">
+                        <small class="text-muted d-block mb-1">Họ và tên</small>
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person text-success me-1"></i> @Model.HoTen</h6>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light bg-opacity-50">
+                        <small class="text-muted d-block mb-1">Email đăng nhập</small>
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-envelope text-success me-1"></i> @Model.Email</h6>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light bg-opacity-50">
+                        <small class="text-muted d-block mb-1">Chức vụ / Vai trò</small>
+                        <h6 class="fw-bold text-dark mb-0">
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-0.5 rounded-pill">
+                                <i class="bi bi-shield-lock-fill me-1"></i> @Model.VaiTro?.TenVaiTro
+                            </span>
+                        </h6>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light bg-opacity-50">
+                        <small class="text-muted d-block mb-1">Mật khẩu hệ thống</small>
+                        <h6 class="text-muted mb-0 small"><i class="bi bi-eye-slash-fill"></i> •••••••• (Bảo mật)</h6>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Thống kê hoạt động dữ liệu</h5>
+            <div class="row g-3 mb-4 text-center">
+                <div class="col-6 col-sm-4">
+                    <div class="border rounded-3 p-3 bg-white shadow-sm">
+                        <h4 class="fw-extrabold text-success mb-1">@Model.DonHangLes?.Count</h4>
+                        <span class="text-muted small">Đơn hàng đã xử lý</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4">
+                    <div class="border rounded-3 p-3 bg-white shadow-sm">
+                        <h4 class="fw-extrabold text-primary mb-1">@Model.PhieuNhapKhos?.Count</h4>
+                        <span class="text-muted small">Phiếu kho đã lập</span>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <div class="border rounded-3 p-3 bg-white shadow-sm">
+                        <h4 class="fw-extrabold text-warning mb-1">@Model.DotGiaoDinhKies?.Count</h4>
+                        <span class="text-muted small">Đợt giao nông sản định kỳ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-top pt-3 d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-light rounded-3 fw-semibold px-4 border">Quay lại</a>
+                <a asp-action="Edit" asp-route-id="@Model.NhanVienId" class="btn btn-primary rounded-3 fw-bold px-4">
+                    <i class="bi bi-pencil-square"></i> Chỉnh sửa hồ sơ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

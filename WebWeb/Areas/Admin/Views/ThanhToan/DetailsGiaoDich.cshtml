@@ -35,7 +35,7 @@
 
                     <dt class="col-sm-4 text-muted fw-normal">Trạng thái xử lý:</dt>
                     <dd class="col-sm-8">
-                        @(Model.TrangThai == 1 ? "Thành công công nhận dòng tiền" : "Thất bại / Đã hủy hủy bỏ")
+                        @(Model.TrangThai == 1 ? "Thành công " : "Hoàn tiền")
                     </dd>
                 </dl>
             </div>
@@ -46,13 +46,16 @@
                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Liên kết đơn hàng</h5>
                 @if(Model.DonHangLe != null)
                 {
-                    <p class="mb-2"><strong>Mã Đơn hàng:</strong> #DH-@Model.DonHangLeId</p>
-                    <p class="mb-2"><strong>Khách hàng:</strong> @(Model.DonHangLe.KhachHang?.HoTen ?? "Khách đặt nhanh")</p>
+                    <p class="mb-2"><strong>Mã Đơn hàng:</strong> #DH-@Model.DonHangLe.DonHangLeId</p>
+                    <p class="mb-2"><strong>Khách hàng:</strong> @(Model.DonHangLe.KhachHang?.HoTen ?? Model.DonHangLe.NameCusNonAccount)</p>
                     <p class="mb-0"><strong>Số điện thoại:</strong> @(Model.DonHangLe.KhachHang?.SoDienThoai ?? Model.DonHangLe.PhoneNonAccount)</p>
                 }
                 else
                 {
-                    <p class="text-muted mb-0">Giao dịch thuộc về gói Đăng ký định kỳ (Subscription).</p>
+                    <p class="mb-2"><strong>Mã Gói:</strong> #DH-@Model.GoiDangKyId</p>
+                    <p class="mb-2"><strong>Khách hàng:</strong> @Model.GoiDangKy?.KhachHang?.HoTen</p>
+                    <p><strong>Tần suất phát:</strong> @Model.GoiDangKy?.TanSuatGiao</p>
+                    <p class="mb-0"><strong>Số điện thoại:</strong> @(Model.GoiDangKy?.KhachHang?.SoDienThoai)</p>
                 }
             </div>
         </div>

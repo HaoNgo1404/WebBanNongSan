@@ -15,6 +15,7 @@ namespace WebWeb.Models
         public int GoiId { get; set; }
         public int KhachHangId { get; set; }
         public int DiaChiId { get; set; }
+        public int KhuyenMaiId { get; set; }
         public DateTime NgayBatDau { get; set; }
         public DateTime NgayKetThuc { get; set; }
         public string TanSuatGiao { get; set; } = null!;
@@ -22,10 +23,11 @@ namespace WebWeb.Models
         public decimal TongTienGoi { get; set; }
         public string TrangThaiGoi { get; set; } = null!;
 
-        public virtual SoDiaChi DiaChi { get; set; } = null!;
-        public virtual KhachHang KhachHang { get; set; } = null!;
-        public virtual ICollection<ChiTietGoiDinhKy> ChiTietGoiDinhKies { get; set; }
-        public virtual ICollection<DotGiaoDinhKy> DotGiaoDinhKies { get; set; }
-        public virtual ICollection<GiaoDichThanhToan> GiaoDichThanhToans { get; set; }
+        public virtual SoDiaChi? DiaChi { get; set; }
+        public virtual KhachHang? KhachHang { get; set; }
+        public virtual KhuyenMai? KhuyenMai { get; set; }
+        public virtual ICollection<ChiTietGoiDinhKy>? ChiTietGoiDinhKies { get; set; }
+        public virtual ICollection<DotGiaoDinhKy>? DotGiaoDinhKies { get; set; }
+        public virtual ICollection<GiaoDichThanhToan>? GiaoDichThanhToans { get; set; }
     }
 }

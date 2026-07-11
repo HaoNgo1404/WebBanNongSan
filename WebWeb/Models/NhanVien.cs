@@ -22,12 +22,12 @@ namespace WebWeb.Models
         public int VaiTroId { get; set; }
         public bool? TrangThai { get; set; }
 
-        public virtual VaiTroPhanQuyen VaiTro { get; set; } = null!;
-        public virtual ICollection<BaoCaoHaoHut> BaoCaoHaoHuts { get; set; }
-        public virtual ICollection<DonHangLe> DonHangLes { get; set; }
-        public virtual ICollection<DotGiaoDinhKy> DotGiaoDinhKies { get; set; }
-        public virtual ICollection<KhieuNai> KhieuNais { get; set; }
-        public virtual ICollection<PhieuChiCongNo> PhieuChiCongNos { get; set; }
-        public virtual ICollection<PhieuNhapKho> PhieuNhapKhos { get; set; }
+        public virtual VaiTroPhanQuyen? VaiTro { get; set; }
+        public virtual ICollection<BaoCaoHaoHut>? BaoCaoHaoHuts { get; set; }
+        public virtual ICollection<DonHangLe>? DonHangLes { get; set; }
+        public virtual ICollection<DotGiaoDinhKy>? DotGiaoDinhKies { get; set; }
+        public virtual ICollection<KhieuNai>? KhieuNais { get; set; }
+        public virtual ICollection<PhieuChiCongNo>? PhieuChiCongNos { get; set; }
+        public virtual ICollection<PhieuNhapKho>? PhieuNhapKhos { get; set; }
     }
 }

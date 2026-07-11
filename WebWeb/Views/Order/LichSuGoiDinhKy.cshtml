@@ -4,6 +4,24 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    /* Tùy biến thanh cuộn cho khu vực danh sách gói */
+    .goi-dinhky-container::-webkit-scrollbar {
+        width: 6px; /* Độ rộng của thanh cuộn */
+    }
+    .goi-dinhky-container::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+        border-radius: 10px;
+    }
+    .goi-dinhky-container::-webkit-scrollbar-thumb {
+        background: #198754; /* Màu xanh lá chuẩn bootstrap/nông sản */
+        border-radius: 10px;
+    }
+    .goi-dinhky-container::-webkit-scrollbar-thumb:hover {
+        background: #157347; 
+    }
+</style>
+
 <div class="account-dashboard">
     <div class="row g-4">
         <div class="col-lg-3">
@@ -15,96 +33,97 @@
                     <p class="section-label mb-0 text-success fw-bold text-uppercase small">Đơn hàng</p>
                     <h2 class="mb-0 fw-bold text-dark">Gói nông sản định kỳ đã đăng ký</h2>
                 </div>
-
-                <div class="goi-dinhky-list d-flex flex-column gap-3">
-                    @if (Model == null || !Model.Any())
-                    {
-                        <div class="text-center py-5 bg-light rounded-4 border border-dashed">
-                            <i class="bi bi-calendar-range text-muted fs-1"></i>
-                            <p class="text-muted mt-2 mb-0">Bạn chưa đăng ký gói nông sản định kỳ nào.</p>
-                            <a asp-controller="Home" asp-action="Index" class="btn btn-success rounded-pill btn-sm mt-3 px-3">Khám phá ngay</a>
-                        </div>
-                    }
-                    else
-                    {
-                        foreach (var item in Model)
+                <div class="goi-dinhky-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                    <div class="goi-dinhky-list d-flex flex-column gap-3">
+                        @if (Model == null || !Model.Any())
                         {
-                            // Lấy ra thông tin giao dịch thanh toán đầu tiên (nếu có) từ ICollection
-                            var giaoDichDauTien = item.GiaoDichThanhToans?.FirstOrDefault();
-
-                            <div class="card p-3 border rounded-4 @(item.TrangThaiGoi == "Đã hủy" ? "bg-light border-secondary-subtle" : "bg-white shadow-sm border-success-subtle")">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <h5 class="mb-1 fw-bold text-dark">
-                                            Mã đăng ký: <span class="text-success">#@item.GoiId</span>
-                                        </h5>
-                                        <p class="text-muted mb-0 small">
-                                            <i class="bi bi-calendar-check"></i> Thời hạn gói: 
-                                            <span class="fw-semibold text-dark">@item.NgayBatDau.ToString("dd/MM/yyyy")</span> 
-                                            đến <span class="fw-semibold text-dark">@item.NgayKetThuc.ToString("dd/MM/yyyy")</span>
-                                        </p>
-                                    </div>
-                                    <div>
-                                        @if (item.TrangThaiGoi == "Chờ xử lý")
-                                        {
-                                            <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1">Chờ xét duyệt</span>
-                                        }
-                                        else if (item.TrangThaiGoi == "Đang giao" || item.TrangThaiGoi == "Hoạt động")
-                                        {
-                                            <span class="badge bg-success rounded-pill px-2.5 py-1">Đang hoạt động</span>
-                                        }
-                                        else if (item.TrangThaiGoi == "Đã hủy")
-                                        {
-                                            <span class="badge bg-danger rounded-pill px-2.5 py-1">Đã hủy gói</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary rounded-pill px-2.5 py-1">@item.TrangThaiGoi</span>
-                                        }
-                                    </div>
-                                </div>
-
-                                <div class="row my-2 py-2 border-top border-bottom bg-light bg-opacity-50 rounded-3 small">
-                                    <div class="col-md-6">
-                                        <p class="mb-1 text-dark"><strong>Người nhận:</strong> @item.DiaChi?.TenNguoiNhan</p>
-                                        <p class="mb-0 text-dark"><strong>SĐT:</strong> @item.DiaChi?.SoDienThoaiNhan</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p class="mb-1 text-dark"><strong>Địa chỉ giao:</strong> @item.DiaChi?.DiaChiGiao</p>
-                                        <p class="mb-0 text-dark">
-                                            <strong>Tần suất:</strong> <span class="text-success fw-semibold">@item.TanSuatGiao</span> (@item.ThuTrongTuan)
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <div>
-                                        <span class="text-secondary small">Thanh toán:</span>
-                                        <span class="badge bg-light text-dark border me-3">
-                                            @(giaoDichDauTien != null ? giaoDichDauTien.PhuongThuc : "Chưa thanh toán")
-                                        </span>
-                                        
-                                        <span class="text-secondary small">Tổng tiền gói:</span>
-                                        <strong class="text-danger fs-5 ms-1">@item.TongTienGoi.ToString("N0")₫</strong>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        @if (item.TrangThaiGoi != "Đã hủy")
-                                        {
-                                            <button class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" onclick="confirmCancelGoi(@item.GoiId)">
-                                                <i class="bi bi-x-circle"></i> Hủy đăng ký gói
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>
-                                                Không thể thao tác
-                                            </button>
-                                        }
-                                    </div>
-                                </div>
+                            <div class="text-center py-5 bg-light rounded-4 border border-dashed">
+                                <i class="bi bi-calendar-range text-muted fs-1"></i>
+                                <p class="text-muted mt-2 mb-0">Bạn chưa đăng ký gói nông sản định kỳ nào.</p>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-success rounded-pill btn-sm mt-3 px-3">Khám phá ngay</a>
                             </div>
                         }
-                    }
+                        else
+                        {
+                            foreach (var item in Model)
+                            {
+                                // Lấy ra thông tin giao dịch thanh toán đầu tiên (nếu có) từ ICollection
+                                var giaoDichDauTien = item.GiaoDichThanhToans?.FirstOrDefault();
+
+                                <div class="card p-3 border rounded-4 @(item.TrangThaiGoi == WebWeb.Models.OrderStatuses.DaHuy ? "bg-light border-secondary-subtle" : "bg-white shadow-sm border-success-subtle")">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h5 class="mb-1 fw-bold text-dark">
+                                                Mã đăng ký: <span class="text-success">#@item.GoiId</span>
+                                            </h5>
+                                            <p class="text-muted mb-0 small">
+                                                <i class="bi bi-calendar-check"></i> Thời hạn gói: 
+                                                <span class="fw-semibold text-dark">@item.NgayBatDau.ToString("dd/MM/yyyy")</span> 
+                                                đến <span class="fw-semibold text-dark">@item.NgayKetThuc.ToString("dd/MM/yyyy")</span>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            @if (item.TrangThaiGoi == WebWeb.Models.OrderStatuses.ChoDuyet)
+                                            {
+                                                <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1">Chờ xét duyệt</span>
+                                            }
+                                            else if (item.TrangThaiGoi == WebWeb.Models.OrderStatuses.DangGiao || item.TrangThaiGoi == WebWeb.Models.OrderStatuses.HoatDong)
+                                            {
+                                                <span class="badge bg-success rounded-pill px-2.5 py-1">Đang hoạt động</span>
+                                            }
+                                            else if (item.TrangThaiGoi == WebWeb.Models.OrderStatuses.DaHuy)
+                                            {
+                                                <span class="badge bg-danger rounded-pill px-2.5 py-1">Đã hủy gói</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary rounded-pill px-2.5 py-1">@item.TrangThaiGoi</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="row my-2 py-2 border-top border-bottom bg-light bg-opacity-50 rounded-3 small">
+                                        <div class="col-md-6">
+                                            <p class="mb-1 text-dark"><strong>Người nhận:</strong> @item.DiaChi?.TenNguoiNhan</p>
+                                            <p class="mb-0 text-dark"><strong>SĐT:</strong> @item.DiaChi?.SoDienThoaiNhan</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1 text-dark"><strong>Địa chỉ giao:</strong> @item.DiaChi?.DiaChiGiao</p>
+                                            <p class="mb-0 text-dark">
+                                                <strong>Tần suất:</strong> <span class="text-success fw-semibold">@item.TanSuatGiao</span> (@item.ThuTrongTuan)
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div>
+                                            <span class="text-secondary small">Thanh toán:</span>
+                                            <span class="badge bg-light text-dark border me-3">
+                                                @(giaoDichDauTien != null ? WebWeb.Models.OrderStatuses.DaThanhToan : WebWeb.Models.OrderStatuses.ChuaThanhToan)
+                                            </span>
+                                            
+                                            <span class="text-secondary small">Tổng tiền gói:</span>
+                                            <strong class="text-danger fs-5 ms-1">@item.TongTienGoi.ToString("N0")₫</strong>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            @if (item.TrangThaiGoi != WebWeb.Models.OrderStatuses.DaHuy)
+                                            {
+                                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" onclick="confirmCancelGoi(@item.GoiId)">
+                                                    <i class="bi bi-x-circle"></i> Hủy đăng ký gói
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>
+                                                    Không thể thao tác
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
                 </div>
             </div>
         </div>

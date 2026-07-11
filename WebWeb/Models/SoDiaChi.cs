@@ -19,8 +19,8 @@ namespace WebWeb.Models
         public string? LoaiDiaChi { get; set; }
         public bool IsDefault { get; set; }
 
-        public virtual KhachHang KhachHang { get; set; } = null!;
-        public virtual ICollection<DonHangLe> DonHangLes { get; set; }
-        public virtual ICollection<GoiDangKyDinhKy> GoiDangKyDinhKies { get; set; }
+        public virtual KhachHang? KhachHang { get; set; }
+        public virtual ICollection<DonHangLe>? DonHangLes { get; set; }
+        public virtual ICollection<GoiDangKyDinhKy>? GoiDangKyDinhKies { get; set; }
     }
 }

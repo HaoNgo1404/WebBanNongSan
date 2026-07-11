@@ -112,17 +112,54 @@ namespace WebWeb.Controllers
 
             return RedirectToAction(nameof(Login));
         }
-        #endregion
-
-        #region ĐĂNG XUẤT
+        // ĐĂNG XUẤT
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
-        #endregion
+        // =================================================================
+        // QUÊN MẬT KHẨU - [GET] Hiển thị giao diện nhập Email
+        // =================================================================
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
 
-        #region THAY ĐỔI MẬT KHẨU (Bổ sung theo yêu cầu)
+        // =================================================================
+        // QUÊN MẬT KHẨU - [POST] Xử lý kiểm tra email và gửi yêu cầu khôi phục
+        // =================================================================
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(LoginViewModel model)
+        {
+            // Chỉ cần kiểm tra tính hợp lệ của trường Email trong Model gửi lên
+            if (string.IsNullOrEmpty(model.Email))
+            {
+                ModelState.AddModelError("Email", "Vui lòng nhập Email của bạn!");
+                return View(model);
+            }
+
+            // 1. Kiểm tra xem Email có tồn tại trong bảng KhachHang hay không
+            var khachHang = await _context.KhachHangs
+                .FirstOrDefaultAsync(k => k.Email == model.Email.Trim());
+
+            if (khachHang == null)
+            {
+                // Để bảo mật thông tin, bạn có thể báo tài khoản không tồn tại
+                ModelState.AddModelError("Email", "Email này không tồn tại trên hệ thống!");
+                return View(model);
+            }
+
+            // 2. Logic giả lập / Thực tế gửi Mail khôi phục mật khẩu
+            // (Trong đồ án thực tế, bạn sẽ gọi một dịch vụ gửi mail dạng ISemailSender ở đây)
+            
+            // 3. Thông báo thành công ra View
+            TempData["SuccessMessage"] = "Hệ thống đã gửi hướng dẫn đặt lại mật khẩu về Email của bạn. Vui lòng kiểm tra hộp thư!";
+            
+            // Trả lại View để hiển thị thông báo thành công hoặc Redirect sang trang login tùy Hào
+            return View();
+        }
         
         [Authorize] // Bắt buộc đăng nhập mới được vào đổi
         [HttpGet]

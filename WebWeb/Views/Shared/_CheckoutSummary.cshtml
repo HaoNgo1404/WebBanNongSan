@@ -8,29 +8,39 @@
     {
         decimal tongTienTamTinh = 0;
         
-        // Vòng lặp for để vừa hiển thị vừa tạo các thẻ input ẩn nhằm phục vụ việc SUBMIT form lên Controller
-        @for (int i = 0; i < Model.Items.Count; i++)
-        {
-            // Các thẻ ẩn này vô cùng quan trọng để Model Binder của ASP.NET Core bắt được mảng Items khi nhấn nút Đặt Hàng
-            <input type="hidden" name="Items[@i].NongSanId" value="@Model.Items[i].NongSanId" />
-            <input type="hidden" name="Items[@i].SoLuongDat" value="@Model.Items[i].SoLuongDat" />
-            <input type="hidden" name="Items[@i].DonGiaThoiDiem" value="@Model.Items[i].DonGiaThoiDiem" />
-            
-            decimal thanhTienRow = Model.Items[i].SoLuongDat * Model.Items[i].DonGiaThoiDiem;
-            tongTienTamTinh += thanhTienRow;
+        // Khởi tạo bảng để cấu trúc thẻ tr hoạt động chuẩn HTML
+        <table class="table table-borderless mb-0">
+            <tbody>
+                @for (int i = 0; i < Model.Items.Count; i++)
+                {
+                    <input type="hidden" name="Items[@i].NongSanId" value="@Model.Items[i].NongSanId" />
+                    <input type="hidden" name="Items[@i].SoLuongDat" value="@Model.Items[i].SoLuongDat" />
+                    <input type="hidden" name="Items[@i].DonGiaThoiDiem" value="@Model.Items[i].DonGiaThoiDiem" />
+                    
+                    decimal thanhTienRow = Model.Items[i].SoLuongDat * Model.Items[i].DonGiaThoiDiem;
+                    tongTienTamTinh += thanhTienRow;
 
-            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-                <div>
-                    <h6 class="mb-0 fw-bold text-dark">Mã nông sản: #@Model.Items[i].NongSanId</h6>
-                    <small class="text-muted">Số lượng: <span class="badge bg-secondary">@Model.Items[i].SoLuongDat kg</span> × @Model.Items[i].DonGiaThoiDiem.ToString("N0") đ</small>
-                </div>
-                <span class="fw-bold text-success">@thanhTienRow.ToString("N0") đ</span>
-            </div>
-        }
+                    // CHÈN ĐOẠN CODE DATA-* VÀO ĐÂY (Sử dụng Model.Items[i] thay vì item)
+                    <tr class="cart-item-row border-bottom pb-2" 
+                        data-nongsan-id="@Model.Items[i].NongSanId" 
+                        data-don-gia="@Model.Items[i].DonGiaThoiDiem" 
+                        data-so-luong="@Model.Items[i].SoLuongDat">
+                        
+                        <td>
+                            <h6 class="mb-0 fw-bold text-dark">Mã nông sản: #@Model.Items[i].NongSanId</h6>
+                            <small class="text-muted">Số lượng: <span class="badge bg-secondary">@Model.Items[i].SoLuongDat kg</span></small>
+                        </td>
+                        <td class="text-end align-middle">
+                            <span class="fw-bold text-success">@thanhTienRow.ToString("N0") đ</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
         
-        <div class="d-flex justify-content-between mt-3 pt-2">
-            <span class="fw-bold text-secondary">Tổng tiền tạm tính:</span>
-            <span class="h5 text-danger fw-bold">@tongTienTamTinh.ToString("N0") đ</span>
+        <div class="d-flex justify-content-between mt-3 pt-2 border-top">
+            <span class="fw-bold text-secondary">Tổng tiền:</span>
+            <span class="h5 text-danger fw-bold checkout-summary-total">@tongTienTamTinh.ToString("N0") đ</span>
         </div>
     }
     else
@@ -40,8 +50,12 @@
             <p class="mb-0 mt-2">Không có nông sản nào trong danh sách thanh toán.</p>
         </div>
     }
-    
     <div class="alert alert-warning mt-3 mb-0 p-2 rounded-3 border-0" style="font-size: 0.825rem;">
         <i class="bi bi-info-circle-fill"></i> <strong>Lưu ý về trọng lượng:</strong> Đối với phân hệ nông sản tươi sống, trọng lượng thực tế khi cân bốc xếp tại kho sẽ có sai số nhỏ. Số tiền chênh lệch sẽ được đối soát tự động khi hệ thống lập hóa đơn cuối cùng.
     </div>
 </div>
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script src="~/js/order.js"></script> 
+}

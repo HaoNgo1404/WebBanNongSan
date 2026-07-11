@@ -1,12 +1,24 @@
-<div class="order-card shadow-sm">
-    <h5 class="fw-semibold mb-3">Gợi ý tìm kiếm</h5>
+@model IEnumerable<WebWeb.Models.NongSan>
+
+<div class="order-card shadow-sm p-2" style="background: #fff; border-radius: 8px;">
+    <h6 class="fw-semibold mb-2 text-secondary px-2" style="font-size: 0.85rem;">Sản phẩm gợi ý</h6>
     <ul class="list-unstyled mb-0">
-        <li class="py-2 border-bottom"><a class="text-decoration-none text-success" asp-controller="Search" asp-action="Index" asp-route-keyword="Táo Mỹ">Táo Mỹ</a></li>
-        <li class="py-2 border-bottom"><a class="text-decoration-none text-success" asp-controller="Search" asp-action="Index" asp-route-keyword="Cam Úc">Cam Úc</a></li>
-        <li class="py-2 border-bottom"><a class="text-decoration-none text-success" asp-controller="Search" asp-action="Index" asp-route-keyword="Bơ Đắk Lắk">Bơ Đắk Lắk</a></li>
-        <li class="py-2"><a class="text-decoration-none text-success" asp-controller="Search" asp-action="Index" asp-route-keyword="Nho Hàn Quốc">Nho Hàn Quốc</a></li>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <li class="py-2 px-2 border-bottom item-suggest">
+                    <a class="text-decoration-none text-dark d-flex align-items-center justify-content-between" 
+                       asp-controller="Product" asp-action="Detail" asp-route-id="@item.NongSanId">
+                        <span class="fw-medium text-success">@item.TenNongSan</span>
+                        <small class="text-muted">@item.GiaBanNiemYet.ToString("#,##0")đ</small>
+                    </a>
+                </li>
+            }
+        }
+        else
+        {
+            <li class="py-2 px-2 text-muted small text-center">Không tìm thấy nông sản phù hợp.</li>
+        }
     </ul>
-    <div class="alert alert-light border mt-3 mb-0">
-        <strong>TODO:</strong> Hiển thị dữ liệu khi Backend hoàn thiện.
-    </div>
 </div>

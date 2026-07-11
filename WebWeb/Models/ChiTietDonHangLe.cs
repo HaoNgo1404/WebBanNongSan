@@ -12,7 +12,7 @@ namespace WebWeb.Models
         public decimal DonGiaThoiDiem { get; set; }
         public decimal? ThanhTienThucTe { get; set; }
 
-        public virtual DonHangLe DonHangLe { get; set; } = null!;
-        public virtual NongSan NongSan { get; set; } = null!;
+        public virtual DonHangLe? DonHangLe { get; set; }
+        public virtual NongSan? NongSan { get; set; }
     }
 }

@@ -1,0 +1,72 @@
+@model WebWeb.ViewModels.LoginViewModel
+@{
+    Layout = ""; // Tách biệt hoàn toàn, tự dựng khung CSS riêng gọn nhẹ
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập Shipper - Green Fresh</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .login-card {
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            background: #ffffff;
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="text-center mb-4">
+        <div class="display-5 text-success mb-2"><i class="bi bi-truck"></i></div>
+        <h3 class="fw-bold text-dark">TRẠM TÀI XẾ</h3>
+        <p class="text-muted small">Đăng nhập dành riêng cho nhân viên giao hàng</p>
+    </div>
+
+    <form asp-action="Login" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label small fw-bold text-secondary">Email tài xế</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                <input asp-for="Email" class="form-control bg-light border-start-0" placeholder="shipper@greenfresh.com" required />
+            </div>
+            <span asp-validation-for="Email" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Password" class="form-label small fw-bold text-secondary">Mật khẩu</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-lock text-muted"></i></span>
+                <input asp-for="Password" type="password" class="form-control bg-light border-start-0" placeholder="••••••••" required />
+            </div>
+            <span asp-validation-for="Password" class="text-danger small"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100 py-2.5 fw-bold rounded-3 shadow-sm">
+            <i class="bi bi-box-arrow-in-right"></i> Đăng Nhập Làm Việc
+        </button>
+    </form>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

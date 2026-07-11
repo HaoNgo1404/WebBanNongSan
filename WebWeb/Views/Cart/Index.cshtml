@@ -1,9 +1,11 @@
 @model IEnumerable<WebWeb.Models.GioHang>
 @{
     ViewData["Title"] = "Giỏ hàng";
-    var tongTien = Model.Sum(item => item.ThanhTien);
-    var phiVanChuyen = tongTien > 0 ? 15000 : 0; // Nếu giỏ hàng có đồ thì phí 15k, trống thì 0k
-    var tongThanhToan = tongTien + phiVanChuyen;
+    
+    // Nhận trực tiếp các giá trị phí ship động đã tính từ Controller
+    var tongTien = ViewBag.TongTienHang ?? 0;
+    var phiVanChuyen = ViewBag.PhiVanChuyen ?? 0;
+    var tongThanhToan = ViewBag.TongThanhToan ?? 0;
 }
 
 <div class="cart-page">

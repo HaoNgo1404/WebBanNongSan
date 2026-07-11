@@ -2,6 +2,19 @@
 @{
     ViewData["Title"] = "Thanh toán Đơn hàng lẻ trực tuyến";
 }
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    .leaflet-container {
+        font-family: inherit;
+    }
+    
+    #map-selection img {
+        max-width: none !important;
+        max-height: none !important;
+    }
+</style>
 
 <div class="container mt-4">
     <h2><i class="bi bi-cart-check"></i> Thanh toán Đơn hàng lẻ</h2>
@@ -20,13 +33,16 @@
                         <label class="form-label fw-bold text-success">
                             <i class="bi bi-person-check-fill"></i> Sổ địa chỉ tài khoản của bạn
                         </label>
-                        <select asp-for="DiaChiId" class="form-select border-success py-2">
-                            <option value="1">Nhà riêng - 123 Nguyễn Văn Cừ, Quận 5, TP.HCM</option>
+                        <select asp-for="DiaChiId" 
+                                id="SelectDiaChiId"
+                                asp-items="@(ViewBag.DanhSachDiaChi as SelectList)" 
+                                class="form-select border-success py-2">
+                            <option value="">-- Chọn địa chỉ từ sổ địa chỉ --</option>
                         </select>
                         <small class="text-muted d-block mt-1">Hệ thống tự động sử dụng thông tin liên hệ trong hồ sơ tài khoản của bạn.</small>
                     </div>
                     
-                    <input type="hidden" asp-for="EmailCusNonAccount" value="@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value" />
+                    <input type="hidden" asp-for="Email" value="@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value" />
                 }
                 else
                 {
@@ -47,11 +63,22 @@
                             <span asp-validation-for="PhoneNonAccount" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-0">
-                            <label class="form-label fw-bold">Địa chỉ giao hàng cụ thể <span class="text-danger">*</span></label>
-                            <textarea asp-for="AddressNonAccount" class="form-control" rows="2" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..." required></textarea>
-                            <span asp-validation-for="AddressNonAccount" class="text-danger small"></span>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Địa chỉ nhận hàng (*)</label>
+                            <input asp-for="AddressNonAccount" id="AddressNonAccount" class="form-control border-success py-2" placeholder="Nhập số nhà, tên đường, phường/xã..." required />
+                            <span asp-validation-for="AddressNonAccount" class="text-danger"></span>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-success">
+                                <i class="bi bi-map"></i> Hoặc chọn vị trí nhanh trên bản đồ
+                            </label>
+                            <div id="map-selection" class="rounded-3 border shadow-sm" style="height: 350px; width: 100%; position: relative; z-index: 1;"></div>
+                            <small class="text-muted"><i class="bi bi-info-circle"></i> Di chuyển bản đồ và click vào vị trí nhà của bạn để hệ thống tự ghi nhận địa chỉ.</small>
+                        </div>
+
+                        <input type="hidden" name="KinhDo" id="KinhDoNonAccount" />
+                        <input type="hidden" name="ViDo" id="ViDoNonAccount" />
                     </div>
                 }
 
@@ -62,6 +89,29 @@
                         <option value="Chiều (13:00 - 17:00)">Chiều (13:00 - 17:00)</option>
                         <option value="Tối (18:00 - 21:00)">Tối (18:00 - 21:00)</option>
                     </select>
+                </div>
+
+                @if (ViewBag.VoucherGoiY != null)
+                {
+                    <div class="alert alert-success d-flex align-items-center justify-content-between mb-3 rounded-3 border-success border-opacity-20 bg-success bg-opacity-10 py-2 px-3">
+                        <div class="small text-success fw-medium">
+                            <i class="bi bi-gift-fill me-1"></i> Quà tặng bạn mới: Bạn có mã <strong class="text-danger">@ViewBag.VoucherGoiY</strong> cho đơn hàng đầu tiên!
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger py-0 px-2 fw-bold" id="BtnQuickApply" data-code="@ViewBag.VoucherGoiY">
+                            Dùng ngay
+                        </button>
+                    </div>
+                }
+
+                <input type="hidden" name="KhuyenMaiId" id="HiddenKhuyenMaiId" value="" />
+
+                <div class="card p-3 mb-3 border-dashed">
+                    <label class="form-label fw-bold text-success"><i class="bi bi-ticket-perforated"></i> Mã giảm giá / Voucher</label>
+                    <div class="input-group">
+                        <input type="text" id="VoucherCodeInput" class="form-control text-uppercase" placeholder="Nhập mã ưu đãi..." />
+                        <button type="button" id="BtnApplyVoucher" class="btn btn-success">Áp dụng</button>
+                    </div>
+                    <div id="VoucherMessage" class="small mt-1 d-none"></div>
                 </div>
 
                 <div class="mb-4">
@@ -94,6 +144,53 @@
         
         <div class="col-md-5">
              @await Html.PartialAsync("_CheckoutSummary", Model)
+             <div class="d-flex justify-content-between mt-2">
+                <span class="text-secondary">Voucher giảm giá:</span>
+                <span id="DiscountDisplay" class="fw-bold text-success">0 đ</span>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+                <span class="fw-bold text-dark">Tổng tiền thanh toán cuối cùng:</span>
+                <span id="FinalAmountDisplay" class="h5 text-danger fw-bold">0 đ</span>
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script src="~/js/order.js"></script> 
+}
+<script>
+    const listDiaChi = @Html.Raw(ViewBag.DiaChiJson ?? "[]");
+    const selectElement = document.getElementById("SelectDiaChiId");
+
+    function autoFillAddress(selectedId) {
+        const diaChiDuocChon = listDiaChi.find(d => d.DiaChiId === selectedId);
+
+        if (diaChiDuocChon) {
+            if(document.getElementById("NameCusNonAccount")) document.getElementById("NameCusNonAccount").value = diaChiDuocChon.TenNguoiNhan;
+            if(document.getElementById("PhoneNonAccount")) document.getElementById("PhoneNonAccount").value = diaChiDuocChon.SoDienThoaiNhan;
+            if(document.getElementById("AddressNonAccount")) document.getElementById("AddressNonAccount").value = diaChiDuocChon.DiaChiGiao;
+        } else {
+            if(document.getElementById("NameCusNonAccount")) document.getElementById("NameCusNonAccount").value = "";
+            if(document.getElementById("PhoneNonAccount")) document.getElementById("PhoneNonAccount").value = "";
+            if(document.getElementById("AddressNonAccount")) document.getElementById("AddressNonAccount").value = "";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Kiểm tra an toàn cho tài khoản đã đăng nhập
+        if (selectElement) {
+            const initialId = parseInt(selectElement.value);
+            if (initialId) {
+                autoFillAddress(initialId);
+            }
+
+            selectElement.addEventListener('change', function() {
+                autoFillAddress(parseInt(this.value));
+            });
+        }
+    });
+
+</script>

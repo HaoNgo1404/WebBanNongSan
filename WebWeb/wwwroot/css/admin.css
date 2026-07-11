@@ -20,6 +20,152 @@
     --transition: .25s ease;
 }
 
+/* Mặc định khi load trang: KHÔNG cài đặt transition để tránh chạy lại khi chuyển trang */
+body, .admin-shell, .admin-sidebar, .admin-sidebar__brand, .admin-nav, .admin-topbar, .admin-card, .admin-panel, .table, footer {
+    transition: none !important;
+}
+
+/* Thêm hiệu ứng transition mượt mà cho toàn bộ các thành phần khi đổi màu */
+body.theme-transitioning, 
+body.theme-transitioning .admin-shell, 
+body.theme-transitioning .admin-sidebar,
+body.theme-transitioning .admin-sidebar__brand,
+body.theme-transitioning .admin-nav, 
+body.theme-transitioning .admin-topbar, 
+body.theme-transitioning .admin-card, 
+body.theme-transitioning .admin-panel,
+body.theme-transitioning .table,
+body.theme-transitioning footer {
+    transition: background-color 1.5s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                color 0.5s ease, 
+                border-color 1.5s ease, 
+                box-shadow 1.5s ease !important;
+}
+
+/* Biến đổi màu sắc khi kích hoạt class .dark-theme */
+body.dark-theme {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+}
+
+/* ==========================================================
+   BỔ SUNG SỬA LỖI ĐỂ TỐI HOÀN TOÀN TRANG NÔNG SẢN
+   ========================================================== */
+
+/* 1. Nhuộm đen thanh chứa Breadcrumb (Trang chủ / Nông sản) */
+body.dark-theme .admin-breadcrumb,
+body.dark-theme .breadcrumb,
+body.dark-theme .admin-main,
+body.dark-theme .admin-sidebar,
+body.dark-theme .admin-topbar,
+body.dark-theme .admin-footer,
+body.dark-theme .admin-content {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border-color: #2d2d2d !important;
+}
+
+/* 2. Nhuộm đen hàng tiêu đề Header của Table (Mã, Hình Ảnh, Tên Nông Sản...) */
+body.dark-theme .admin-table thead tr,
+body.dark-theme table thead,
+body.dark-theme table thead th,
+body.dark-theme .table-light,
+body.dark-theme th {
+    background-color: #262626 !important;
+    color: #00b0ff !important; /* Đổi chữ tiêu đề sang màu xanh neon hoặc trắng cho dễ nhìn */
+    border-color: #3a3a3a !important;
+}
+
+/* 3. Nhuộm đen ô tìm kiếm nông sản (nếu nó đang bị nền trắng) */
+body.dark-theme input[type="text"].form-control,
+body.dark-theme .input-group-text {
+    background-color: #2b2b2b !important;
+    color: #ffffff !important;
+    border-color: #444444 !important;
+}
+
+/* Đảm bảo chữ trong các ô Breadcrumb không bị mất nét */
+body.dark-theme .breadcrumb-item.active {
+    color: #aaa !important;
+}
+body.dark-theme .breadcrumb-item a {
+    color: #39c5bb !important; /* Màu xanh lá/mint sáng trong chế độ tối */
+}
+
+body.dark-theme .admin-topbar {
+    background-color: #1e1e1e !important;
+    border-color: #2d2d2d !important;
+}
+
+body.dark-theme .admin-topbar input {
+    color: #ffffff !important;
+}
+
+body.dark-theme .admin-card, 
+body.dark-theme .admin-panel,
+body.dark-theme .bg-white {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border-color: #2d2d2d !important;
+}
+
+body.dark-theme .text-dark {
+    color: #ffffff !important;
+}
+
+body.dark-theme .table {
+    color: #e0e0e0 !important;
+    border-color: #2d2d2d !important;
+}
+
+body.dark-theme .table-light {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+}
+
+body.dark-theme .admin-user-pill {
+    background-color: #2d2d2d !important;
+    border-color: #3e3e3e !important;
+}
+
+/* ==========================================================
+   XỬ LÝ TRIỆT ĐỂ CÁC THẺ SPAN VÀ TEXT NHỎ BỊ LỖI MÀU CHỮ
+   ========================================================== */
+
+/* Hạ tông nền của các thẻ span dạng badge hoặc nhãn và đổi màu chữ thành tối/sáng rõ ràng */
+body.dark-theme span, 
+body.dark-theme .badge,
+body.dark-theme small,
+body.dark-theme .form-text {
+    color: #e0e0e0 !important; /* Ép chữ sang màu xám sáng để nổi bật trên nền tối */
+}
+
+/* Nếu span đó là badge màu trắng nền sáng (như badge bg-light hoặc custom) */
+body.dark-theme .bg-light,
+body.dark-theme .badge.bg-light {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #3e3e3e !important;
+}
+
+/* Giữ nguyên màu cho các thẻ span trạng thái đặc biệt (không bị ghi đè mất màu đỏ/xanh gốc) */
+body.dark-theme .badge.bg-danger,
+body.dark-theme .text-danger,
+body.dark-theme .text-danger span {
+    color: #ff6b6b !important; /* Màu đỏ sáng hơn chút trong chế độ tối */
+}
+
+body.dark-theme .badge.bg-success,
+body.dark-theme .text-success,
+body.dark-theme .text-success span {
+    color: #4ade80 !important; /* Màu xanh lá sáng dịu mắt */
+}
+
+body.dark-theme .badge.bg-info {
+    background-color: #1e3a8a !important; /* Nền xanh biển tối */
+    color: #60a5fa !important; /* Chữ xanh biển sáng */
+}
+
 body.admin-body {
     margin: 0;
     font-family: 'Inter', sans-serif;
@@ -29,26 +175,58 @@ body.admin-body {
 
 .admin-shell {
     display: flex;
+    overflow-x: hidden; /* Chặn tràn khung khi dịch chuyển */
+    position: relative;
     min-height: 100vh;
 }
 
-.admin-sidebar{
-    width:var(--sidebar-width);
-    min-height:100vh;
-    position:fixed;
-    left:0;
-    top:0;
+/* ==========================================================
+   CẤU HÌNH GỐC CHO SIDEBAR VÀ MAIN KHI ĐANG MỞ
+   ========================================================== */
 
-    display:flex;
-    flex-direction:column;
+.admin-sidebar {
+    width: var(--sidebar-width); /* Sử dụng biến 280px của Hào */
+    min-height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    flex-direction: column;
+    background: #265a34;
+    color: #fff;
+    overflow-y: auto;
+    z-index: 101; /* Đảm bảo luôn nằm trên các thành phần khác */
 
-    background:#173a21;
+    /* Hiệu ứng trượt tịnh tiến mượt mà */
+    transform: translateX(0);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
 
-    color:#fff;
+.admin-main {
+    margin-left: var(--sidebar-width); /* Khoảng trống mặc định bằng chiều rộng sidebar */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--admin-bg);
+    
+    /* Hiệu ứng co giãn width mượt mà */
+    transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+                width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
 
-    overflow-y:auto;
 
-    transition:.3s;
+/* ==========================================================
+   XỬ LÝ ĐÓNG SIDEBAR: TRƯỢT SANG TRÁI & GIÃN RỘNG KHUNG MAIN
+   ========================================================== */
+
+/* 1. Đẩy sidebar trượt hẳn sang mép trái màn hình (Biến mất hoàn toàn thay vì thu nhỏ về 84px) */
+.admin-sidebar.collapsed {
+    transform: translateX(calc(var(--sidebar-width) * -1)) !important;
+}
+
+/* 2. Ép khung main triệt tiêu margin-left để tự động chiếm trọn 100% chiều rộng trình duyệt */
+.admin-main.main-expanded {
+    margin-left: 0 !important;
+    width: 100% !important;
 }
 
 .admin-sidebar.collapsed {
@@ -112,7 +290,7 @@ body.admin-body {
 
 .admin-nav__link:hover{
 
-    background:rgba(255,255,255,.12);
+    background:rgba(255, 255, 255, 0.12);
 
     color:#fff;
 

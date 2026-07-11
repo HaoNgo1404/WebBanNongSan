@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#ffffff" id="browser-theme-color" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Green Fresh Shipper</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <div class="admin-shell">
+        <!-- SIDEBAR CHO SHIPPER -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__brand">
+                <div class="admin-sidebar__icon"><i class="bi bi-truck"></i></div>
+                <div>
+                    <h5 class="fw-bold text-white mb-0">Green Fresh</h5>
+                    <p class="text-white-50 mb-0">Shipper Portal</p>
+                </div>
+            </div>
+
+            <nav id="adminNavSidebar" class="admin-nav px-3 mt-3" style="overflow-y: auto; height: 620px;">
+                <a class="admin-nav__link" asp-area="Shipper" asp-controller="Shipper" asp-action="Index">
+                    <i class="bi bi-mailbox2"></i>
+                    <span>Nhận đơn hàng</span>
+                </a>
+                
+                <a class="admin-nav__link" asp-area="Shipper" asp-controller="Shipper" asp-action="MyOrders">
+                    <i class="bi bi-box"></i>
+                    <span>Đơn hàng của tôi</span>
+                </a>
+
+                <a class="admin-nav__link" asp-area="Shipper" asp-controller="Shipper" asp-action="LichSuGiao">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Lịch sử giao</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div class="admin-main flex-grow-1">
+            <!-- TOPBAR SHIPPER -->
+            <header class="admin-topbar">
+                <button class="btn btn-light admin-icon-btn border" type="button" data-admin-toggle="sidebar">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                
+                <div class="admin-topbar__search d-flex align-items-center">
+                    <i class="bi bi-search text-muted me-2"></i>
+                    <input type="text" placeholder="Tìm mã đơn nhanh..." class="form-control-plaintext p-0" />
+                </div>
+                
+                <div class="admin-topbar__actions">
+                    <button class="btn btn-light admin-icon-btn border" type="button" id="dark-mode-toggle">
+                        <i class="bi bi-moon" id="dark-mode-icon"></i>
+                    </button>
+
+                    <button class="btn btn-light admin-icon-btn border">
+                        <i class="bi bi-bell"></i>
+                    </button>
+
+                    <div class="dropdown">
+                        <button class="admin-user-pill d-flex align-items-center gap-2 p-1 pe-3 bg-light border rounded-pill dropdown-toggle" 
+                                type="button" 
+                                id="shipperUserDropdown" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false" 
+                                style="border: none; background: none; cursor: pointer;">
+                            
+                            <!-- Đồng bộ tự động lấy chữ cái đầu tiên của tên Shipper -->
+                            <div class="admin-user-avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
+                                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                {
+                                    @(User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value?.Substring(0, 1).ToUpper() ?? "S")
+                                }
+                                else
+                                {
+                                    @:S
+                                }
+                            </div>
+                            
+                            <!-- Đồng bộ thông tin Họ tên & Chức vụ từ Claim -->
+                            <div class="d-flex flex-column text-start me-1">
+                                <strong class="text-dark small lh-sm">
+                                    @(User.Identity != null && User.Identity.IsAuthenticated ? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value : "Chưa đăng nhập")
+                                </strong>
+                                <small class="text-muted" style="font-size: 11px;">
+                                    @(User.Identity != null && User.Identity.IsAuthenticated ? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value : "Shipper")
+                                </small>
+                            </div>
+                        </button>
+
+                        <!-- Đã bổ sung Hồ sơ & Đổi mật khẩu định tuyến riêng về ShipperAccount -->
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="shipperUserDropdown" style="border-radius: 10px; min-width: 180px;">
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center gap-2 small" asp-area="Shipper" asp-controller="ShipperAccount" asp-action="Profile">
+                                    <i class="bi bi-person text-muted fs-5"></i> Hồ sơ cá nhân
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center gap-2 small" asp-area="Shipper" asp-controller="ShipperAccount" asp-action="ChangePassword">
+                                    <i class="bi bi-shield-lock text-muted fs-5"></i> Đổi mật khẩu
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center gap-2 small text-danger" 
+                                    asp-area="Shipper" asp-controller="ShipperAccount" asp-action="Logout">
+                                    <i class="bi bi-box-arrow-right fs-5"></i> Đăng xuất
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <main class="admin-content flex-grow-1">
+                <div class="admin-breadcrumb mb-4">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 align-items-center">
+                            <li class="breadcrumb-item"><a asp-area="Shipper" asp-controller="Shipper" asp-action="Index" class="text-decoration-none text-success fw-medium">Khu vực Shipper</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+                        </ol>
+                    </nav>
+                </div>
+                
+                <div class="admin-body-container">
+                    @RenderBody()
+                </div>
+            </main>
+
+            <footer class="admin-footer text-muted small">
+                <span>© 2026 Fresh Farm</span>
+                <span>Version 1.0 • Shipper Portal</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

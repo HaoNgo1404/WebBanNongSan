@@ -12,6 +12,7 @@
     </div>
     <ul class="dashboard-nav">
         <li><a class="@(currentAction == "Profile" ? "active" : "")" asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> Hồ sơ</a></li>
+        <li><a class="@(currentAction == "RewardPoints" ? "active" : "")" asp-controller="Notification" asp-action="RewardPoints"><i class="bi bi-gem"></i> Điểm Tích Lũy</a></li>
         <li><a class="@(currentAction == "Addresses" ? "active" : "")" asp-controller="Account" asp-action="Addresses"><i class="bi bi-geo-alt"></i> Địa chỉ</a></li>
         <li><a class="@(currentAction == "Orders" ? "active" : "")" asp-controller="Order" asp-action="OrderHistory"><i class="bi bi-bag"></i> Đơn hàng</a></li>
         <li><a class="@(currentAction == "GoiDinhKy" ? "active" : "")" asp-controller="Order" asp-action="LichSuGoiDinhKy"><i class="bi bi-bag"></i> Gói định kỳ</a></li>

@@ -13,7 +13,7 @@ namespace WebWeb.Models
         public int PhuongThuc { get; set; }
         public string? MaGiaoDich { get; set; }
 
-        public virtual NhaVuon NhaVuon { get; set; } = null!;
-        public virtual NhanVien NhanVien { get; set; } = null!;
+        public virtual NhaVuon? NhaVuon { get; set; }
+        public virtual NhanVien? NhanVien { get; set; }
     }
 }

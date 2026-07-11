@@ -13,6 +13,7 @@ namespace WebWeb.Models
             DanhGiaSanPhams = new HashSet<DanhGiaSanPham>();
             LoHangs = new HashSet<LoHang>();
             YeuThiches = new HashSet<YeuThich>();
+            KhuyenMais = new HashSet<KhuyenMai>();
         }
 
         public int NongSanId { get; set; }
@@ -25,13 +26,14 @@ namespace WebWeb.Models
         public int DanhMucId { get; set; }
         public int NhaVuonId { get; set; }
 
-        public virtual DanhMuc DanhMuc { get; set; } = null!;
-        public virtual NhaVuon NhaVuon { get; set; } = null!;
-        public virtual ICollection<ChiTietDonHangLe> ChiTietDonHangLes { get; set; }
-        public virtual ICollection<ChiTietGioHang> ChiTietGioHangs { get; set; }
-        public virtual ICollection<ChiTietGoiDinhKy> ChiTietGoiDinhKies { get; set; }
-        public virtual ICollection<DanhGiaSanPham> DanhGiaSanPhams { get; set; }
-        public virtual ICollection<LoHang> LoHangs { get; set; }
-        public virtual ICollection<YeuThich> YeuThiches { get; set; }
+        public virtual DanhMuc? DanhMuc { get; set; }
+        public virtual NhaVuon? NhaVuon { get; set; }
+        public virtual ICollection<KhuyenMai>? KhuyenMais { get; set; }
+        public virtual ICollection<ChiTietDonHangLe>? ChiTietDonHangLes { get; set; }
+        public virtual ICollection<ChiTietGioHang>? ChiTietGioHangs { get; set; }
+        public virtual ICollection<ChiTietGoiDinhKy>? ChiTietGoiDinhKies { get; set; }
+        public virtual ICollection<DanhGiaSanPham>? DanhGiaSanPhams { get; set; }
+        public virtual ICollection<LoHang>? LoHangs { get; set; }
+        public virtual ICollection<YeuThich>? YeuThiches { get; set; }
     }
 }

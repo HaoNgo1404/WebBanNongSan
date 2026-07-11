@@ -16,7 +16,7 @@ namespace WebWeb.Models.ViewModels
         public string? PhoneNonAccount { get; set; }
         public string? NameCusNonAccount { get; set; }
         public string? AddressNonAccount { get; set; }
-        public string? EmailCusNonAccount { get; set; } 
+        public string? Email { get; set; } 
 
         // Dành riêng cho UC02: Gói định kỳ
         public string? TanSuatGiao { get; set; } // Ví dụ: "HangTuan", "CachTuan"

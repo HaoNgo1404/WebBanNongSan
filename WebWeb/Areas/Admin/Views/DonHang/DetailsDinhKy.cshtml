@@ -1,7 +1,16 @@
-﻿@model WebWeb.Models.GoiDangKyDinhKy
+﻿@using WebWeb.Models
+@model WebWeb.Models.GoiDangKyDinhKy
+@Html.AntiForgeryToken()
 @{
     ViewData["Title"] = "Chi Tiết Gói Định Kỳ";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var activeAdminName = User.Identity?.Name ?? "Quản trị viên";
+    var activeAdminId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                        ?? User.FindFirst("NhanVienId")?.Value;
+    var cacDonViTinh = Model.ChiTietGoiDinhKies
+                            .Select(ct => ct.NongSan?.DonViTinh ?? "kg")
+                            .Distinct();
+    string dvtHienThi = string.Join("/", cacDonViTinh);
 }
 
 <div class="mb-3">
@@ -17,7 +26,14 @@
             <p class="text-muted small mb-0">Thời hạn gói: từ @Model.NgayBatDau.ToString("dd/MM/yyyy") đến @Model.NgayKetThuc.ToString("dd/MM/yyyy")</p>
         </div>
         <div>
-            <span class="badge bg-success px-3 py-2 fs-7">@Model.TrangThaiGoi</span>
+            @if(Model.TrangThaiGoi == OrderStatuses.HoatDong)
+            {
+                <span class="badge bg-success px-3 py-2 fs-7">@Model.TrangThaiGoi</span>
+            }
+            else
+            {
+                <span class="badge bg-danger px-3 py-2 fs-7">@Model.TrangThaiGoi</span>
+            }
         </div>
     </div>
 
@@ -34,7 +50,7 @@
         <div class="col-md-6">
             <div class="p-3 border rounded-3 bg-light-subtle h-100">
                 <h6 class="fw-bold text-success mb-3"><i class="bi bi-alarm"></i> Tần suất thiết lập</h6>
-                <p class="mb-1"><strong>Chu kỳ lặp lại:</strong> <span class="badge bg-info text-dark">@Model.TanSuatGiao</span></p>
+                <p class="mb-1"><strong>Tuần suất giao:</strong> <span class="badge bg-info text-dark">@Model.TanSuatGiao</span></p>
                 <p class="mb-1"><strong>Ngày giao cố định:</strong> <span class="text-dark fw-medium">@Model.ThuTrongTuan</span></p>
                 <p class="mb-0"><strong>Tổng giá trị hợp đồng gói:</strong> <span class="text-success fw-bold">@Model.TongTienGoi.ToString("#,##0") đ</span></p>
             </div>
@@ -55,7 +71,7 @@
                 {
                     <tr>
                         <td class="ps-3 fw-semibold text-dark">@sp.NongSan?.TenNongSan</td>
-                        <td class="text-center fw-bold text-success">@sp.SoLuongMoiDot kg / bó</td>
+                        <td class="text-center fw-bold text-success">@sp.SoLuongMoiDot @dvtHienThi</td>
                     </tr>
                 }
             </tbody>
@@ -68,48 +84,79 @@
             <table class="admin-table">
                 <thead>
                     <tr>
+                        <th>STT</th>
                         <th>Mã Đợt</th>
-                        <th>Ngày Giao Dự Kiến / Thực Tế</th>
-                        <th>Trọng Lượng Thực Tế Đợt</th>
+                        <th>Ngày Giao Thực Tế</th>
+                        <th>Trọng Lượng </th>
                         <th>Nhân Viên Phụ Trách</th>
-                        <th>Trạng Thái Đợt Giao</th>
+                        <th>Trạng Thái </th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.DotGiaoDinhKies != null && Model.DotGiaoDinhKies.Any())
-                    {
-                        @foreach (var dot in Model.DotGiaoDinhKies.OrderBy(d => d.NgayGiaoThucTe))
-                        {
-                            <tr>
-                                <td class="fw-bold">#DOT-@dot.DotGiaoId</td>
-                                <td>
-                                    <span class="fw-medium text-dark">@dot.NgayGiaoThucTe.ToString("dd/MM/yyyy")</span>
-                                </td>
-                                <td class="text-primary fw-medium">
-                                    @(dot.TrongLuongThucTeDot.HasValue ? dot.TrongLuongThucTeDot.Value.ToString("0.##") + " kg" : "Chờ cập nhật cân nặng")
-                                </td>
-                                <td>@(dot.NhanVien?.HoTen ?? "Chưa phân công")</td>
-                                <td>
-                                    @if (dot.TrangThaiGiao == "Đã giao")
-                                    {
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle"></i> Đã giao hoàn tất</span>
-                                    }
-                                    else if (dot.TrangThaiGiao == "Đang giao")
-                                    {
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-truck"></i> Đang vận chuyển</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-hourglass-split"></i> Chờ đến ngày giao</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
+                    @{ int stt = 1; }
+                    @foreach (var dot in Model.DotGiaoDinhKies.OrderBy(d => d.NgayGiaoThucTe))
                     {
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-3">Chưa có lịch trình đợt giao nào được khởi tạo cho gói này.</td>
+                            <td>@(stt++)</td>
+                            <td class="fw-medium text-secondary">#DOT-@dot.DotGiaoId</td>
+                            <td>@dot.NgayGiaoThucTe.ToString("dd/MM/yyyy")</td>
+                            
+                            <td>
+                                @if (dot.TrangThaiGiao == OrderStatuses.ChoXuLy)
+                                {
+                                    <div class="input-group input-group-sm justify-content-center" style="max-width: 140px; margin: 0 auto;">
+                                        <input type="number" 
+                                            id="input-trongluong-@dot.DotGiaoId" 
+                                            class="form-control text-center" 
+                                            step="0.01" 
+                                            min="0" 
+                                            placeholder="Nhập số lượng" />
+                                        <span class="input-group-text">@dvtHienThi</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="fw-bold text-dark">@dot.TrongLuongThucTeDot @dvtHienThi</span>
+                                }
+                            </td>
+
+                            <td>@activeAdminName</td>
+
+                            <td>
+                                @if (dot.TrangThaiGiao == OrderStatuses.ChoXuLy)
+                                {
+                                    <span class="badge bg-warning text-dark px-2.5 py-1.5 fs-8">@dot.TrangThaiGiao</span>
+                                }
+                                else if (dot.TrangThaiGiao == OrderStatuses.DangGiao)
+                                {
+                                    <span class="badge bg-info text-dark px-2.5 py-1.5 fs-8">@dot.TrangThaiGiao</span>
+                                }
+                                else if (dot.TrangThaiGiao == OrderStatuses.HoanThanh)
+                                {
+                                    <span class="badge bg-success px-2.5 py-1.5 fs-8">@dot.TrangThaiGiao</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-2.5 py-1.5 fs-8">@dot.TrangThaiGiao</span>
+                                }
+                            </td>
+                            <td>
+                                @if (dot.TrangThaiGiao == OrderStatuses.ChoXuLy && Model.TrangThaiGoi == OrderStatuses.HoatDong)
+                                {
+                                    <button type="button" 
+                                            class="btn btn-sm btn-success btn-duyet-dot" 
+                                            data-id="@dot.DotGiaoId">
+                                        <i class="bi bi-box-seam"></i> Xác nhận xuất kho
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-light" disabled>
+                                        <i class="bi bi-dash-circle"></i> Không thể xử lý
+                                    </button>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -117,3 +164,47 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-duyet-dot').click(function () {
+                var dotGiaoId = $(this).data('id');
+                var $btn = $(this);
+
+                // Lấy giá trị trọng lượng thực tế từ ô input tương ứng với Mã đợt
+                var trongLuongInput = $('#input-trongluong-' + dotGiaoId).val();
+                var trongLuongThucTe = parseFloat(trongLuongInput) || null; // Nếu trống thì truyền null sang để bên Controller tự tính theo lý thuyết
+
+                if (confirm('Bạn có chắc chắn muốn duyệt xuất kho và chuyển trạng thái cho đợt giao này không?')) {
+                    // Khóa nút bấm để tránh việc Admin nhấn click double liên tục gây lỗi
+                    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+
+                    $.ajax({
+                        url: '@Url.Action("DuyetDotGiaoDinhKy", "DonHang")',
+                        type: 'POST',
+                        data: {
+                            dotGiaoId: dotGiaoId,
+                            trongLuongThucTe: trongLuongThucTe, // BỔ SUNG: Truyền tham số số ký thực tế lên Controller
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() // Chống bẫy bảo mật CSRF
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert(response.message);
+                                location.reload(); // Thành công thì reload lại trang để cập nhật số lượng lô hàng mới và trạng thái mới
+                            } else {
+                                alert('Thất bại: ' + response.message);
+                                // Trả lại trạng thái nút bấm nếu bị lỗi hoặc thiếu hàng trong kho
+                                $btn.prop('disabled', false).html('<i class="bi bi-box-seam"></i> Xác nhận xuất kho');
+                            }
+                        },
+                        error: function () {
+                            alert('Đã xảy ra lỗi kết nối với máy chủ!');
+                            $btn.prop('disabled', false).html('<i class="bi bi-box-seam"></i> Xác nhận xuất kho');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

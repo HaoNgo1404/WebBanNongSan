@@ -1,0 +1,119 @@
+@model WebWeb.Models.KhieuNai
+@{
+    ViewData["Title"] = "Xử lý Khiếu nại #" + Model.KhieuNaiId;
+
+    // Lấy thông tin Tên và ID của Nhân viên quản trị đang đăng nhập thông qua cơ chế Claims Cookie
+    var activeAdminName = User.Identity?.Name ?? "Quản trị viên";
+    var activeAdminId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                        ?? User.FindFirst("NhanVienId")?.Value;
+}
+
+<div class="container-fluid px-4 py-3">
+    <div class="mb-3">
+        <a asp-action="IndexKhieuNai" class="btn btn-link text-success p-0 fw-bold text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Quay lại trung tâm quản lý
+        </a>
+    </div>
+
+    <h2 class="fw-bold text-dark mb-4">
+        <i class="bi bi-wrench-adjustable text-danger"></i> Tiến trình Xử lý Khiếu nại #@Model.KhieuNaiId
+    </h2>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Thông tin phản hồi</h5>
+                
+                <table class="table table-borderless align-middle sm-text">
+                    <tr>
+                        <td class="text-muted" style="width: 30%;">Khách hàng:</td>
+                        <td class="fw-bold">@Model.KhachHang?.HoTen</td>
+                    </tr>
+                    
+                    @if (Model.DonHangLeId.HasValue && Model.DonHangLeId.Value > 0)
+                    {
+                        <tr>
+                            <td class="text-muted">Mã đơn hàng lẻ:</td>
+                            <td class="fw-bold text-primary">#@Model.DonHangLeId</td>
+                        </tr>
+                    }
+                    else if (Model.DotGiaoId.HasValue && Model.DotGiaoId.Value > 0)
+                    {
+                        <tr>
+                            <td class="text-muted">Mã đợt giao hàng:</td>
+                            <td class="fw-bold text-warning">#@Model.DotGiaoId</td>
+                        </tr>
+                    }
+
+                    <tr>
+                        <td class="text-muted">Ngày gửi yêu cầu:</td>
+                        <td>@Model.NgayGui.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted" style="vertical-align: top;">Nội dung phản ánh:</td>
+                        <td class="text-dark bg-light p-2 rounded-2" style="white-space: pre-line;">@Model.NoiDung</td>
+                    </tr>
+                    
+                    <tr class="border-top">
+                        <td class="text-muted pt-3">Nhân viên tiếp nhận:</td>
+                        <td class="fw-bold text-success pt-3">
+                            <i class="bi bi-person-badge"></i> @activeAdminName <span class="text-muted fw-normal">(ID: #@activeAdminId)</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Phương án phê duyệt</h5>
+
+                <form asp-action="UpdateKhieuNai" method="post">
+                    <input type="hidden" name="khieuNaiId" value="@Model.KhieuNaiId" />
+                    
+                    <input type="hidden" name="nhanVienId" value="@activeAdminId" />
+
+                    @if (Model.DonHangLeId.HasValue && Model.DonHangLeId.Value > 0)
+                    {
+                        <input type="hidden" name="donHangLeId" value="@Model.DonHangLeId" />
+                        <input type="hidden" name="dotGiaoId" value="" />
+                    }
+                    else if (Model.DotGiaoId.HasValue && Model.DotGiaoId.Value > 0)
+                    {
+                        <input type="hidden" name="donHangLeId" value="" />
+                        <input type="hidden" name="dotGiaoId" value="@Model.DotGiaoId" />
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Phương án giải quyết:</label>
+                        <textarea class="form-control rounded-3" name="phuongAnXuLy" rows="3" required placeholder="Hào hãy nhập phương án đền bù hoặc xử lý tại đây...">@Model.PhuongAnXuLy</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Số tiền hoàn lại:</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control rounded-start-3" name="soTienHoan" value="@Model.SoTienHoan" step="1000" min="0" />
+                            <span class="input-group-text bg-light text-muted">VNĐ</span>
+                        </div>
+                        <span class="form-text text-muted small">Nhập 0 nếu phương án xử lý không phát sinh hoàn tiền mặt.</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary">Trạng thái giải quyết:</label>
+                        <select class="form-select rounded-3" name="trangThai">
+                            <option value="0" selected="@(Model.TrangThai == 0)">Chưa xử lý (Tiếp tục rà soát)</option>
+                            <option value="1" selected="@(Model.TrangThai == 1)">Đã giải quyết hoàn tất (Đóng khiếu nại)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="IndexKhieuNai" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="bi bi-check-lg"></i> Cập nhật & Lưu kết quả
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

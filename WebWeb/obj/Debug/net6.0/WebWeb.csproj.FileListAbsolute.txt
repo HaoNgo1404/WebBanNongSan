@@ -1,7 +1,7 @@
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\appsettings.Development.json
-E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\appsettings.json
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\WebWeb.staticwebassets.runtime.json
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\WebWeb.exe
+E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\appsettings.json
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\WebWeb.deps.json
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\WebWeb.runtimeconfig.json
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\WebWeb.dll

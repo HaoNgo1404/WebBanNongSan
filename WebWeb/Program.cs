@@ -25,6 +25,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         // SỬA Ở ĐÂY: Trỏ đúng vào Area Admin, Controller AdminAccount và Action Login
         options.LoginPath = "/Admin/AdminAccount/Login";
         options.AccessDeniedPath = "/Admin/AdminAccount/Login";
+    })
+    .AddCookie("ShipperScheme", options =>
+    {
+        // Đường dẫn đến trang đăng nhập của Shipper
+        options.LoginPath = "/Shipper/ShipperAccount/Login";
+        options.AccessDeniedPath = "/Shipper/ShipperAccount/Login";
     });
 
 builder.Services.AddHttpContextAccessor();

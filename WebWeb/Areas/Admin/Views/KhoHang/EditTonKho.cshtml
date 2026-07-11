@@ -1,60 +1,113 @@
 ﻿@model WebWeb.Models.LoHang
 @{
-    ViewData["Title"] = "Xác Nhận Xóa Lô Hàng";
+    ViewData["Title"] = "Chỉnh Sửa Nhanh Lô Hàng";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<div class="admin-card p-4">
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
-        <div>
-            <h2 class="h3 fw-bold text-danger mb-1"><i class="bi bi-exclamation-triangle-fill"></i> Xác nhận xóa lô hàng</h2>
-            <p class="text-muted mb-0">Hành động này sẽ gỡ bỏ vĩnh viễn dữ liệu lịch sử lô hàng ra khỏi hệ thống.</p>
-        </div>
-        <a class="btn btn-outline-secondary admin-btn" asp-action="LoHangList"><i class="bi bi-arrow-left"></i> Quay lại</a>
+<div class="container-fluid px-4 py-3">
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-link text-success p-0 fw-bold text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách tồn kho
+        </a>
     </div>
 
-    <div class="admin-panel p-4 bg-white border border-danger-subtle rounded shadow-sm mb-4">
-        <h5 class="fw-bold text-dark mb-3">Thông tin hồ sơ hủy bỏ:</h5>
-        <div class="row g-3">
-            <div class="col-md-4">
-                <span class="text-muted d-block">Mã số lô hàng:</span>
-                <strong class="text-dark">#LH-@Model.LoHangId</strong>
-            </div>
-            <div class="col-md-4">
-                <span class="text-muted d-block">Mã chứng từ liên kết:</span>
-                <strong class="text-primary">#PN-@Model.PhieuNhapId</strong>
-            </div>
-            <div class="col-md-4">
-                <span class="text-muted d-block">Nông sản:</span>
-                <strong class="text-success">@(Model.NongSan?.TenNongSan ?? "Không rõ")</strong>
-            </div>
-            <div class="col-md-4">
-                <span class="text-muted d-block">Số lượng nhập kho:</span>
-                <strong class="text-dark">@Model.SoLuongNhap</strong>
-            </div>
-            <div class="col-md-4">
-                <span class="text-muted d-block">Thời gian cập bến:</span>
-                <strong class="text-dark">@Model.NgayNhapKho.ToString("dd/MM/yyyy HH:mm")</strong>
-            </div>
-            <div class="col-md-4">
-                <span class="text-muted d-block">Hạn sử dụng:</span>
-                <strong class="text-danger">@Model.HanSuDung.ToString("dd/MM/yyyy")</strong>
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="admin-card p-4 bg-white rounded-3 shadow-sm border-start border-4 border-success">
+                <div class="border-bottom pb-2 mb-4">
+                    <h3 class="fw-bold text-dark mb-1"><i class="bi bi-pencil-square text-success"></i> Chỉnh sửa nhanh lô hàng</h3>
+                    <p class="text-muted mb-0">Mã định danh lô hàng: <strong class="text-dark">#LO-@Model.LoHangId</strong></p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <div asp-validation-summary="All" class="text-danger small"></div>
+                    </div>
+                }
+
+                <form asp-action="EditTonKho" method="post">
+                    @Html.AntiForgeryToken()
+                    <!-- Khóa chính ẩn để gửi lên Controller -->
+                    <input type="hidden" asp-for="LoHangId" />
+                    <input type="hidden" asp-for="NongSanId" />
+                    <input type="hidden" asp-for="PhieuNhapId" />
+                    <input type="hidden" asp-for="NgayNhapKho" />
+                    <input type="hidden" asp-for="NgayThuHoach" />
+
+                    <input type="hidden" asp-for="TrangThaiHsd" value="@Model.TrangThaiHsd" />
+
+                    <!-- Thông tin cố định (Read-only) -->
+                    <div class="mb-3 bg-light p-3 rounded-3 border">
+                        <div class="row">
+                            <div class="col-6 mb-2">
+                                <span class="small text-muted d-block">Nông sản nhập:</span>
+                                <span class="fw-bold text-dark">@(Model.NongSan?.TenNongSan ?? "Không rõ")</span>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <span class="small text-muted d-block">Nhà vườn cung cấp:</span>
+                                <span class="fw-semibold text-dark">@(Model.PhieuNhapKho?.NhaVuon?.TenNhaVuon ?? "Không rõ")</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="small text-muted d-block">Ngày nhập kho:</span>
+                                <span class="text-secondary">@Model.NgayNhapKho.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="small text-muted d-block">Số lượng nhập đầu:</span>
+                                <span class="badge bg-secondary">@Model.SoLuongNhap</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted my-4" />
+
+                    <!-- Các trường cho phép chỉnh sửa nhanh -->
+                    <div class="mb-3">
+                        <label asp-for="SoLuongTon" class="form-label small fw-bold text-secondary">Số lượng tồn kho hiện tại: <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-box-seam"></i></span>
+                            <input asp-for="SoLuongTon" class="form-control" type="number" step="any" min="0" required placeholder="Nhập số lượng thực tế trong kho" />
+                        </div>
+                        <span asp-validation-for="SoLuongTon" class="text-danger small"></span>
+                        <div class="form-text text-muted small">Cập nhật lại số lượng này nếu kho bị hao hụt, hỏng hóc hoặc kiểm kê lệch.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DonGiaNhap" class="form-label small fw-bold text-secondary">Đơn giá nhập (đ/đơn vị): <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-currency-dollar"></i></span>
+                            <input asp-for="DonGiaNhap" class="form-control text-success fw-bold" type="number" step="100" min="0" required />
+                            <span class="input-group-text bg-light">đ</span>
+                        </div>
+                        <span asp-validation-for="DonGiaNhap" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="HanSuDung" class="form-label small fw-bold text-secondary">Hạn sử dụng lô hàng: <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
+                            <input asp-for="HanSuDung" class="form-control" type="date" required 
+                                   value="@Model.HanSuDung.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <span asp-validation-for="HanSuDung" class="text-danger small"></span>
+                        <div class="form-text text-muted small">Hiện tại hệ thống ghi nhận trạng thái: 
+                            @if (Model.TrangThaiHsd == "Còn hạn") {
+                                <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Còn hạn</span>
+                            } else {
+                                <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> @Model.TrangThaiHsd</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Nút bấm hành động -->
+                    <div class="d-flex gap-2 justify-content-end border-top pt-3">
+                        <a asp-action="Index" class="btn btn-outline-secondary rounded-2 px-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-success rounded-2 px-4 admin-btn">
+                            <i class="bi bi-save"></i> Lưu cập nhật
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-
-    <div class="admin-empty-state border border-dashed rounded p-4 text-center bg-light">
-        <div class="text-danger fs-1 mb-2"><i class="bi bi-trash3"></i></div>
-        <div class="fw-semibold text-dark mb-1">Bạn chắc chắn muốn xóa mục này?</div>
-        <p class="text-muted small mb-0">Mọi báo cáo hao hụt và dữ liệu tồn kho liên đới thuộc mã lô #LH-@Model.LoHangId có thể bị ảnh hưởng.</p>
-    </div>
-
-    <form asp-action="DeleteLoHang" method="post" class="mt-4">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="LoHangId" />
-        <div class="d-flex gap-2 flex-wrap">
-            <button type="submit" class="btn btn-danger px-4"><i class="bi bi-trash"></i> Thực hiện xóa</button>
-            <a class="btn btn-outline-secondary px-4" asp-action="LoHangList">Hủy</a>
-        </div>
-    </form>
 </div>

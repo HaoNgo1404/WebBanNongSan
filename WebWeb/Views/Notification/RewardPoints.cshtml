@@ -1,0 +1,141 @@
+@model WebWeb.Models.KhachHang
+@{
+    ViewData["Title"] = "Điểm Tích Lũy Thành Viên";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Thay đổi theo Layout chuẩn của bạn
+
+    // Cấu hình quy luật thăng hạng thành viên dựa trên số điểm
+    string hangThanhVien = "Thành viên Đồng";
+    string mauChuChuDao = "text-muted";
+    string bgProgressBar = "bg-secondary";
+    int diemYeuCauTiepTheo = 100;
+    int phanTramTienTrinh = 0;
+
+    if (Model.DiemTichLuy >= 500)
+    {
+        hangThanhVien = "Thành viên Vàng";
+        mauChuChuDao = "text-warning";
+        bgProgressBar = "bg-warning";
+        diemYeuCauTiepTheo = 1000; // Hoặc max
+        phanTramTienTrinh = Math.Min(100, (Model.DiemTichLuy * 100) / 1000);
+    }
+    else if (Model.DiemTichLuy >= 100)
+    {
+        hangThanhVien = "Thành viên Bạc";
+        mauChuChuDao = "text-info";
+        bgProgressBar = "bg-info";
+        diemYeuCauTiepTheo = 500;
+        phanTramTienTrinh = (Model.DiemTichLuy * 100) / 500;
+    }
+    else
+    {
+        // Dưới 100 điểm là hạng Đồng
+        hangThanhVien = "Thành viên Đồng";
+        mauChuChuDao = "text-secondary";
+        bgProgressBar = "bg-bronze"; // CSS tùy biến màu đồng bên dưới
+        diemYeuCauTiepTheo = 100;
+        phanTramTienTrinh = (Model.DiemTichLuy * 100) / 100;
+    }
+}
+
+<div class="account-dashboard">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <partial name="_AccountSidebar" />
+        </div>
+        <div class="col-lg-9">
+            <div class="diem-container" style="max-height: 480px; overflow-y: auto; padding-right: 8px;">
+                <div class="dashboard-content card p-4 shadow-sm border-0 rounded-4 bg-white">
+                    <div class="card border-0 shadow rounded-3 overflow-hidden mb-4 text-center">
+                        <div class="bg-dark py-4 text-white">
+                            <h5 class="text-uppercase tracking-wider opacity-75 mb-1">Hạng Thành Viên Hệ Thống</h5>
+                            <h3 class="fw-bold @mauChuChuDao m-0"><i class="bi bi-gem me-2"></i>@hangThanhVien</h3>
+                        </div>
+                        <div class="card-body p-5">
+                            <p class="text-muted mb-2">Xin chào <strong class="text-dark">@Model.HoTen</strong>, số điểm tích lũy hiện tại của bạn là:</p>
+                            <div class="display-3 fw-bold text-success my-3 animate-score">@Model.DiemTichLuy</div>
+                            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill mb-4">10.000 đ đơn hàng lẻ = 1 Điểm tích lũy</span>
+
+                            <div class="mt-2 text-start">
+                                <div class="d-flex justify-content-between mb-1 small fw-semibold">
+                                    <span class="text-muted">Tiến trình thăng hạng tiếp theo</span>
+                                    <span class="text-dark">@Model.DiemTichLuy / @diemYeuCauTiepTheo Điểm</span>
+                                </div>
+                                <div class="progress rounded-pill shadow-sm" style="height: 12px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated @bgProgressBar" 
+                                        role="progressbar" 
+                                        style="width: @phanTramTienTrinh%" 
+                                        aria-valuenow="@Model.DiemTichLuy" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="@diemYeuCauTiepTheo"></div>
+                                </div>
+                                @if(diemYeuCauTiepTheo > Model.DiemTichLuy)
+                                {
+                                    <p class="text-muted small mt-2 text-center italic"><i class="bi bi-info-circle me-1"></i>Tích lũy thêm @(diemYeuCauTiepTheo - Model.DiemTichLuy) điểm nữa để nâng cấp tài khoản lên thứ hạng cao hơn!</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-gift-fill text-danger me-2"></i>Đặc quyền hạng thành viên</h5>
+                            <div class="list-group list-group-flush small">
+                                <div class="list-group-item px-0 py-3 d-flex align-items-start">
+                                    <div class="text-secondary me-3"><i class="bi bi-shield-check fs-4"></i></div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1 text-dark">Thành viên Đồng (Dưới 100 điểm)</h6>
+                                        <p class="text-muted mb-0">Hưởng mức giá bán lẻ nông sản sạch ưu đãi mặc định từ hệ thống.</p>
+                                    </div>
+                                </div>
+                                <div class="list-group-item px-0 py-3 d-flex align-items-start">
+                                    <div class="text-info me-3"><i class="bi bi-patch-check-fill fs-4"></i></div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1 text-info">Thành viên Bạc (Từ 100 điểm)</h6>
+                                        <p class="text-muted mb-0">Giảm giá trực tiếp 2% trên tổng giá trị hóa đơn cho các đơn hàng lẻ tiếp theo.</p>
+                                    </div>
+                                </div>
+                                <div class="list-group-item px-0 py-3 d-flex align-items-start border-0">
+                                    <div class="text-warning me-3"><i class="bi bi-award-fill fs-4"></i></div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1 text-warning">Thành viên Vàng (Từ 500 điểm)</h6>
+                                        <p class="text-muted mb-0">Ưu tiên miễn phí vận chuyển trong bán kính 5km và giảm 5% giá trị đơn hàng.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="/" class="btn btn-success px-4 rounded-pill fw-semibold shadow-sm">
+                            <i class="bi bi-cart3 me-1"></i> Tiếp tục mua sắm
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom màu đồng (Bronze) riêng biệt */
+    .bg-bronze {
+        background-color: #cd7f32 !important;
+    }
+    .text-bronze {
+        color: #cd7f32 !important;
+    }
+    /* Hiệu ứng phóng to nhẹ số điểm khi load trang */
+    .animate-score {
+        animation: pulse 1.5s infinite alternate;
+    }
+    @@keyframes pulse {
+        from { transform: scale(1); }
+        to { transform: scale(1.03); }
+    }
+    .tracking-wider {
+        letter-spacing: 1px;
+    }
+    .italic {
+        font-style: italic;
+    }
+</style>

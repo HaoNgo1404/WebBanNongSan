@@ -1,0 +1,54 @@
+@model WebWeb.Models.DonHangLe
+@{
+    // Tính toán bước active từ Model C# trực tiếp, không cần tính bằng JS nữa
+    var step = 1;
+    if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.ChoXuLy) { step = 2; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.DangGiao) { step = 3; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.HoanThanh) { step = 4; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.DaHuy) { step = -1; }
+}
+
+<div class="mb-3 text-start small border-bottom pb-2">
+    <p class="mb-1 text-muted">Mã đơn hàng: <strong class="text-dark">#@Model.DonHangLeId</strong> | Đặt ngày: @Model.NgayDat.ToString("dd/MM/yyyy HH:mm")</p>
+    <p class="mb-1 text-muted">Thanh toán: <strong class="text-dark">@Model.PhuongThucThanhToan</strong> (@Model.TrangThaiThanhToan)</p>
+</div>
+
+@if (step == -1)
+{
+    <div class="alert alert-danger py-2 rounded-pill small fw-bold mb-3">
+        <i class="bi bi-x-circle-fill me-1"></i> Đơn hàng này đã bị hủy bỏ!
+    </div>
+}
+else
+{
+    <div class="popup-timeline mb-4">
+        <div class="popup-step @(step >= 1 ? "active" : "")">
+            <div class="popup-icon-wrap shadow-sm"><i class="bi bi-file-earmark-text-fill"></i></div>
+            <span class="popup-title">Chờ duyệt</span>
+        </div>
+        <div class="popup-step @(step >= 2 ? "active" : "")">
+            <div class="popup-icon-wrap shadow-sm"><i class="bi bi-box-seam-fill"></i></div>
+            <span class="popup-title">Chuẩn bị</span>
+        </div>
+        <div class="popup-step @(step >= 3 ? "active" : "")">
+            <div class="popup-icon-wrap shadow-sm"><i class="bi bi-truck"></i></div>
+            <span class="popup-title">Đang giao</span>
+        </div>
+        <div class="popup-step @(step >= 4 ? "active" : "")">
+            <div class="popup-icon-wrap shadow-sm"><i class="bi bi-check-circle-fill"></i></div>
+            <span class="popup-title">Hoàn thành</span>
+        </div>
+    </div>
+}
+
+<div class="card bg-light border-0 text-start rounded-3 p-3 small mb-3">
+    <p class="mb-1"><strong>Người nhận:</strong> @Model.NameCusNonAccount - @Model.PhoneNonAccount</p>
+    <p class="mb-1"><strong>Địa chỉ giao:</strong> @Model.AddressNonAccount</p>
+    <p class="mb-0 text-success fw-bold"><strong>Tổng tiền:</strong> @Model.TongTienTamTinh.ToString("#,##0") đ</p>
+</div>
+
+<div class="d-grid mt-2">
+    <a href="/Order/OrderHistoryDetail?id=@Model.DonHangLeId" class="btn btn-success btn-sm rounded-pill fw-semibold py-2">
+        Đi đến trang quản lý chi tiết đơn
+    </a>
+</div>

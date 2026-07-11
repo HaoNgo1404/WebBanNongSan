@@ -1,0 +1,116 @@
+@{
+    ViewData["Title"] = "Quản Lý Đánh Giá Sản Phẩm";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var dsSanPham = ViewBag.DanhSachSanPham as List<WebWeb.Models.NongSan>;
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-card p-4">
+    <!-- THANH MENU TAB ĐỒNG BỘ THEO DỰ ÁN CỦA HÀO -->
+    <div class="d-flex border-bottom mb-4">
+        <a class="nav-link active fw-bold text-success border-bottom border-2 border-success pb-2 pe-3 text-decoration-none" 
+           asp-area="Admin" asp-controller="DanhGia" asp-action="Index">Đánh giá sản phẩm</a>
+        <a class="nav-link text-muted pb-2 px-3 text-decoration-none" 
+           asp-area="Admin" asp-controller="DanhGia" asp-action="IndexDonHang">Đánh giá đơn hàng</a>
+        <a class="nav-link text-muted pb-2 ps-3 text-decoration-none" 
+           asp-area="Admin" asp-controller="DanhGia" asp-action="IndexKhieuNai">Khiếu nại đơn hàng</a>
+    </div>
+
+    <!-- KHỐI TIÊU ĐỀ VÀ THỐNG KÊ TỔNG QUAN -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Đánh giá sản phẩm</h3>
+            <p class="text-muted mb-0">Quản lý và theo dõi điểm đánh giá trung bình cũng như phản hồi của khách hàng về nông sản.</p>
+        </div>
+        <!-- Thống kê điểm nhanh -->
+        <div class="d-flex gap-3">
+            <div class="bg-light border rounded px-3 py-2 text-center">
+                <span class="text-muted small d-block">Tổng đánh giá</span>
+                <span class="fw-bold text-success">@ViewBag.TongSoReviewSanPham</span>
+            </div>
+            <div class="bg-light border rounded px-3 py-2 text-center">
+                <span class="text-muted small d-block">ĐTB Hệ thống</span>
+                <span class="fw-bold text-warning">@ViewBag.DiemTrungBinhToanBo.ToString("N1") <i class="bi bi-star-fill"></i></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHỐI BẢNG DỮ LIỆU ĐỒNG BỘ CSS (.admin-panel & .admin-table) -->
+    <div class="admin-panel p-4">
+        <div class="table-responsive">
+            <div class="danhgia-sanpham-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">Số Lượng Đánh Giá</th>
+                            <th class="text-center">Điểm Đánh Giá Trung Bình</th>
+                            <th class="text-nowrap text-end pe-3">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (dsSanPham != null && dsSanPham.Any())
+                        {
+                            foreach (var sp in dsSanPham)
+                            {
+                                var count = sp.DanhGiaSanPhams?.Count ?? 0;
+                                var avg = count > 0 ? sp.DanhGiaSanPhams.Average(r => r.SoSao) : 0;
+                                <tr>
+                                    <td class="fw-bold text-dark">@sp.TenNongSan</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark border px-2 py-1">@count lượt</span>
+                                    </td>
+                                    <td class="text-center fw-bold text-warning">
+                                        @if(count > 0) {
+                                            <span>@avg.ToString("N1") <i class="bi bi-star-fill text-warning"></i></span>
+                                        } else {
+                                            <span class="text-secondary small fw-normal">Chưa có đánh giá</span>
+                                        }
+                                    </td>
+                                    <td class="text-nowrap text-end pe-3">
+                                        @if (count > 0)
+                                        {
+                                            var latestReview = sp.DanhGiaSanPhams.FirstOrDefault();
+                                            <form asp-area="Admin" asp-controller="DanhGia" asp-action="DeleteReview" asp-route-id="@latestReview?.DanhGiaId" method="post" onsubmit="return confirm('Hào có chắc chắn muốn xóa bài đánh giá không phù hợp của sản phẩm này không?');" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-2 px-3">
+                                                    <i class="bi bi-trash"></i> Xóa ĐG lỗi
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-light border rounded-2 px-3 text-muted" disabled>
+                                                <i class="bi bi-trash"></i> Trống
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">Không có sản phẩm nào trong hệ thống.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

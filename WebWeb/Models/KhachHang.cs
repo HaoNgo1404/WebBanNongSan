@@ -24,12 +24,12 @@ namespace WebWeb.Models
         public DateTime NgayDangKy { get; set; }
         public int DiemTichLuy { get; set; }
 
-        public virtual ICollection<ChiTietGioHang> ChiTietGioHangs { get; set; }
-        public virtual ICollection<DanhGiaSanPham> DanhGiaSanPhams { get; set; }
-        public virtual ICollection<DonHangLe> DonHangLes { get; set; }
-        public virtual ICollection<GoiDangKyDinhKy> GoiDangKyDinhKies { get; set; }
-        public virtual ICollection<KhieuNai> KhieuNais { get; set; }
-        public virtual ICollection<SoDiaChi> SoDiaChis { get; set; }
-        public virtual ICollection<YeuThich> YeuThiches { get; set; }
+        public virtual ICollection<ChiTietGioHang>? ChiTietGioHangs { get; set; }
+        public virtual ICollection<DanhGiaSanPham>? DanhGiaSanPhams { get; set; }
+        public virtual ICollection<DonHangLe>? DonHangLes { get; set; }
+        public virtual ICollection<GoiDangKyDinhKy>? GoiDangKyDinhKies { get; set; }
+        public virtual ICollection<KhieuNai>? KhieuNais { get; set; }
+        public virtual ICollection<SoDiaChi>? SoDiaChis { get; set; }
+        public virtual ICollection<YeuThich>? YeuThiches { get; set; }
     }
 }

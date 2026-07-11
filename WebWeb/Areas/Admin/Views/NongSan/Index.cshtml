@@ -42,61 +42,63 @@
         </form>
 
         <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Mã</th>
-                        <th>Hình ảnh</th>
-                        <th>Tên nông sản</th>
-                        <th>Danh mục</th>
-                        <th>Nhà vườn</th>
-                        <th>Giá bán niêm yết</th>
-                        <th>Sai số (%)</th>
-                        <th>ĐVT</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
+            <div class="nongsan-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Hình ảnh</th>
+                            <th>Tên nông sản</th>
+                            <th>Danh mục</th>
+                            <th>Nhà vườn</th>
+                            <th>Giá bán niêm yết</th>
+                            <th>Sai số (%)</th>
+                            <th>ĐVT</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>#NS-@item.NongSanId</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                        {
+                                            <img src="@Url.Content("~/images/" + item.HinhAnh)" style="width:50px; height:40px; object-fit:cover;" class="rounded" />
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Không có</span>
+                                        }
+                                    </td>
+                                    <td class="fw-semibold">@item.TenNongSan</td>
+                                    <td>@(item.DanhMuc?.TenDanhMuc ?? "Chưa phân loại")</td>
+                                    <td>@(item.NhaVuon?.TenNhaVuon ?? "Chưa rõ")</td>
+                                    <td class="text-success fw-bold">@item.GiaBanNiemYet.ToString("#,##0") đ</td>
+                                    <td>± @item.SaiSoChoPhep %</td>
+                                    <td>@item.DonViTinh</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Details" asp-route-id="@item.NongSanId"><i class="bi bi-eye"></i></a>
+                                            <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Edit" asp-route-id="@item.NongSanId"><i class="bi bi-pencil"></i></a>
+                                            <a class="btn btn-outline-danger btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Delete" asp-route-id="@item.NongSanId"><i class="bi bi-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>#NS-@item.NongSanId</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(item.HinhAnh))
-                                    {
-                                        <img src="@Url.Content("~/images/" + item.HinhAnh)" style="width:50px; height:40px; object-fit:cover;" class="rounded" />
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Không có</span>
-                                    }
-                                </td>
-                                <td class="fw-semibold">@item.TenNongSan</td>
-                                <td>@(item.DanhMuc?.TenDanhMuc ?? "Chưa phân loại")</td>
-                                <td>@(item.NhaVuon?.TenNhaVuon ?? "Chưa rõ")</td>
-                                <td class="text-success fw-bold">@item.GiaBanNiemYet.ToString("#,##0") đ</td>
-                                <td>± @item.SaiSoChoPhep %</td>
-                                <td>@item.DonViTinh</td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Details" asp-route-id="@item.NongSanId"><i class="bi bi-eye"></i></a>
-                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Edit" asp-route-id="@item.NongSanId"><i class="bi bi-pencil"></i></a>
-                                        <a class="btn btn-outline-danger btn-sm" asp-area="Admin" asp-controller="NongSan" asp-action="Delete" asp-route-id="@item.NongSanId"><i class="bi bi-trash"></i></a>
-                                    </div>
-                                </td>
+                                <td colspan="9" class="text-center py-4 text-muted">Không tìm thấy nông sản nào.</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="9" class="text-center py-4 text-muted">Không tìm thấy nông sản nào.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

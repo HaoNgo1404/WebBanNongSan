@@ -9,7 +9,7 @@ namespace WebWeb.Models
         public int NongSanId { get; set; }
         public decimal SoLuongMoiDot { get; set; }
 
-        public virtual GoiDangKyDinhKy Goi { get; set; } = null!;
-        public virtual NongSan NongSan { get; set; } = null!;
+        public virtual GoiDangKyDinhKy? Goi { get; set; }
+        public virtual NongSan? NongSan { get; set; }
     }
 }

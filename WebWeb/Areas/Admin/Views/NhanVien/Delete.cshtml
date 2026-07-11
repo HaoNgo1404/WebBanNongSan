@@ -1,0 +1,38 @@
+@model WebWeb.Models.NhanVien
+@{
+    ViewData["Title"] = "Xác nhận xóa Nhân Viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow border-0 rounded-4 overflow-hidden">
+            <div class="bg-danger text-white text-center p-4">
+                <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                <h4 class="fw-bold mt-2 mb-0">CẢNH BÁO XÓA TÀI KHOẢN</h4>
+            </div>
+            <div class="card-body p-4 text-center">
+                <p class="text-secondary">Hào có chắc chắn muốn xóa vĩnh viễn tài khoản của nhân viên dưới đây không? Thao tác này không thể hoàn tác sau khi thực hiện.</p>
+                
+                <div class="p-3 bg-light rounded-3 mb-4 text-start border">
+                    <p class="mb-1 text-dark"><strong>Mã nhân viên:</strong> #NV-@Model.NhanVienId</p>
+                    <p class="mb-1 text-dark"><strong>Họ và tên:</strong> @Model.HoTen</p>
+                    <p class="mb-1 text-dark"><strong>Email liên hệ:</strong> @Model.Email</p>
+                    <p class="mb-0 text-dark"><strong>Chức vụ hệ thống:</strong> <span class="badge bg-secondary">@Model.VaiTro?.TenVaiTro</span></p>
+                </div>
+
+                <form asp-action="DeleteConfirmPage" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="NhanVienId" />
+                    
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a asp-action="Index" class="btn btn-light border px-4 rounded-3 fw-semibold">Hủy, quay lại</a>
+                        <button type="submit" class="btn btn-danger px-4 rounded-3 fw-bold">
+                            <i class="bi bi-trash3-fill"></i> Xác nhận xóa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -14,6 +14,6 @@ namespace WebWeb.Models
         public string TenVaiTro { get; set; } = null!;
         public string? MoTa { get; set; }
 
-        public virtual ICollection<NhanVien> NhanViens { get; set; }
+        public virtual ICollection<NhanVien>? NhanViens { get; set; }
     }
 }

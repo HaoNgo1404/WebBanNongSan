@@ -1,0 +1,86 @@
+@model WebWeb.Models.GoiDangKyDinhKy
+@{
+    ViewData["Title"] = "Xác nhận xóa đơn hàng lẻ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; // Đổi lại layout Admin của bạn nếu cần
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Đường dẫn điều hướng (Breadcrumb) -->
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index" class="text-success text-decoration-none fw-semibold">Quản lý gói định kỳ</a></li>
+        <li class="breadcrumb-item active">Xác nhận xóa gói định kỳ</li>
+    </ol>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-danger text-white py-3 border-0 rounded-top-4">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-exclamation-diamond-fill me-2"></i> HÀNH ĐỘNG NGUY HIỂM: XÓA GÓI ĐỊNH KỲ
+                    </h5>
+                </div>
+                <div class="card-body p-4 bg-white">
+                    <p class="text-secondary mb-4 fs-6">
+                        Hào có chắc chắn muốn xóa gói này? Hệ thống sẽ gỡ bỏ hoàn toàn gói định kỳ cùng **tất cả các chi tiết mặt hàng nông sản nằm trong gói này** ra khỏi cơ sở dữ liệu.
+                    </p>
+
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <h6 class="text-danger border-bottom pb-2 mb-3 fw-bold">Tóm tắt thông tin gói:</h6>
+                        <div class="row g-2 small">
+                            <div class="col-4 fw-bold text-dark">Mã gói:</div>
+                            <div class="col-8 text-danger fw-bold">#@Model.GoiId</div>
+
+                            <div class="col-4 fw-bold text-dark">Khách hàng đặt:</div>
+                            <div class="col-8 text-secondary">
+                                @if (Model.KhachHang != null)
+                                {
+                                    <span class="fw-semibold text-dark">@Model.KhachHang.HoTen</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted"><i>Khách vãng lai (Chưa đăng ký)</i></span>
+                                }
+                            </div>
+
+                            <div class="col-4 fw-bold text-dark">Ngày bắt đầu:</div>
+                            <div class="col-8 text-secondary">@Model.NgayBatDau.ToString("dd/MM/yyyy HH:mm")</div>
+
+                            <div class="col-4 fw-bold text-dark">Ngày kết thúc:</div>
+                            <div class="col-8 text-secondary">@Model.NgayKetThuc.ToString("dd/MM/yyyy HH:mm")</div>
+
+                            <div class="col-4 fw-bold text-dark">Trạng thái gói:</div>
+                            <div class="col-8">
+                                <span class="badge @(Model.TrangThaiGoi == WebWeb.Models.OrderStatuses.ChoDuyet ? "bg-warning text-dark" : Model.TrangThaiGoi == WebWeb.Models.OrderStatuses.DaHuy ? "bg-danger" : "bg-success")">
+                                    @Model.TrangThaiGoi
+                                </span>
+                            </div>
+
+                            <div class="col-4 fw-bold text-dark">Địa chỉ giao:</div>
+                            <div class="col-8 text-secondary text-wrap">@(Model.DiaChi?.DiaChiGiao ?? "N/A")</div>
+
+                            <div class="col-4 fw-bold text-dark mt-2 pt-2 border-top">Tổng tiền hóa đơn:</div>
+                            <div class="col-8 mt-2 pt-2 border-top text-danger fw-bold fs-5">
+                                @Model.TongTienGoi.ToString("N0")₫
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form thực thi POST gửi yêu cầu xác nhận xóa -->
+                    <form asp-action="DeleteDinhKy" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="GoiId" />
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-light border rounded-pill px-4 fw-bold text-secondary">
+                                <i class="bi bi-arrow-left-short"></i> Hủy thao tác
+                            </a>
+                            <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                                <i class="bi bi-trash3-fill"></i> Xác nhận xóa ngay
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

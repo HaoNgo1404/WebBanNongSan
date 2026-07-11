@@ -1,0 +1,77 @@
+@model IEnumerable<WebWeb.Models.ThamSo>
+@{
+    ViewData["Title"] = "Cấu hình tham số & Phí dịch vụ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; // Đồng bộ layout Admin của Hào
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow-sm border-0 rounded-3">
+    <div class="card-header bg-success text-white p-3 rounded-top-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-gear-wide-connected me-2"></i> Hệ thống cấu hình tham số & Phí dịch vụ</h5>
+            <span class="badge bg-light text-success fw-bold">@Model.Count() Tham số hoạt động</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-striped">
+                <thead class="table-light text-secondary">
+                    <tr>
+                        <th class="ps-4 py-3" style="width: 25%;">Mã tham số (Mã hệ thống)</th>
+                        <th style="width: 20%;">Giá trị cấu hình hiện tại</th>
+                        <th style="width: 40%;">Ý nghĩa / Ghi chú áp dụng</th>
+                        <th class="text-end pe-4" style="width: 15%;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">
+                                    <code class="text-danger" style="font-size: 0.95rem;">@item.MaThamSo</code>
+                                </td>
+                                <td>
+                                    <span class="fs-5 fw-bold text-success">
+                                        @item.GiaTri.ToString("#,##0.##")
+                                    </span>
+                                </td>
+                                <td class="text-muted small">@item.GhiChu</td>
+                                <td class="text-end pe-4">
+                                    <a class="btn btn-sm btn-outline-success rounded-2 px-3" 
+                                       asp-area="Admin" asp-controller="ThamSo" asp-action="Edit" asp-route-id="@item.MaThamSo">
+                                        <i class="bi bi-pencil-square me-1"></i> Điều chỉnh
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-5">
+                                <i class="bi bi-database-exclamation fs-2 block mb-2"></i><br />
+                                Bảng dữ liệu tham số hiện đang trống.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

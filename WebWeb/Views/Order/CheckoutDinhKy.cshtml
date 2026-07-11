@@ -15,34 +15,57 @@
                 <h5 class="text-success mb-3">Cấu hình lịch trình giao gói định kỳ</h5>
                 <div class="mb-3">
                     <label class="form-label">Sổ địa chỉ nhận hàng</label>
-                    <select asp-for="DiaChiId" class="form-select">
-                        <option value="1">Nhà riêng - 123 Nguyễn Văn Cừ, Quận 5, TP.HCM</option>
+                    <select asp-for="DiaChiId" 
+                            id="SelectDiaChiId"
+                            asp-items="@(ViewBag.DanhSachDiaChi as SelectList)" 
+                            class="form-select">
+                        <option value="">-- Chọn địa chỉ từ sổ địa chỉ --</option>
                     </select>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Tần suất giao định kỳ</label>
-                        <select asp-for="TanSuatGiao" class="form-select">
-                            <option value="HangTuan">Hàng tuần (1 tuần/lần)</option>
-                            <option value="CachTuan">Cách tuần (2 tuần/lần)</option>
+                        <label class="form-label fw-bold">Tần suất giao định kỳ</label>
+                        <select asp-for="TanSuatGiao" id="SelectTanSuatGiao" class="form-select border-success">
+                            <option value="@Date.HangTuan">@Date.HangTuan</option>
+                            <option value="@Date.CachTuan">@Date.CachTuan</option>
                         </select>
                     </div>
+
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Thứ cố định giao trong tuần</label>
-                        <select asp-for="ThuTrongTuan" class="form-select">
-                            <option value="Thu 2">Thứ 2 hàng tuần</option>
-                            <option value="Thu 7">Thứ 7 hàng tuần</option>
+                        <label class="form-label fw-bold">Ngày giao hàng trong tuần</label>
+                        <select asp-for="ThuTrongTuan" class="form-select border-success">
+                            <option value="@Date.Thu2">Thứ 2</option>
+                            <option value="@Date.Thu3">Thứ 3</option>
+                            <option value="@Date.Thu4">Thứ 4</option>
+                            <option value="@Date.Thu5">Thứ 5</option>
+                            <option value="@Date.Thu6">Thứ 6</option>
+                            <option value="@Date.Thu7">Thứ 7</option>
+                            <option value="@Date.CN">Chủ Nhật</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Thời hạn duy trì gói</label>
-                    <select asp-for="SoThangDangKy" class="form-select">
-                        <option value="1">Gói 01 Tháng</option>
-                        <option value="3">Gói 03 Tháng</option>
+                    <label class="form-label fw-bold">Thời hạn đăng ký gói</label>
+                    <select asp-for="SoThangDangKy" id="SelectSoThangDangKy" class="form-select border-success">
+                        <option value="1">Gói 01 tháng</option>
+                        <option value="3">Gói 03 tháng</option>
+                        <option value="6">Gói 06 tháng</option>
+                        <option value="12">Gói 12 tháng</option>
                     </select>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 border mb-4">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-calculator"></i> Dự tính chi phí trọn gói</h6>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Tổng số đợt giao nông sản:</span>
+                        <span class="fw-bold text-dark"><span id="lblTongSoDot">0</span> đợt</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted fw-bold text-success">Tổng chi phí gói (Trả trước):</span>
+                        <span class="h5 fw-bold text-danger mb-0" id="lblTongTienGoi">0 VNĐ</span>
+                    </div>
                 </div>
 
                 <div class="mb-4">
@@ -74,3 +97,73 @@
         </div>
     </div>
 </div>
+
+<script>
+    const listDiaChi = @Html.Raw(ViewBag.DiaChiJson ?? "[]");
+    const selectElement = document.getElementById("SelectDiaChiId");
+
+    function autoFillAddress(selectedId) {
+        const diaChiDuocChon = listDiaChi.find(d => d.DiaChiId === selectedId);
+
+        if (diaChiDuocChon) {
+            document.getElementById("NameCusNonAccount").value = diaChiDuocChon.TenNguoiNhan;
+            document.getElementById("PhoneNonAccount").value = diaChiDuocChon.SoDienThoaiNhan;
+            document.getElementById("AddressNonAccount").value = diaChiDuocChon.DiaChiGiao;
+        } else {
+            document.getElementById("NameCusNonAccount").value = "";
+            document.getElementById("PhoneNonAccount").value = "";
+            document.getElementById("AddressNonAccount").value = "";
+        }
+    }
+
+    // Tự động chạy ngay khi trang load xong để kiểm tra xem có option nào đang được chọn sẵn không
+    document.addEventListener("DOMContentLoaded", function() {
+        const initialId = parseInt(selectElement.value);
+        if (initialId) {
+            autoFillAddress(initialId);
+        }
+    });
+
+    // Chạy khi người dùng click đổi địa chỉ khác
+    if(selectElement) {
+        selectElement.addEventListener("change", function () {
+            const selectedId = parseInt(this.value);
+            autoFillAddress(selectedId);
+        });
+    }
+
+    // SCRIPT TÍNH CHI PHÍ TRỌN GÓI THEO CẤU HÌNH LỊCH TRÌNH
+    document.addEventListener("DOMContentLoaded", function () {
+        // Đọc giá trị tiền tạm tính của riêng 1 đợt từ ViewBag lên
+        const giaMotDot = @(ViewBag.TongTienMotDot ?? 0); 
+        
+        const selectTanSuat = document.getElementById("SelectTanSuatGiao");
+        const selectSoThang = document.getElementById("SelectSoThangDangKy");
+        const lblTongSoDot = document.getElementById("lblTongSoDot");
+        const lblTongTienGoi = document.getElementById("lblTongTienGoi");
+
+        function tinhToanChiPhiTronGoi() {
+            let months = parseInt(selectSoThang.value) || 1;
+            let dotMoiThang = 4; // Mặc định Hàng tuần giao 4 lần/tháng
+
+            // Kiểm tra khớp với chuỗi có dấu của Date.CachTuan để hạ số đợt xuống 2 lần/tháng
+            if (selectTanSuat.value.includes("Cách Tuần") || selectTanSuat.value.includes("2 tuần/lần")) {
+                dotMoiThang = 2; 
+            }
+
+            let tongSoDot = months * dotMoiThang;
+            let tongTienGoi = tongSoDot * giaMotDot;
+
+            // Đẩy giá trị đã tính toán lên thẻ HTML giao diện hiển thị cho khách xem
+            if (lblTongSoDot) lblTongSoDot.innerText = tongSoDot;
+            if (lblTongTienGoi) lblTongTienGoi.innerText = tongTienGoi.toLocaleString('vi-VN') + " VNĐ";
+        }
+
+        // Đăng ký các sự kiện thay đổi dữ liệu cấu hình gói
+        if (selectTanSuat) selectTanSuat.addEventListener("change", tinhToanChiPhiTronGoi);
+        if (selectSoThang) selectSoThang.addEventListener("change", tinhToanChiPhiTronGoi);
+
+        // Chạy kiểm tra kích hoạt tính toán ngay lần load trang đầu tiên
+        tinhToanChiPhiTronGoi();
+    });
+</script>

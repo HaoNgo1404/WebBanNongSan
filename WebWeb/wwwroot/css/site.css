@@ -862,3 +862,11 @@ a {
     border-radius: 18px;
   }
 }
+
+  .popup-timeline { padding: 15px 0; display: flex; justify-content: space-between; position: relative; }
+  .popup-timeline::before { content: ""; position: absolute; top: 32px; left: 10%; width: 80%; height: 4px; background-color: #e9ecef; z-index: 1; }
+  .popup-step { z-index: 2; flex: 1; text-align: center; }
+  .popup-icon-wrap { width: 38px; height: 38px; line-height: 36px; border-radius: 50%; background-color: #ffffff; color: #adb5bd; font-size: 1rem; border: 2px solid #e9ecef; margin: 0 auto 6px; transition: all 0.3s ease; }
+  .popup-step .popup-title { font-size: 0.75rem; color: #6c757d; }
+  .popup-step.active .popup-icon-wrap { background-color: #198754; color: #ffffff; border-color: #198754; }
+  .popup-step.active .popup-title { color: #198754; font-weight: bold; }

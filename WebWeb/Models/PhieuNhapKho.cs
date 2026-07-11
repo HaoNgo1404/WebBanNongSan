@@ -16,8 +16,8 @@ namespace WebWeb.Models
         public DateTime NgayLapPhieu { get; set; }
         public decimal TongTienNhap { get; set; }
 
-        public virtual NhaVuon NhaVuon { get; set; } = null!;
-        public virtual NhanVien NhanVien { get; set; } = null!;
-        public virtual ICollection<LoHang> LoHangs { get; set; }
+        public virtual NhaVuon? NhaVuon { get; set; }
+        public virtual NhanVien? NhanVien { get; set; }
+        public virtual ICollection<LoHang>? LoHangs { get; set; }
     }
 }

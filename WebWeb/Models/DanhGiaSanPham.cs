@@ -14,8 +14,8 @@ namespace WebWeb.Models
         public string? HinhAnhThucTe { get; set; }
         public DateTime NgayDanhGia { get; set; }
 
-        public virtual DonHangLe DonHangLe { get; set; } = null!;
-        public virtual KhachHang KhachHang { get; set; } = null!;
-        public virtual NongSan NongSan { get; set; } = null!;
+        public virtual DonHangLe? DonHangLe { get; set; }
+        public virtual KhachHang? KhachHang { get; set; }
+        public virtual NongSan? NongSan { get; set; }
     }
 }

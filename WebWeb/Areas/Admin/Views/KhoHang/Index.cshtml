@@ -1,84 +1,70 @@
-﻿@model IEnumerable<WebWeb.Models.LoHang>
+﻿@model IEnumerable<WebWeb.ViewModels.NongSanTonKhoViewModel>
 @{
-    ViewData["Title"] = "Tồn Kho Nông Sản";
+    ViewData["Title"] = "Tồn Kho Nông Sản Tổng Quan";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-}
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
 }
 
 <div class="admin-card p-4">
     <div class="d-flex border-bottom mb-4">
         <a class="nav-link active fw-bold text-success border-bottom border-2 border-success pb-2 pe-3" asp-action="Index">Tồn Kho Hiện Tại</a>
         <a class="nav-link text-muted pb-2 ps-3" asp-action="LoHangList">Nhật Ký Lô Hàng</a>
+        <a class="nav-link text-muted pb-2 ps-3" asp-action="DepletionList">Nhật Ký Hao Hụt</a>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold text-dark mb-1">Số lượng tồn kho thực tế</h3>
-            <p class="text-muted mb-0">Danh sách nông sản đang có trong kho kèm hạn sử dụng và giá nhập.</p>
+            <p class="text-muted mb-0">Danh sách nông sản được gộp nhóm tổng quan để theo dõi lượng hàng còn tồn.</p>
         </div>
         <a class="btn btn-success admin-btn" asp-action="NhapKho"><i class="bi bi-plus-lg"></i> Nhập kho</a>
     </div>
 
     <div class="admin-panel p-4">
         <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Nông Sản</th>
-                        <th>Nhà Vườn (Cung Ứng)</th>
-                        <th>SL Tồn Kho</th>
-                        <th>Giá Nhập</th>
-                        <th>Hạn Sử Dụng</th>
-                        <th>Trạng Thái HSD</th>
-                        <th>Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
+            <div class="khohang-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
                         <tr>
-                            <td class="fw-bold">@(item.NongSan?.TenNongSan ?? "Không rõ")</td>
-                            <td>@(item.PhieuNhapKho?.NhaVuon?.TenNhaVuon ?? "Không rõ")</td>
-                            <td>
-                                @if (item.SoLuongTon == 0) { 
-                                    <span class="badge bg-danger">Hết hàng</span> 
-                                } else { 
-                                    <span class="badge bg-info text-dark fw-bold">@item.SoLuongTon</span> 
-                                }
-                            </td>
-                            <td class="text-success fw-semibold">@item.DonGiaNhap.ToString("#,##0") đ</td>
-                            <td>@item.HanSuDung.ToString("dd/MM/yyyy")</td>
-                            <td>
-                                @if (item.TrangThaiHsd == "Còn hạn") {
-                                    <span class="text-success"><i class="bi bi-check-circle-fill"></i> Còn hạn</span>
-                                } else {
-                                    <span class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> @item.TrangThaiHsd</span>
-                                }
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <a class="btn btn-outline-secondary btn-sm" asp-action="EditTonKho" asp-route-id="@item.LoHangId"><i class="bi bi-pencil"></i> Sửa</a>
-                                    <a class="btn btn-outline-danger btn-sm" asp-action="DeleteTonKho" asp-route-id="@item.LoHangId"><i class="bi bi-trash"></i> Xóa</a>
-                                </div>
-                            </td>
+                            <th>Mã Nông Sản</th>
+                            <th>Tên Nông Sản</th>
+                            <th>Số Lượng Lô </th>
+                            <th>Tổng SL Tồn Kho</th>
+                            <th>Trạng Thái</th>
+                            <th class="text-center">Thao Tác</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">#NS-@item.NongSanId</td>
+                                <td class="fw-semibold text-dark">@item.TenNongSan</td>
+                                <td><span class="badge bg-secondary">@item.SoLuongLoHangActive Lô hàng</span></td>
+                                <td>
+                                    @if (item.TongSoLuongTon == 0) { 
+                                        <span class="badge bg-danger">Hết hàng</span> 
+                                    } else { 
+                                        <span class="badge bg-info text-dark fw-bold fs-6">@item.TongSoLuongTon</span> 
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.TongSoLuongTon > 0) {
+                                        <span class="text-success fw-medium"><i class="bi bi-box-seam-fill"></i> Sẵn sàng bán</span>
+                                    } else {
+                                        <span class="text-muted"><i class="bi bi-dash-circle"></i> Hết hàng</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <!-- NÚT DETAILS: Bấm vào xem chi tiết phân rã từng lô hàng bên trong -->
+                                    <a class="btn btn-sm btn-success rounded-2 px-3" asp-action="Details" asp-route-id="@item.NongSanId">
+                                        <i class="bi bi-eye"></i> Xem các lô hàng
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

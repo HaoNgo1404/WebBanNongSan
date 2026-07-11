@@ -1,0 +1,171 @@
+@{
+    ViewData["Title"] = "Lịch Sử Giao Hàng";
+    Layout = "~/Views/Shared/_LayoutShipper.cshtml";
+
+    var lichSuDonLe = ViewBag.LichSuDonLe as IEnumerable<WebWeb.Models.DonHangLe>;
+    var lichSuDinhKy = ViewBag.LichSuDinhKy as IEnumerable<WebWeb.Models.DotGiaoDinhKy>;
+}
+
+<div class="container py-4">
+    <!-- TIÊU ĐỀ TRANG -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold text-secondary"><i class="bi bi-clock-history"></i> Nhật Ký Giao Hàng</h2>
+            <p class="text-muted mb-0">Xem lại lịch sử tất cả các đơn hàng lẻ và đợt định kỳ bạn đã hoàn thành hoặc báo hủy.</p>
+        </div>
+    </div>
+
+    <!-- PHÂN TÁCH TAB LỊCH SỬ -->
+    <ul class="nav nav-pills mb-4 bg-light p-2 rounded-3 shadow-sm" id="historyTab" role="tablist">
+        <li class="nav-item flex-fill text-center" role="presentation">
+            <button class="nav-link w-100 active fw-bold text-uppercase rounded-3" id="hist-le-tab" data-bs-toggle="tab" data-bs-target="#hist-le" type="button" role="tab" aria-controls="hist-le" aria-selected="true">
+                <i class="bi bi-bag-check-fill me-1"></i> Đơn hàng lẻ lẻ (@(lichSuDonLe?.Count() ?? 0))
+            </button>
+        </li>
+        <li class="nav-item flex-fill text-center" role="presentation">
+            <button class="nav-link w-100 fw-bold text-uppercase rounded-3 text-success" id="hist-dinh-ky-tab" data-bs-toggle="tab" data-bs-target="#hist-dinh-ky" type="button" role="tab" aria-controls="hist-dinh-ky" aria-selected="false">
+                <i class="bi bi-calendar-check-fill me-1"></i> Đợt định kỳ (@(lichSuDinhKy?.Count() ?? 0))
+            </button>
+        </li>
+    </ul>
+
+    <!-- NỘI DUNG TỪNG TAB BẢNG LỊCH SỬ -->
+    <div class="tab-content" id="historyTabContent">
+
+        <!-- TAB 1: LỊCH SỬ ĐƠN HÀNG LẺ -->
+        <div class="tab-pane fade show active" id="hist-le" role="tabpanel" aria-labelledby="hist-le-tab">
+            <div class="card shadow-sm border-0 bg-white p-3 rounded-3">
+                @if (lichSuDonLe == null || !lichSuDonLe.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-folder-x fs-1"></i>
+                        <p class="mt-2 mb-0">Bạn chưa hoàn thành hoặc xử lý đơn hàng lẻ nào.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã Đơn</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Địa Chỉ Giao</th>
+                                    <th>Thu Hộ (COD)</th>
+                                    <th class="text-center">Trạng Thái</th>
+                                    <th class="text-center">Hành Động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in lichSuDonLe)
+                                {
+                                    <tr>
+                                        <td><span class="fw-bold">#@item.DonHangLeId</span></td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">@item.NameCusNonAccount</div>
+                                            <small class="text-muted"><i class="bi bi-telephone"></i> @item.PhoneNonAccount</small>
+                                        </td>
+                                        <td class="text-wrap" style="max-width: 250px;"><small>@item.AddressNonAccount</small></td>
+                                        <td class="text-danger fw-bold">@item.TongTienTamTinh.ToString("N0") đ</td>
+                                        <td class="text-center">
+                                            @if (item.TrangThaiDonHang == WebWeb.Models.OrderStatuses.HoanThanh)
+                                            {
+                                                <span class="badge bg-success-subtle text-success px-2 py-1">Thành công</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger px-2 py-1">Đã hủy đơn</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <a asp-action="Details" asp-route-id="@item.DonHangLeId" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-search"></i> Xem lại
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- TAB 2: LỊCH SỬ ĐỢT GIAO ĐỊNH KỲ -->
+        <div class="tab-pane fade" id="hist-dinh-ky" role="tabpanel" aria-labelledby="hist-dinh-ky-tab">
+            <div class="card shadow-sm border-0 bg-white p-3 rounded-3">
+                @if (lichSuDinhKy == null || !lichSuDinhKy.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-folder-x fs-1"></i>
+                        <p class="mt-2 mb-0">Bạn chưa thực hiện đợt phát gói định kỳ nào.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã Đợt</th>
+                                    <th>Mã Gói Tổng</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Địa Chỉ Nhận Gói</th>
+                                    <th>Tiền Thu</th>
+                                    <th class="text-center">Trạng Thái Giao</th>
+                                    <th class="text-center">Hành Động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in lichSuDinhKy)
+                                {
+                                    <tr>
+                                        <td><span class="fw-bold">#@item.DotGiaoId</span></td>
+                                        <td><code class="text-danger">#@item.GoiId</code></td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">@(item.Goi?.KhachHang?.HoTen ?? "Khách nhận gói")</div>
+                                            <small class="text-muted"><i class="bi bi-telephone"></i> @(item.Goi?.KhachHang?.SoDienThoai ?? "---")</small>
+                                        </td>
+                                        <td class="text-wrap" style="max-width: 250px;"><small>@(item.Goi?.DiaChi?.DiaChiGiao ?? "---")</small></td>
+                                        <td><span class="text-muted small">0 đ (Trả trước)</span></td>
+                                        <td class="text-center">
+                                            @if (item.TrangThaiGiao == WebWeb.Models.OrderStatuses.HoanThanh)
+                                            {
+                                                <span class="badge bg-success text-white px-2 py-1">Đã Phát Hàng</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger text-white px-2 py-1">Thất bại</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <a asp-action="DetailsDotGiao" asp-route-id="@item.DotGiaoId" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-search"></i> Xem lại
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Làm đẹp giao diện chuyển đổi lựa chọn lịch sử */
+    .nav-pills .nav-link.active {
+        background-color: #6c757d !important;
+        color: #ffffff !important;
+    }
+    .nav-pills .nav-link {
+        color: #6c757d;
+        transition: all 0.2s;
+    }
+    /* Tạo màu nền dịu nhẹ cho nhãn trạng thái (Subtle Badge) */
+    .bg-success-subtle { background-color: #d1e7dd; }
+    .bg-danger-subtle { background-color: #f8d7da; }
+</style>

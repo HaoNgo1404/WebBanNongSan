@@ -11,7 +11,7 @@ namespace WebWeb.Models
         public int? DotGiaoId { get; set; }
         public int? NhanVienId { get; set; }
         public string NoiDung { get; set; } = null!;
-        public string HinhAnhMinhChung { get; set; } = null!;
+        public string? HinhAnhMinhChung { get; set; }
         public DateTime NgayGui { get; set; }
         public string? PhuongAnXuLy { get; set; }
         public decimal SoTienHoan { get; set; }
@@ -19,7 +19,7 @@ namespace WebWeb.Models
 
         public virtual DonHangLe? DonHangLe { get; set; }
         public virtual DotGiaoDinhKy? DotGiao { get; set; }
-        public virtual KhachHang KhachHang { get; set; } = null!;
+        public virtual KhachHang? KhachHang { get; set; }
         public virtual NhanVien? NhanVien { get; set; }
     }
 }

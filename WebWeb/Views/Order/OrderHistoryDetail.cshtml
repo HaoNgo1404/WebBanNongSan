@@ -1,13 +1,78 @@
 @model WebWeb.Models.DonHangLe
 @{
     ViewData["Title"] = "Chi tiết đơn hàng #" + Model.DonHangLeId;
+
+    // Tính toán số bước tiến trình cho Timeline đơn hàng
+    var step = 1;
+    if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.ChoXuLy) { step = 2; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.DangGiao) { step = 3; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.HoanThanh) { step = 4; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.DaHuy) { step = -1; }
 }
+<link rel="stylesheet" href="~/css/order.css" asp-append-version="true" />
 
 <div class="container mt-5 mb-5">
-    <div class="mb-4">
-        <a asp-action="OrderHistory" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="bi bi-arrow-left"></i> Quay lại lịch sử đơn hàng
-        </a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="mb-4">
+            <a asp-action="OrderHistory" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left"></i> Quay lại lịch sử đơn hàng
+            </a>
+        </div>
+        <div class="mb-4">
+            @if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.HoanThanh)
+            {
+                <button class="btn btn-warning btn-sm btn-open-review" 
+                        data-id="@Model.DonHangLeId">
+                    <i class="bi bi-star"></i> Đánh giá đơn hàng
+                </button>
+                <button class="btn btn-outline-danger btn-sm btn-open-complaint" data-id="@Model.DonHangLeId">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Khiếu nại đơn hàng
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 mb-4 bg-white">
+        <div class="card-body p-4">
+            @if (step == -1)
+            {
+                <div class="text-center py-2 text-danger fw-bold">
+                    <i class="bi bi-x-circle-fill me-2"></i> Đơn hàng này đã bị hủy bỏ.
+                </div>
+            }
+            else
+            {
+                <div class="tracking-timeline d-flex justify-content-between position-relative">
+                    <div class="text-center tracking-step @(step >= 1 ? "active" : "")">
+                        <div class="step-icon-wrap shadow-sm mx-auto mb-2">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                        </div>
+                        <span class="step-title fw-semibold d-block">Chờ duyệt</span>
+                    </div>
+
+                    <div class="text-center tracking-step @(step >= 2 ? "active" : "")">
+                        <div class="step-icon-wrap shadow-sm mx-auto mb-2">
+                            <i class="bi bi-box-seam-fill"></i>
+                        </div>
+                        <span class="step-title fw-semibold d-block">Đang chuẩn bị</span>
+                    </div>
+
+                    <div class="text-center tracking-step @(step >= 3 ? "active" : "")">
+                        <div class="step-icon-wrap shadow-sm mx-auto mb-2">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <span class="step-title fw-semibold d-block">Đang giao</span>
+                    </div>
+
+                    <div class="text-center tracking-step @(step >= 4 ? "active" : "")">
+                        <div class="step-icon-wrap shadow-sm mx-auto mb-2">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <span class="step-title fw-semibold d-block">Hoàn thành</span>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 
     <div class="row g-4">
@@ -78,7 +143,7 @@
                     <small class="text-muted">Hệ thống đang điều phối và xử lý đơn.</small>
                 </div>
 
-                @if (Model.TrangThaiDonHang == "Chờ xử lý")
+                @if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.ChoDuyet)
                 {
                     <button type="button" id="btnHuyDetail" class="btn btn-danger w-100 rounded-3 fw-bold py-2" 
                             onclick="cancelOrderLeDetail('@Model.DonHangLeId')">
@@ -90,7 +155,267 @@
     </div>
 </div>
 
+<div id="reviewModal" class="review-modal">
+    <div class="review-modal-content">
+        <div class="review-modal-header">
+            <h5>Đánh giá chất lượng đơn hàng #<span id="txtOrderReviewId"></span></h5>
+            <span class="close-modal-btn">&times;</span>
+        </div>
+        <div class="review-modal-body">
+            <div class="rating-stars-container text-center my-3">
+                <p class="mb-1 fw-bold">Vui lòng chọn số sao:</p>
+                <div class="stars-group">
+                    <i class="bi bi-star star-item" data-value="1"></i>
+                    <i class="bi bi-star star-item" data-value="2"></i>
+                    <i class="bi bi-star star-item" data-value="3"></i>
+                    <i class="bi bi-star star-item" data-value="4"></i>
+                    <i class="bi bi-star star-item" data-value="5"></i>
+                </div>
+                <input type="hidden" id="selectedReviewStar" value="5" />
+            </div>
+
+            <div class="form-group">
+                <label for="txtReviewComment" class="fw-bold mb-1">Nội dung ý kiến đóng góp:</label>
+                <textarea id="txtReviewComment" class="form-control" rows="4" placeholder="Hãy chia sẻ trải nghiệm của bạn về dịch vụ và nông sản của đơn hàng này nhé..."></textarea>
+            </div>
+        </div>
+        <div class="review-modal-footer text-end mt-3">
+            <button class="btn btn-secondary btn-close-modal">Hủy bỏ</button>
+            <button id="btnSubmitOrderReview" class="btn btn-success">Gửi đánh giá ngay</button>
+        </div>
+    </div>
+</div>
+
+<div id="complaintModal" class="review-modal">
+    <div class="review-modal-content" style="border-top: 4px solid #dc3545;">
+        <div class="review-modal-header">
+            <h5 class="text-danger fw-bold"><i class="bi bi-exclamation-octagon"></i> Gửi khiếu nại đơn hàng #<span id="txtOrderComplaintId"></span></h5>
+            <span class="close-complaint-btn" style="font-size: 28px; cursor: pointer; color: #aaa;">&times;</span>
+        </div>
+        <div class="review-modal-body mt-2">
+            <div class="form-group">
+                <label for="txtComplaintContent" class="fw-bold mb-2 text-secondary">Hào vui lòng nhập lý do hoặc vấn đề gặp phải:</label>
+                <textarea id="txtComplaintContent" class="form-control" rows="5" placeholder="Ví dụ: Sản phẩm bị dập nát khi giao, giao thiếu số lượng, sai phân loại hàng nông sản..."></textarea>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="fileHinhAnh" class="form-label fw-bold">Hình ảnh minh chứng (nếu có):</label>
+            <input type="file" id="fileHinhAnh" class="form-control" accept="image/*" />
+            <div class="form-text text-muted">Hệ thống chấp nhận file ảnh (.jpg, .jpeg, .png).</div>
+        </div>
+        <div class="review-modal-footer text-end mt-3">
+            <button class="btn btn-secondary btn-close-complaint">Đóng lại</button>
+            <button id="btnSubmitOrderComplaint" class="btn btn-danger">Gửi yêu cầu khiếu nại</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tracking-timeline { padding: 10px 0; }
+    .tracking-timeline::before {
+        content: ""; position: absolute; top: 32px; left: 8%; width: 84%; height: 4px; background-color: #e9ecef; z-index: 1;
+    }
+    .tracking-step { z-index: 2; flex: 1; }
+    .step-icon-wrap {
+        width: 40px; height: 40px; line-height: 38px; border-radius: 50%; background-color: #ffffff; color: #adb5bd; font-size: 1.1rem; border: 2px solid #e9ecef; transition: all 0.3s ease;
+    }
+    .tracking-step .step-title { font-size: 0.8rem; color: #6c757d; }
+    .tracking-step.active .step-icon-wrap { background-color: #198754; color: #ffffff; border-color: #198754; }
+    .tracking-step.active .step-title { color: #198754; font-weight: bold; }
+</style>
+
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // LOGIC XỬ LÝ POP-UP KHIẾU NẠI ĐƠN HÀNG (VANILLA JS THUẦN)
+        // =================================================================
+        let currentComplaintOrderId = 0;
+        const complaintModal = document.getElementById('complaintModal');
+        const txtOrderComplaintId = document.getElementById('txtOrderComplaintId');
+        const txtComplaintContent = document.getElementById('txtComplaintContent');
+        const fileComplaintImage = document.getElementById('fileComplaintImage'); // Lấy phần tử input file mới thêm
+        const btnSubmitComplaint = document.getElementById('btnSubmitOrderComplaint');
+
+        // 1. Click mở Pop-up khiếu nại
+        document.querySelectorAll('.btn-open-complaint').forEach(button => {
+            button.addEventListener('click', function () {
+                currentComplaintOrderId = this.getAttribute('data-id');
+                txtOrderComplaintId.innerText = currentComplaintOrderId;
+                txtComplaintContent.value = ''; // Reset nội dung cũ
+                if (fileComplaintImage) fileComplaintImage.value = ''; // Reset file cũ đã chọn trước đó
+                complaintModal.style.display = 'flex';
+            });
+        });
+
+        // 2. Đóng Pop-up khiếu nại bằng các nút đóng
+        document.querySelectorAll('.close-complaint-btn, .btn-close-complaint').forEach(btn => {
+            btn.addEventListener('click', function () {
+                complaintModal.style.display = 'none';
+            });
+        });
+
+        // Tự động đóng nếu click ra vùng mờ bên ngoài màn hình
+        window.addEventListener('click', function (e) {
+            if (e.target === complaintModal) {
+                complaintModal.style.display = 'none';
+            }
+        });
+
+        // 3. Thực thi gửi AJAX dữ liệu khiếu nại lên server thông qua Fetch API
+        if (btnSubmitComplaint) {
+            btnSubmitComplaint.addEventListener('click', function () {
+                let noiDungKhieuNai = txtComplaintContent.value;
+
+                if (!noiDungKhieuNai.trim()) {
+                    alert("Vui lòng nhập nội dung chi tiết lý do khiếu nại!");
+                    return;
+                }
+
+                // Khóa nút bấm để tránh double click spam dữ liệu
+                btnSubmitComplaint.disabled = true;
+                btnSubmitComplaint.innerText = 'Đang xử lý gửi...';
+
+                let formData = new FormData();
+                formData.append('donHangId', currentComplaintOrderId);
+                formData.append('noiDung', noiDungKhieuNai);
+
+                // BỔ SUNG: Kiểm tra xem Hào có chọn file ảnh minh chứng không, nếu có thì append vào FormData
+                if (fileComplaintImage && fileComplaintImage.files.length > 0) {
+                    formData.append('hinhAnh', fileComplaintImage.files[0]); // Khớp chính xác tham số "IFormFile? hinhAnh" ở Controller
+                }
+
+                fetch('/Product/KhieuNaiDonHang', {
+                    method: 'POST',
+                    body: formData // Fetch API tự động thiết lập Content-Type là multipart/form-data khi truyền FormData đối tượng
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        complaintModal.style.display = 'none';
+                        window.location.reload(); // Refresh trang để đồng bộ
+                    } else {
+                        alert(data.message);
+                        btnSubmitComplaint.disabled = false;
+                        btnSubmitComplaint.innerText = 'Gửi yêu cầu khiếu nại';
+                    }
+                })
+                .catch(error => {
+                    alert("Lỗi kết nối máy chủ khi xử lý khiếu nại!");
+                    btnSubmitComplaint.disabled = false;
+                    btnSubmitComplaint.innerText = 'Gửi yêu cầu khiếu nại';
+                });
+            });
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let currentOrderId = 0;
+
+        // 1. Lấy ra các phần tử HTML cần xử lý
+        const modal = document.getElementById('reviewModal');
+        const txtOrderReviewId = document.getElementById('txtOrderReviewId');
+        const selectedReviewStar = document.getElementById('selectedReviewStar');
+        const txtReviewComment = document.getElementById('txtReviewComment');
+        const btnSubmit = document.getElementById('btnSubmitOrderReview');
+
+        // 2. Bắt sự kiện click mở Pop-up bằng JS thuần
+        document.querySelectorAll('.btn-open-review').forEach(button => {
+            button.addEventListener('click', function () {
+                currentOrderId = this.getAttribute('data-id');
+                txtOrderReviewId.innerText = currentOrderId;
+                
+                // Reset modal về trạng thái mặc định (5 sao)
+                selectedReviewStar.value = 5;
+                document.querySelectorAll('.star-item').forEach(s => s.classList.add('checked'));
+                txtReviewComment.value = '';
+
+                // Hiển thị Pop-up căn giữa mượt mà
+                modal.style.display = 'flex';
+            });
+        });
+
+        // 3. Tắt Pop-up khi click vào nút Hủy hoặc dấu X
+        document.querySelectorAll('.close-modal-btn, .btn-close-modal').forEach(btn => {
+            btn.addEventListener('click', function () {
+                modal.style.display = 'none';
+            });
+        });
+
+        // Tắt modal khi click ra vùng ngoài khoảng trống màu tối
+        window.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // 4. Logic chọn Sao (Tự động Fill đầy hoặc Để rỗng ngôi sao)
+        document.querySelectorAll('.star-item').forEach(star => {
+            star.addEventListener('click', function () {
+                let starValue = parseInt(this.getAttribute('data-value'));
+                selectedReviewStar.value = starValue;
+
+                document.querySelectorAll('.star-item').forEach(s => {
+                    let currentStarValue = parseInt(s.getAttribute('data-value'));
+                    
+                    if (currentStarValue <= starValue) {
+                        // Nếu nhỏ hơn hoặc bằng số sao được click -> Tô đầy màu vàng
+                        s.classList.remove('bi-star');
+                        s.classList.add('bi-star-fill', 'checked');
+                    } else {
+                        // Nếu lớn hơn số sao được click -> Để rỗng viền xám
+                        s.classList.remove('bi-star-fill', 'checked');
+                        s.classList.add('bi-star');
+                    }
+                });
+            });
+        });
+
+        // 5. Gửi dữ liệu Đánh giá đơn hàng qua Fetch API (Thay thế $.ajax)
+        if (btnSubmit) {
+            btnSubmit.addEventListener('click', function () {
+                let starRating = selectedReviewStar.value;
+                let commentText = txtReviewComment.value;
+
+                if (!currentOrderId) {
+                    alert("Không xác định được mã đơn hàng hợp lệ!");
+                    return;
+                }
+
+                // Khóa nút bấm chống spam click liên tục
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = 'Đang gửi dữ liệu...';
+
+                // Tạo FormData gửi lên khớp tham số nhận của ProductController
+                let formData = new FormData();
+                formData.append('donHangId', currentOrderId);
+                formData.append('soSao', starRating);
+                formData.append('binhLuan', commentText);
+
+                fetch('/Product/DanhGiaDonHang', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        modal.style.display = 'none';
+                        window.location.reload(); // Làm mới trang để cập nhật giao diện
+                    } else {
+                        alert(data.message);
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerText = 'Gửi đánh giá ngay';
+                    }
+                })
+                .catch(error => {
+                    alert("Lỗi kết nối hệ thống! Vui lòng thử lại sau.");
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = 'Gửi đánh giá ngay';
+                });
+            });
+        }
+    });
+
     function cancelOrderLeDetail(orderId) {
         if (confirm(`Hào có chắc chắn muốn hủy đơn hàng #${orderId} này không?`)) {
             

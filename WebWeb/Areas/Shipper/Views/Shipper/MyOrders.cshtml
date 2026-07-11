@@ -1,0 +1,144 @@
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+    Layout = "~/Views/Shared/_LayoutShipper.cshtml";
+    
+    // Ép kiểu dữ liệu nhận về từ ViewBag đã cấu hình ở Controller
+    var donHangLeDangGiao = ViewBag.DonHangLeDangGiao as IEnumerable<WebWeb.Models.DonHangLe>;
+    var dotGiaoDangGiao = ViewBag.DotGiaoDangGiao as IEnumerable<WebWeb.Models.DotGiaoDinhKy>;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold text-success"><i class="bi bi-box-seam-fill"></i> Nhiệm vụ đang giao</h2>
+            <p class="text-muted mb-0">Danh sách các đơn hàng lẻ và đợt giao định kỳ bạn đã tiếp nhận và đang tiến hành vận chuyển.</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <ul class="nav nav-pills mb-4 bg-light p-2 rounded-3 shadow-sm" id="shipperTab" role="tablist">
+        <li class="nav-item flex-fill text-center" role="presentation">
+            <button class="nav-link w-100 active fw-bold text-uppercase rounded-3" id="don-le-tab" data-bs-toggle="tab" data-bs-target="#don-le" type="button" role="tab" aria-controls="don-le" aria-selected="true">
+                <i class="bi bi-bag-fill me-1"></i> Đơn hàng lẻ (@(donHangLeDangGiao?.Count() ?? 0))
+            </button>
+        </li>
+        <li class="nav-item flex-fill text-center" role="presentation">
+            <button class="nav-link w-100 fw-bold text-uppercase rounded-3 text-success" id="dinh-ky-tab" data-bs-toggle="tab" data-bs-target="#dinh-ky" type="button" role="tab" aria-controls="dinh-ky" aria-selected="false">
+                <i class="bi bi-calendar-event-fill me-1"></i> Đợt giao định kỳ (@(dotGiaoDangGiao?.Count() ?? 0))
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="shipperTabContent">
+        
+        <div class="tab-pane fade show active" id="don-le" role="tabpanel" aria-labelledby="don-le-tab">
+            <div class="row g-4">
+                @if (donHangLeDangGiao == null || !donHangLeDangGiao.Any())
+                {
+                    <div class="col-12 text-center py-5 bg-white border rounded-3 shadow-sm">
+                        <i class="bi bi-emoji-smile text-muted fs-1"></i>
+                        <p class="text-muted mt-2 mb-0">Bạn hiện không có đơn hàng lẻ nào đang đi giao.</p>
+                    </div>
+                }
+                else
+                {
+                    foreach (var item in donHangLeDangGiao)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 border-start border-4 border-success shadow-sm">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="card-title fw-bold text-dark mb-0">Đơn hàng #@item.DonHangLeId</h5>
+                                        <span class="badge bg-success">@item.TrangThaiDonHang</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <p class="mb-1 text-muted small"><i class="bi bi-person-fill"></i> <strong>Người nhận:</strong> @item.NameCusNonAccount</p>
+                                    <p class="mb-1 text-muted small"><i class="bi bi-telephone-fill"></i> <strong>Số ĐT:</strong> @item.PhoneNonAccount</p>
+                                    <p class="mb-1 text-muted small"><i class="bi bi-geo-alt-fill text-danger"></i> <strong>Địa chỉ:</strong> @item.AddressNonAccount</p>
+                                    <p class="mb-3 text-muted small"><i class="bi text-success fw-bold">₫</i> <strong>Thu hộ COD:</strong> <span class="text-danger fw-bold">@item.TongTienTamTinh.ToString("N0") đ</span></p>
+                                    
+                                    <div class="mt-auto pt-2">
+                                        <a asp-action="Details" asp-route-id="@item.DonHangLeId" class="btn btn-outline-success w-100 fw-bold">
+                                            <i class="bi bi-eye"></i> Xem Chi Tiết & Giao Hàng
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="dinh-ky" role="tabpanel" aria-labelledby="dinh-ky-tab">
+            <div class="row g-4">
+                @if (dotGiaoDangGiao == null || !dotGiaoDangGiao.Any())
+                {
+                    <div class="col-12 text-center py-5 bg-white border rounded-3 shadow-sm">
+                        <i class="bi bi-emoji-smile text-muted fs-1"></i>
+                        <p class="text-muted mt-2 mb-0">Bạn hiện không có đợt giao định kỳ nào đang đi giao.</p>
+                    </div>
+                }
+                else
+                {
+                    foreach (var item in dotGiaoDangGiao)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 border-start border-4 border-info shadow-sm">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="card-title fw-bold text-dark mb-0">Đợt Giao #@item.DotGiaoId</h5>
+                                        <span class="badge bg-info text-dark">Đang giao</span>
+                                    </div>
+                                    <div class="text-muted small mb-1">Mã Gói Tổng: <code class="text-danger">#@item.GoiId</code></div>
+                                    <hr class="my-2">
+                                    
+                                    <p class="mb-1 text-muted small"><i class="bi bi-person-fill"></i> <strong>Khách hàng:</strong> @(item.Goi?.KhachHang?.HoTen ?? "Khách đăng ký gói")</p>
+                                    <p class="mb-1 text-muted small"><i class="bi bi-telephone-fill"></i> <strong>Số ĐT:</strong> @(item.Goi?.KhachHang?.SoDienThoai ?? "Chưa cập nhật")</p>
+                                    <p class="mb-1 text-muted small"><i class="bi bi-geo-alt-fill text-danger"></i> <strong>Địa chỉ giao:</strong> @(item.Goi?.DiaChi?.DiaChiGiao ?? "Giao tại địa chỉ đăng ký")</p>
+                                    <p class="mb-3 text-muted small"><i class="bi bi-calendar-check text-primary"></i> <strong>Ngày dự kiến:</strong> @(item.NgayGiaoThucTe.ToString("dd/MM/yyyy") ?? DateTime.Now.ToString("dd/MM/yyyy"))</p>
+                                    
+                                    <div class="mt-auto pt-2">
+                                        <a asp-action="DetailsDotGiao" asp-route-id="@item.DotGiaoId" class="btn btn-outline-info w-100 fw-bold text-dark">
+                                            <i class="bi bi-eye"></i> Chi Tiết Đợt Giao Định Kỳ
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* CSS tùy biến làm đẹp thêm cho thanh bấm Tab */
+    .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+        background-color: #198754 !important;
+        color: #ffffff !important;
+    }
+    .nav-pills .nav-link {
+        color: #6c757d;
+        transition: all 0.2s ease-in-out;
+    }
+    .nav-pills .nav-link:hover {
+        background-color: #e2e6ea;
+    }
+</style>

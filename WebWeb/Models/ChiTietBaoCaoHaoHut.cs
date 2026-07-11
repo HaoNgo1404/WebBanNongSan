@@ -10,7 +10,7 @@ namespace WebWeb.Models
         public decimal SoLuongHaoHut { get; set; }
         public decimal DonGiaHaoHut { get; set; }
 
-        public virtual BaoCaoHaoHut BaoCao { get; set; } = null!;
-        public virtual LoHang LoHang { get; set; } = null!;
+        public virtual BaoCaoHaoHut? BaoCao { get; set; }
+        public virtual LoHang? LoHang { get; set; }
     }
 }

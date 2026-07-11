@@ -91,6 +91,28 @@ CREATE TABLE LoHang (
     CONSTRAINT FK_LoHang_NongSan FOREIGN KEY (NongSanID) REFERENCES NongSan(nongSanID)
 );
 
+-- 16. Bảng KhuyenMai
+CREATE TABLE KhuyenMai (
+    khuyenMaiID INT IDENTITY(1,1) PRIMARY KEY,
+    NongSanId INT NULL,
+    DanhMucId INT NULL,
+    voucherCode VARCHAR(50) NOT NULL UNIQUE,
+    tenChuongTrinh NVARCHAR(100) NOT NULL,
+    loaiGiamGia INT NOT NULL CHECK (loaiGiamGia IN (1, 2)),
+    mucGiam DECIMAL(18,2) NOT NULL CHECK (mucGiam > 0),
+    giaTriDonToiThieu DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (giaTriDonToiThieu >= 0),
+    soTienGiamToiDa DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (soTienGiamToiDa >= 0),
+    soLuotPhatHanh INT NOT NULL CHECK (soLuotPhatHanh > 0),
+    soLuotDaDung INT NOT NULL DEFAULT 0,
+    ngayBatDau DATETIME NOT NULL,
+    ngayKetThuc DATETIME NOT NULL,
+    trangThai BIT NOT NULL DEFAULT 1,
+    CONSTRAINT CK_KhuyenMai_Dates CHECK (ngayKetThuc > ngayBatDau),
+    CONSTRAINT FK_KhuyenMai_NongSan FOREIGN KEY (NongSanId) REFERENCES NongSan(NongSanId),
+    CONSTRAINT FK_KhuyenMai_DanhMuc FOREIGN KEY (DanhMucId) REFERENCES DanhMuc(DanhMucId)
+);
+
+
 -- 7. Bảng KhachHang
 CREATE TABLE KhachHang (
     khachHangID INT IDENTITY(1,1) PRIMARY KEY,
@@ -120,6 +142,7 @@ CREATE TABLE DonHangLe (
     khachHangID INT NULL, -- NULL nếu là khách vãng lai
     diaChiID INT NOT NULL,
     nhanVienID INT NULL, -- Nhân viên/Shipper phụ trách
+    khuyenMaiId INT NULL,
     ngayDat DATETIME NOT NULL DEFAULT GETDATE(),
     tongTienTamTinh DECIMAL(18,2) NOT NULL CHECK (tongTienTamTinh >= 0),
     tongTienThucTe DECIMAL(18,2) NULL CHECK (tongTienThucTe >= 0),
@@ -131,10 +154,10 @@ CREATE TABLE DonHangLe (
     PhoneNonAccount varchar(15),
     NameCusNonAccount nvarchar(100),
     AddressCusNonAccount nvarchar(250),
-    EmailCusNonAcocunt varchar(100),
     CONSTRAINT FK_DonHangLe_KhachHang FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID),
     CONSTRAINT FK_DonHangLe_SoDiaChi FOREIGN KEY (diaChiID) REFERENCES SoDiaChi(diaChiID),
-    CONSTRAINT FK_DonHangLe_NhanVien FOREIGN KEY (nhanVienID) REFERENCES NhanVien(nhanVienID)
+    CONSTRAINT FK_DonHangLe_NhanVien FOREIGN KEY (nhanVienID) REFERENCES NhanVien(nhanVienID),
+    CONSTRAINT FK_DonHangLe_KhuyenMai FOREIGN KEY (KhuyenMaiId) REFERENCES KhuyenMai(KhuyenMaiId)
 );
 
 -- 10. Bảng ChiTietDonHangLe
@@ -155,6 +178,7 @@ CREATE TABLE GoiDangKyDinhKy (
     goiID INT IDENTITY(1,1) PRIMARY KEY,
     khachHangID INT NOT NULL,
     diaChiID INT NOT NULL,
+    KhuyenMaiId INT NULL,
     ngayBatDau DATETIME NOT NULL,
     ngayKetThuc DATETIME NOT NULL,
     tanSuatGiao NVARCHAR(50) NOT NULL,
@@ -163,7 +187,8 @@ CREATE TABLE GoiDangKyDinhKy (
     trangThaiGoi NVARCHAR(50) NOT NULL DEFAULT N'Tạm dừng',
     CONSTRAINT FK_GoiDinhKy_KhachHang FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID),
     CONSTRAINT FK_GoiDinhKy_SoDiaChi FOREIGN KEY (diaChiID) REFERENCES SoDiaChi(diaChiID),
-    CONSTRAINT CK_GoiDinhKy_Dates CHECK (ngayKetThuc > ngayBatDau)
+    CONSTRAINT CK_GoiDinhKy_Dates CHECK (ngayKetThuc > ngayBatDau),
+    CONSTRAINT FK_GoiDangKyDinhKy_KhuyenMai FOREIGN KEY (KhuyenMaiId) REFERENCES KhuyenMai(KhuyenMaiId)
 );
 
 -- 12. Bảng ChiTietGoiDinhKy
@@ -209,23 +234,6 @@ CREATE TABLE ChiTietBaoCaoHaoHut (
     CONSTRAINT FK_CTBCHH_LoHang FOREIGN KEY (loHangID) REFERENCES LoHang(loHangID)
 );
 
--- 16. Bảng KhuyenMai
-CREATE TABLE KhuyenMai (
-    khuyenMaiID INT IDENTITY(1,1) PRIMARY KEY,
-    voucherCode VARCHAR(50) NOT NULL UNIQUE,
-    tenChuongTrinh NVARCHAR(100) NOT NULL,
-    loaiGiamGia INT NOT NULL CHECK (loaiGiamGia IN (1, 2)),
-    mucGiam DECIMAL(18,2) NOT NULL CHECK (mucGiam > 0),
-    giaTriDonToiThieu DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (giaTriDonToiThieu >= 0),
-    soTienGiamToiDa DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (soTienGiamToiDa >= 0),
-    soLuotPhatHanh INT NOT NULL CHECK (soLuotPhatHanh > 0),
-    soLuotDaDung INT NOT NULL DEFAULT 0,
-    ngayBatDau DATETIME NOT NULL,
-    ngayKetThuc DATETIME NOT NULL,
-    trangThai BIT NOT NULL DEFAULT 1,
-    CONSTRAINT CK_KhuyenMai_Dates CHECK (ngayKetThuc > ngayBatDau)
-);
-
 -- 17. Bảng KhieuNai
 CREATE TABLE KhieuNai (
     khieuNaiID INT IDENTITY(1,1) PRIMARY KEY,
@@ -261,9 +269,9 @@ CREATE TABLE PhieuChiCongNo (
 -- 20. Bảng DanhGiaSanPham
 CREATE TABLE DanhGiaSanPham (
     danhGiaID INT IDENTITY(1,1) PRIMARY KEY,
-    khachHangID INT NOT NULL,
-    nongSanID INT NOT NULL,
-    donHangLeID INT NOT NULL,
+    khachHangID INT NULL,
+    nongSanID INT NULL,
+    donHangLeID INT NULL,
     soSao INT NOT NULL CHECK (soSao BETWEEN 1 AND 5),
     binhLuan NVARCHAR(500) NULL,
     hinhAnhThucTe VARCHAR(255) NULL,
@@ -288,7 +296,7 @@ CREATE TABLE PhienDangNhap (
 CREATE TABLE ChiTietGioHang (
     khachHangID INT NOT NULL,
     nongSanID INT NOT NULL,
-    soLuong DECIMAL(10,2) NOT NULL CHECK (soLuong > 0),
+    soLuong INT NOT NULL,
     ngayCapNhat DATETIME NOT NULL DEFAULT GETDATE(),
     PRIMARY KEY (khachHangID, nongSanID),
     CONSTRAINT FK_GioHang_KhachHang FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID),
@@ -322,7 +330,9 @@ INSERT INTO ThamSo (maThamSo, giaTri, ghiChu) VALUES
 ('TS1', 15.00, N'Phần trăm sai số trọng lượng tối đa cho phép khi bốc xếp hàng tươi sống'),
 ('TS2', 3.00, N'Số ngày tối đa hệ thống cảnh báo trước khi hàng tươi sống hết hạn sử dụng'),
 ('TS3', 50000.00, N'Số điểm tích lũy tối thiểu của Khách hàng thân thiết để đổi voucher'),
-('TS4', 200000.00, N'Số tiền đơn hàng tối thiểu để được áp dụng chính sách miễn phí vận chuyển');
+('TS4', 500000.00, N'Số tiền đơn hàng tối thiểu để được áp dụng chính sách miễn phí vận chuyển'),
+('TS5', 30000, N'Phí vận chuyển giao hàng mặc định áp dụng cho tất cả các đơn hàng lẻ nông sản.'),
+('TS6', 24, N'Số giờ tối đa cho phép khách hàng bấm gửi đơn khiếu nại kể từ khi đơn hàng đổi trạng thái Hoàn Thành.');
 GO
 
 -- Trigger tự động cập nhật tổng tiền thực tế của Đơn Hàng Lẻ khi nhập cân nặng thực tế[cite: 7]
@@ -346,14 +356,6 @@ BEGIN
     END
 END;
 GO
-
-alter table DonHangLe
-add PhoneNonAccount varchar(15),
-    NameCusNonAccount nvarchar(100);
-
-alter table DanhGiaSanPham
-add donHangLeID int,
-    CONSTRAINT FK_DanhGia_DonHang FOREIGN KEY (donHangLeID) REFERENCES DonHangLe(donHangLeID);
 
 USE ECommerceDB;
 GO
@@ -416,7 +418,18 @@ INSERT INTO DanhGiaSanPham (khachHangID, nongSanID, soSao, binhLuan, hinhAnhThuc
 (1, 1, 5, N'Rau rất tươi, giao hàng nhanh, bọc gói kỹ càng đúng chuẩn Foodmap!', NULL, 1);
 GO
 
+select * from NhanVien
+select * from VaiTroPhanQuyen
+select * from KhachHang
+select * from DonHangLe
+select * from GiaoDichThanhToan
+select * from SoDiaChi
+select * from KhieuNai
+select * from GoiDangKyDinhKy
+select * from DotGiaoDinhKy
+select * from ChiTietGoiDinhKy
 select * from NongSan
-
-
+select * from DanhMuc
+select * from LoHang
+select * from ChiTietGioHang
 

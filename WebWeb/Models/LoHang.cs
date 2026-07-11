@@ -21,8 +21,8 @@ namespace WebWeb.Models
         public DateTime HanSuDung { get; set; }
         public string TrangThaiHsd { get; set; } = null!;
 
-        public virtual NongSan NongSan { get; set; } = null!;
-        public virtual PhieuNhapKho PhieuNhapKho { get; set; } = null!;
-        public virtual ICollection<ChiTietBaoCaoHaoHut> ChiTietBaoCaoHaoHuts { get; set; }
+        public virtual NongSan? NongSan { get; set; }
+        public virtual PhieuNhapKho? PhieuNhapKho { get; set; }
+        public virtual ICollection<ChiTietBaoCaoHaoHut>? ChiTietBaoCaoHaoHuts { get; set; }
     }
 }

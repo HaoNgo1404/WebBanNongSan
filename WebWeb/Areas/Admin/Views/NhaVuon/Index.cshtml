@@ -42,55 +42,57 @@
         </form>
 
         <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Mã</th>
-                        <th>Tên nhà vườn</th>
-                        <th>Số điện thoại</th>
-                        <th>Địa chỉ</th>
-                        <th>Chứng nhận an toàn</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
+            <div class="nhavuon-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Tên nhà vườn</th>
+                            <th>Số điện thoại</th>
+                            <th>Địa chỉ</th>
+                            <th>Chứng nhận an toàn</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>#NV-@item.NhaVuonId</td>
+                                    <td class="fw-semibold text-dark">@item.TenNhaVuon</td>
+                                    <td class="fw-medium">@(string.IsNullOrEmpty(item.SoDienThoai) ? "Chưa có" : item.SoDienThoai)</td>
+                                    <td class="text-truncate" style="max-width: 200px;">@(string.IsNullOrEmpty(item.DiaChi) ? "Chưa có" : item.DiaChi)</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.ChungNhanAnToan))
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-shield-check me-1"></i> @item.ChungNhanAnToan</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">Chưa cập nhật</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NhaVuon" asp-action="Details" asp-route-id="@item.NhaVuonId"><i class="bi bi-eye"></i></a>
+                                            <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NhaVuon" asp-action="Edit" asp-route-id="@item.NhaVuonId"><i class="bi bi-pencil"></i></a>
+                                            <a class="btn btn-outline-danger btn-sm" asp-area="Admin" asp-controller="NhaVuon" asp-action="Delete" asp-route-id="@item.NhaVuonId"><i class="bi bi-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>#NV-@item.NhaVuonId</td>
-                                <td class="fw-semibold text-dark">@item.TenNhaVuon</td>
-                                <td class="fw-medium">@(string.IsNullOrEmpty(item.SoDienThoai) ? "Chưa có" : item.SoDienThoai)</td>
-                                <td class="text-truncate" style="max-width: 200px;">@(string.IsNullOrEmpty(item.DiaChi) ? "Chưa có" : item.DiaChi)</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(item.ChungNhanAnToan))
-                                    {
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-shield-check me-1"></i> @item.ChungNhanAnToan</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">Chưa cập nhật</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NhaVuon" asp-action="Details" asp-route-id="@item.NhaVuonId"><i class="bi bi-eye"></i></a>
-                                        <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="NhaVuon" asp-action="Edit" asp-route-id="@item.NhaVuonId"><i class="bi bi-pencil"></i></a>
-                                        <a class="btn btn-outline-danger btn-sm" asp-area="Admin" asp-controller="NhaVuon" asp-action="Delete" asp-route-id="@item.NhaVuonId"><i class="bi bi-trash"></i></a>
-                                    </div>
-                                </td>
+                                <td colspan="6" class="text-center py-4 text-muted">Không tìm thấy thông tin nhà vườn nào.</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">Không tìm thấy thông tin nhà vườn nào.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

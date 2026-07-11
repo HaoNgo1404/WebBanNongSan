@@ -128,19 +128,71 @@
             </div>
             <div class="tab-pane fade" id="reviews" role="tabpanel">
                 <div class="detail-panel">
+                    
+                    <!-- ĐIỀU KIỆN KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP -->
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <!-- HIỆN FORM NẾU ĐÃ ĐĂNG NHẬP -->
+                        <div class="card p-4 border rounded-4 mb-4 bg-light bg-opacity-50 shadow-sm">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-chat-left-heart-fill text-success"></i> Gửi đánh giá của bạn</h5>
+                            <form id="reviewForm">
+                                <input type="hidden" id="reviewNongSanId" value="@Model.NongSanId" />
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary mb-1">Chọn mức độ hài lòng: <span class="text-danger">*</span></label>
+                                    <div class="rating-stars-select fs-4 text-secondary" style="cursor: pointer;">
+                                        <i class="bi bi-star-fill star-select-item" data-value="1"></i>
+                                        <i class="bi bi-star-fill star-select-item" data-value="2"></i>
+                                        <i class="bi bi-star-fill star-select-item" data-value="3"></i>
+                                        <i class="bi bi-star-fill star-select-item" data-value="4"></i>
+                                        <i class="bi bi-star-fill star-select-item" data-value="5"></i>
+                                    </div>
+                                    <input type="hidden" id="selectedSoSao" value="0" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary mb-1">Nội dung bình luận: <span class="text-danger">*</span></label>
+                                    <textarea class="form-control rounded-3" id="reviewBinhLuan" rows="3" required placeholder="Nông sản sạch, tươi ngon, đóng gói cẩn thận..."></textarea>
+                                </div>
+
+                                <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="sendProductReview()">
+                                    <i class="bi bi-send-fill"></i> Gửi đánh giá ngay
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- HIỆN THÔNG BÁO NHẮC ĐĂNG NHẬP NẾU LÀ KHÁCH VÃNG LAI -->
+                        <div class="alert alert-warning border rounded-4 text-center py-4 mb-4" role="alert">
+                            <i class="bi bi-lock-fill fs-2 d-block mb-2 text-warning"></i>
+                            <p class="mb-2 fw-bold text-dark">Vui lòng đăng nhập tài khoản để thực hiện đánh giá sản phẩm nông sản!</p>
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-dark btn-sm rounded-pill px-4 fw-bold">Đăng nhập ngay</a>
+                        </div>
+                    }
+
+                    <h5 class="fw-bold text-dark mb-3">Ý kiến khách hàng (@(Model.DanhGiaSanPhams?.Count ?? 0))</h5>
+
+                    <!-- HIỂN THỊ DANH SÁCH CÁC ĐÁNH GIÁ -->
                     @if (Model.DanhGiaSanPhams != null && Model.DanhGiaSanPhams.Any())
                     {
                         <div class="row g-3">
-                            @foreach (var review in Model.DanhGiaSanPhams)
+                            @foreach (var review in Model.DanhGiaSanPhams.OrderByDescending(r => r.NgayDanhGia))
                             {
                                 <div class="col-12">
-                                    <div class="review-item">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <strong>Khách hàng #@review.KhachHangId</strong>
-                                            <span class="text-warning">@for (var i = 0; i < review.SoSao; i++) { <i class="bi bi-star-fill"></i> }</span>
+                                    <div class="review-item p-3 border rounded-4 bg-white shadow-sm">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <strong>
+                                                <!-- Đánh giá này chắc chắn thuộc về một khách hàng thân thiết tồn tại trong hệ thống -->
+                                                <span class="text-success"><i class="bi bi-patch-check-fill"></i> Khách hàng thân thiết</span>
+                                            </strong>
+                                            <span class="text-warning">
+                                                @for (var i = 0; i < review.SoSao; i++) { <i class="bi bi-star-fill text-warning"></i> }
+                                                @for (var i = review.SoSao; i < 5; i++) { <i class="bi bi-star text-muted"></i> }
+                                            </span>
                                         </div>
-                                        <p class="text-muted mb-2">Ngày đánh giá: @review.NgayDanhGia.ToString("dd/MM/yyyy")</p>
-                                        <p class="mb-0">@review.BinhLuan</p>
+                                        <p class="text-muted mb-2" style="font-size: 0.85rem;"><i class="bi bi-clock"></i> @review.NgayDanhGia.ToString("dd/MM/yyyy HH:mm")</p>
+                                        <p class="mb-0 text-dark">@review.BinhLuan</p>
                                     </div>
                                 </div>
                             }
@@ -148,7 +200,9 @@
                     }
                     else
                     {
-                        <div class="alert alert-light border rounded-4" role="alert">Sản phẩm này chưa có lượt đánh giá nào.</div>
+                        <div class="alert alert-light border rounded-4 text-center py-4 text-muted mb-0" role="alert">
+                            <i class="bi bi-chat-right-text fs-2 d-block mb-2"></i> Nông sản này chưa có lượt đánh giá nào.
+                        </div>
                     }
                 </div>
             </div>
@@ -211,5 +265,78 @@
             })
             .catch(error => console.error('Error:', error));
         });
+
+        // Thêm đoạn code này vào trong thẻ <script> của phần Scripts
+        document.addEventListener("DOMContentLoaded", function () {
+            const stars = document.querySelectorAll(".star-select-item");
+            const inputSoSao = document.getElementById("selectedSoSao");
+
+            // XÓA BỎ DÒNG LỆNH HIGHLIGHT CŨ: Để mặc định ban đầu tất cả các sao đều không fill (màu xám)
+
+            stars.forEach(star => {
+                star.addEventListener("click", function () {
+                    const value = parseInt(this.getAttribute("data-value"));
+                    inputSoSao.value = value; // Gán số sao khách vừa click
+                    highlightStars(value);
+                });
+            });
+
+            // Hàm tô màu sao dựa trên số lượng sao được click
+            function highlightStars(count) {
+                stars.forEach(star => {
+                    const starVal = parseInt(star.getAttribute("data-value"));
+                    if (starVal <= count) {
+                        star.classList.remove("text-secondary");
+                        star.classList.add("text-warning");
+                    } else {
+                        star.classList.remove("text-warning");
+                        star.classList.add("text-secondary");
+                    }
+                });
+            }
+        });
+
+        // Logic 2: Gửi dữ liệu Đánh giá lên Controller thông qua AJAX Fetch không load lại trang
+            function sendProductReview() {
+            const idNongSan = document.getElementById("reviewNongSanId").value;
+            const soSao = parseInt(document.getElementById("selectedSoSao").value); // Chuyển thành số nguyên
+            const binhLuan = document.getElementById("reviewBinhLuan").value;
+
+            // BỔ SUNG: Kiểm tra xem khách đã chọn sao chưa
+            if (soSao === 0) {
+                alert("Hào ơi, vui lòng bấm chọn số sao đánh giá (từ 1 đến 5) trước khi gửi nhé!");
+                return;
+            }
+
+            if (!binhLuan.trim()) {
+                alert("Hào ơi, vui lòng điền nội dung bình luận trước khi gửi nhé!");
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append("nongSanId", idNongSan);
+            params.append("soSao", soSao);
+            params.append("binhLuan", binhLuan);
+
+            fetch('@Url.Action("DanhGiaSanPhamLe", "Product")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: params
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi gửi đánh giá sản phẩm:", err);
+                alert("Không thể gửi đánh giá, vui lòng kiểm tra kết nối hệ thống!");
+            });
+        }
     </script>
 }

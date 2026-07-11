@@ -294,11 +294,9 @@ namespace WebWeb.Models
 
                 entity.Property(e => e.DiaChiId).HasColumnName("diaChiID");
 
-                entity.Property(e => e.EmailCusNonAccount)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.KhachHangId).HasColumnName("khachHangID");
+
+                entity.Property(e => e.KhuyenMaiId).HasColumnName("KhuyenMaiId");
 
                 entity.Property(e => e.KhungGioGiaoHang)
                     .HasMaxLength(100)
@@ -359,6 +357,12 @@ namespace WebWeb.Models
                     .WithMany(p => p.DonHangLes)
                     .HasForeignKey(d => d.NhanVienId)
                     .HasConstraintName("FK_DonHangLe_NhanVien");
+
+                entity.HasOne(d => d.KhuyenMai)
+                    .WithMany(p => p.DonHangLes)
+                    .HasForeignKey(d => d.KhuyenMaiId)
+                    .HasConstraintName("FK_DonHangLe_KhuyenMai")
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<DotGiaoDinhKy>(entity =>
@@ -459,6 +463,8 @@ namespace WebWeb.Models
 
                 entity.Property(e => e.KhachHangId).HasColumnName("khachHangID");
 
+                entity.Property(e => e.KhuyenMaiId).HasColumnName("KhuyenMaiId");
+
                 entity.Property(e => e.NgayBatDau)
                     .HasColumnType("datetime")
                     .HasColumnName("ngayBatDau");
@@ -496,6 +502,12 @@ namespace WebWeb.Models
                     .HasForeignKey(d => d.KhachHangId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_GoiDinhKy_KhachHang");
+
+                entity.HasOne(d => d.KhuyenMai)
+                    .WithMany(p => p.GoiDangKyDinhKies)
+                    .HasForeignKey(d => d.KhuyenMaiId)
+                    .HasConstraintName("FK_GoiDangKyDinhKy_KhuyenMai")
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<KhachHang>(entity =>
@@ -604,6 +616,10 @@ namespace WebWeb.Models
 
                 entity.Property(e => e.KhuyenMaiId).HasColumnName("khuyenMaiID");
 
+                entity.Property(e => e.NongSanId).HasColumnName("nongSanID").IsRequired(false);
+
+                entity.Property(e => e.DanhMucId).HasColumnName("danhMucID").IsRequired(false);
+
                 entity.Property(e => e.GiaTriDonToiThieu)
                     .HasColumnType("decimal(18, 2)")
                     .HasColumnName("giaTriDonToiThieu");
@@ -643,6 +659,18 @@ namespace WebWeb.Models
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasColumnName("voucherCode");
+
+                entity.HasOne(d => d.NongSan)
+                    .WithMany(p => p.KhuyenMais) 
+                    .HasForeignKey(d => d.NongSanId)
+                    .HasConstraintName("FK_KhuyenMai_NongSan")
+                    .OnDelete(DeleteBehavior.SetNull); 
+
+                entity.HasOne(d => d.DanhMuc)
+                    .WithMany(p => p.KhuyenMais) 
+                    .HasForeignKey(d => d.DanhMucId)
+                    .HasConstraintName("FK_KhuyenMai_DanhMuc")
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<LoHang>(entity =>

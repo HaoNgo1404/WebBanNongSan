@@ -1,4 +1,5 @@
-﻿@model WebWeb.Models.DonHangLe
+﻿@using WebWeb.Models
+@model WebWeb.Models.DonHangLe
 @{
     ViewData["Title"] = "Chi Tiết Đơn Hàng Lẻ";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
@@ -16,7 +17,7 @@
             <h4 class="fw-bold text-dark mb-1">Chi tiết đơn hàng #DHL-@Model.DonHangLeId</h4>
             <p class="text-muted small mb-0">Ngày đặt: @Model.NgayDat.ToString("dd/MM/yyyy HH:mm")</p>
         </div>
-        <div>
+        <div class="d-flex align-items-center gap-2">
             <span class="badge bg-light text-dark border p-2">
                 <i class="bi bi-clock"></i> Khung giờ: @Model.KhungGioGiaoHang
             </span>
@@ -38,7 +39,7 @@
                 <h6 class="fw-bold text-success mb-3"><i class="bi bi-shield-check"></i> Trạng thái & Vận chuyển</h6>
                 <div class="mb-2">
                     <strong>Thanh toán:</strong> 
-                    @if (Model.TrangThaiThanhToan == "Đã thanh toán")
+                    @if (Model.TrangThaiThanhToan == OrderStatuses.DaThanhToan)
                     {
                         <span class="badge bg-success">Đã thanh toán</span>
                     }
@@ -63,7 +64,6 @@
                     <th class="ps-3">Nông Sản</th>
                     <th class="text-center">Số Lượng Đặt</th>
                     <th class="text-end">Đơn Giá</th>
-                    <th class="text-center">Trọng Lượng Thực Tế</th>
                     <th class="text-end pe-3">Thành Tiền</th>
                 </tr>
             </thead>
@@ -71,14 +71,21 @@
                 @foreach (var ct in Model.ChiTietDonHangLes)
                 {
                     <tr>
-                        <td class="ps-3 fw-semibold text-dark">@ct.NongSan?.TenNongSan</td>
-                        <td class="text-center">@ct.SoLuongDat bó/gói</td>
-                        <td class="text-end">@ct.DonGiaThoiDiem.ToString("#,##0") đ</td>
-                        <td class="text-center text-primary fw-medium">
-                            @(ct.TrongLuongThucTe.HasValue ? ct.TrongLuongThucTe.Value.ToString("0.##") + " kg" : "Chờ cân thực tế")
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="@Url.Content("~/images/" + ct.NongSan?.HinhAnh)" class="rounded-2" style="width: 50px; height: 50px; object-fit: cover;" alt="">
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">@ct.NongSan?.TenNongSan</h6>
+                                    <small class="text-muted">Đơn vị: @ct.NongSan?.DonViTinh</small>
+                                </div>
+                            </div>
                         </td>
-                        <td class="text-end fw-bold text-dark pe-3">
-                            @((ct.ThanhTienThucTe ?? (ct.SoLuongDat * ct.DonGiaThoiDiem)).ToString("#,##0")) đ
+                        <td class="text-center fw-medium">@ct.SoLuongDat</td>
+                        
+                        <td class="text-end fw-medium">@ct.DonGiaThoiDiem.ToString("#,##0") đ</td>
+                        
+                        <td class="text-end fw-bold text-dark">
+                            @((ct.SoLuongDat * ct.DonGiaThoiDiem).ToString("#,##0")) đ
                         </td>
                     </tr>
                 }
@@ -109,5 +116,66 @@
                 </div>
             </div>
         </div>
+        <div class="d-flex justify-content-start align-items-center gap-2">
+            @if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.ChoDuyet)
+            {
+                <button type="button" id="btnDuyetDon" class="btn btn-success fw-bold px-3 d-flex align-items-center gap-1 shadow-sm" onclick="confirmDuyetDon('@Model.DonHangLeId')">
+                    <i class="bi bi-check-circle-fill"></i> Duyệt đơn hàng này
+                </button>
+            }
+        </div>
     </div>
 </div>
+
+<form id="antiForgeryForm">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function confirmDuyetDon(orderId) {
+            if (confirm(`Hào có chắc chắn muốn duyệt và chuyển đơn hàng #${orderId} sang trạng thái 'Chờ xử lý' không?`)) {
+                
+                // Lấy Token chống giả mạo từ form ẩn
+                const token = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]').value;
+
+                // Gửi dữ liệu AJAX ngầm bằng FormData
+                const formData = new FormData();
+                formData.append('id', orderId);
+                formData.append('__RequestVerificationToken', token);
+
+                // Thực hiện gọi API lên Controller
+                fetch(`@Url.Action("DuyetDonHang", "DonHang")`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        
+                        // 1. Ẩn nút duyệt đơn đi ngay lập tức
+                        const btnDuyet = document.getElementById("btnDuyetDon");
+                        if (btnDuyet) btnDuyet.remove();
+
+                        // 2. Cập nhật lại text của Badge trạng thái hiển thị trực quan
+                        const badgeTrangThai = document.getElementById("badgeTrangThai");
+                        if (badgeTrangThai) {
+                            badgeTrangThai.className = "badge bg-warning text-dark border p-2";
+                            badgeTrangThai.innerHTML = '<i class="bi bi-hourglass-split"></i> Trạng thái: Chờ xử lý';
+                        }
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi:", error);
+                    alert("Đã xảy ra lỗi kết nối khi xử lý duyệt đơn hàng!");
+                });
+            }
+        }
+    </script>
+}

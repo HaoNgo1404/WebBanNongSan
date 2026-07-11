@@ -17,8 +17,8 @@ namespace WebWeb.Models
         public decimal? TrongLuongThucTeDot { get; set; }
         public string TrangThaiGiao { get; set; } = null!;
 
-        public virtual GoiDangKyDinhKy Goi { get; set; } = null!;
+        public virtual GoiDangKyDinhKy? Goi { get; set; }
         public virtual NhanVien? NhanVien { get; set; }
-        public virtual ICollection<KhieuNai> KhieuNais { get; set; }
+        public virtual ICollection<KhieuNai>? KhieuNais { get; set; }
     }
 }

@@ -19,8 +19,8 @@ namespace WebWeb.Models
         public string? ChungNhanAnToan { get; set; }
         public string? CauChuyenNhaVuon { get; set; }
 
-        public virtual ICollection<NongSan> NongSans { get; set; }
-        public virtual ICollection<PhieuChiCongNo> PhieuChiCongNos { get; set; }
-        public virtual ICollection<PhieuNhapKho> PhieuNhapKhos { get; set; }
+        public virtual ICollection<NongSan>? NongSans { get; set; }
+        public virtual ICollection<PhieuChiCongNo>? PhieuChiCongNos { get; set; }
+        public virtual ICollection<PhieuNhapKho>? PhieuNhapKhos { get; set; }
     }
 }

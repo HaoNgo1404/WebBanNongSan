@@ -10,7 +10,7 @@ namespace WebWeb.Models
         public decimal SoLuong { get; set; }
         public DateTime NgayCapNhat { get; set; }
 
-        public virtual KhachHang KhachHang { get; set; } = null!;
-        public virtual NongSan NongSan { get; set; } = null!;
+        public virtual KhachHang? KhachHang { get; set; }
+        public virtual NongSan? NongSan { get; set; }
     }
 }

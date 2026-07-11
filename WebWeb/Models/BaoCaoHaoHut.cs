@@ -16,7 +16,7 @@ namespace WebWeb.Models
         public string LyDoHaoHut { get; set; } = null!;
         public decimal TongGiaTriThietHai { get; set; }
 
-        public virtual NhanVien NhanVien { get; set; } = null!;
-        public virtual ICollection<ChiTietBaoCaoHaoHut> ChiTietBaoCaoHaoHuts { get; set; }
+        public virtual NhanVien? NhanVien { get; set; }
+        public virtual ICollection<ChiTietBaoCaoHaoHut>? ChiTietBaoCaoHaoHuts { get; set; }
     }
 }

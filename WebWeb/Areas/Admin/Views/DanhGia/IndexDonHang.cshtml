@@ -1,0 +1,105 @@
+@model IEnumerable<WebWeb.Models.DanhGiaSanPham>
+@{
+    ViewData["Title"] = "Quản Lý Đánh Giá Đơn Hàng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-card p-4">
+    <!-- THANH MENU TAB ĐỒNG BỘ -->
+    <div class="d-flex border-bottom mb-4">
+        <a class="nav-link text-muted pb-2 pe-3 text-decoration-none" 
+           asp-area="Admin" asp-controller="DanhGia" asp-action="Index">Đánh giá sản phẩm</a>
+        <a class="nav-link active fw-bold text-success border-bottom border-2 border-success pb-2 px-3 text-decoration-none" 
+           asp-area="Admin" asp-controller="DanhGia" asp-action="IndexDonHang">Đánh giá đơn hàng</a>
+        <a class="nav-link text-muted pb-2 ps-3 text-decoration-none" 
+           asp-area="Admin" asp-controller="DanhGia" asp-action="IndexKhieuNai">Khiếu nại đơn hàng</a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Danh sách đánh giá đơn hàng</h3>
+            <p class="text-muted mb-0">Xem phản hồi, số sao dịch vụ và chất lượng phục vụ của từng đơn hàng từ người dùng.</p>
+        </div>
+    </div>
+
+    <!-- KHỐI BẢNG DỮ LIỆU ĐỒNG BỘ CSS -->
+    <div class="admin-panel p-4">
+        <div class="table-responsive">
+            <div class="danhgia-donhang-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Đơn</th>
+                            <th>Khách Hàng</th>
+                            <th>Ngày Đánh Giá</th>
+                            <th class="text-center">Số Sao Dịch Vụ</th>
+                            <th>Nội Dung Bình Luận</th>
+                            <th class="text-nowrap text-center">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.DanhSachReviewDonHang != null && ((IEnumerable<dynamic>)ViewBag.DanhSachReviewDonHang).Any())
+                        {
+                            foreach (var item in ViewBag.DanhSachReviewDonHang)
+                            {
+                                <tr>
+                                    <td class="ps-3 fw-bold">#@item.DonHangLeId</td>
+                                    
+                                    <td>@item.TenKhachHang</td>
+                                    
+                                    <td>@(item.NgayDat != null ? item.NgayDat.ToString("dd/MM/yyyy HH:mm") : "---")</td>
+                                    
+                                    <td>
+                                        <div class="text-warning">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= Math.Round(item.DiemTrungBinhStar))
+                                                {
+                                                    <i class="bi bi-star-fill me-1"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-star me-1"></i>
+                                                }
+                                            }
+                                            <span class="text-muted ms-1">(@Math.Round(item.DiemTrungBinhStar, 1))</span>
+                                        </div>
+                                    </td>
+                                    
+                                    <td class="text-muted text-truncate" style="max-width: 250px;" title="@item.NoiDungBinhLuanGop">
+                                        @item.NoiDungBinhLuanGop
+                                    </td>
+                                    
+                                    <td class="text-nowrap text-end pe-3">
+                                        <a class="btn btn-outline-secondary btn-sm rounded-2 px-3 text-nowrap" asp-area="Admin" asp-controller="DanhGia" asp-action="DetailsDanhGia" asp-route-id="@item.DonHangLeId">
+                                            <i class="bi bi-eye"></i> Chi tiết đơn
+                                        </a>
+                                        <form asp-area="Admin" asp-controller="DanhGia" asp-action="DeleteReview" asp-route-id="@item.DonHangLeId" asp-route-fromAction="IndexDonHang" method="post" onsubmit="return confirm('Xóa toàn bộ đánh giá của dịch vụ đơn hàng này?');" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-2 px-3">
+                                                <i class="bi bi-trash"></i> Xóa
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Chưa có đơn hàng nào nhận được đánh giá dịch vụ.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

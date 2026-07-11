@@ -1,0 +1,76 @@
+@model WebWeb.Models.NhanVien
+@{
+    ViewData["Title"] = "Thêm Nhân Viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="text-success text-decoration-none small fw-medium">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách nhân viên
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="admin-card p-4">
+            <div class="border-bottom pb-3 mb-4">
+                <h4 class="fw-bold text-dark mb-1"><i class="bi bi-person-plus text-success me-1"></i> Thêm nhân viên mới</h4>
+                <p class="text-muted small mb-0">Cấp tài khoản mới cho nhân viên tham gia vận hành hệ thống Green Fresh.</p>
+            </div>
+
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="HoTen" class="form-label fw-semibold text-dark small">Họ và tên nhân viên <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                            <input asp-for="HoTen" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" required />
+                        </div>
+                        <span asp-validation-for="HoTen" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label fw-semibold text-dark small">Email đăng nhập <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="username@greenfresh.com" required />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="MatKhau" class="form-label fw-semibold text-dark small">Mật khẩu khởi tạo <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-key"></i></span>
+                            <input asp-for="MatKhau" type="password" class="form-control" placeholder="Nhập mật khẩu" required />
+                        </div>
+                        <span asp-validation-for="MatKhau" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="VaiTroId" class="form-label fw-semibold text-dark small">Vai trò phân quyền <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-shield-lock"></i></span>
+                            <select asp-for="VaiTroId" class="form-select" asp-items="ViewBag.VaiTroId" required>
+                                <option value="">-- Chọn vai trò hệ thống --</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="VaiTroId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="border-top pt-3 d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-light rounded-3 fw-semibold px-4 border">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-success rounded-3 fw-bold px-4">
+                        <i class="bi bi-save"></i> Lưu thông tin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

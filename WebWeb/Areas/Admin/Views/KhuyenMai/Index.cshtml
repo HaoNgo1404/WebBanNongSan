@@ -31,88 +31,95 @@
     <div class="admin-panel p-4">
         <!-- Bộ tìm kiếm chương trình -->
         <form method="get" asp-action="Index" class="mb-4">
-            <div class="position-relative" style="max-width: 400px; width: 100%;">
-                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm tên chương trình hoặc mã code..." />
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                <div class="position-relative" style="max-width: 400px; width: 100%;">
+                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                    <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm tên chương trình hoặc mã code..." />
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm admin-btn">Tìm kiếm</button>
+                </div>
             </div>
         </form>
 
         <!-- Bảng dữ liệu thật -->
         <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Mã Code</th>
-                        <th>Tên Chương Trình</th>
-                        <th>Mức Giảm</th>
-                        <th>Đã Dùng / Phát Hành</th>
-                        <th>Thời Hạn Áp Dụng</th>
-                        <th>Trạng Thái</th>
-                        <th>Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
+            <div class="khuyenmai-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Code</th>
+                            <th>Tên Chương Trình</th>
+                            <th>Mức Giảm</th>
+                            <th>Đã Dùng / Phát Hành</th>
+                            <th>Thời Hạn Áp Dụng</th>
+                            <th>Trạng Thái</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
                         {
-                            bool isExpired = item.NgayKetThuc < DateTime.Now;
-                            bool isActive = item.TrangThai ?? false;
+                            foreach (var item in Model)
+                            {
+                                bool isExpired = item.NgayKetThuc < DateTime.Now;
+                                bool isActive = item.TrangThai;
 
+                                <tr>
+                                    <td><span class="badge bg-light text-success border border-success fw-bold font-monospace px-2 py-1">@item.VoucherCode</span></td>
+                                    <td class="fw-semibold text-dark">@item.TenChuongTrinh</td>
+                                    <td class="fw-bold text-danger">
+                                        @if (item.LoaiGiamGia == 1) // Giảm theo %
+                                        {
+                                            <span>@item.MucGiam.ToString("0")%</span>
+                                        }
+                                        else // Giảm theo số tiền cố định
+                                        {
+                                            <span>@item.MucGiam.ToString("#,##0") đ</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="small fw-medium text-dark">@item.SoLuotDaDung / @item.SoLuotPhatHanh</div>
+                                        <div class="progress mt-1" style="height: 5px; max-width: 120px;">
+                                            <div class="progress-bar bg-success" role="progressbar" 
+                                                style="width: @((double)item.SoLuotDaDung / item.SoLuotPhatHanh * 100)%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="d-block text-secondary">@item.NgayBatDau.ToString("dd/MM/yyyy")</small> <span class="text-secondary">đến</span>
+                                        <small class="d-block text-secondary">@item.NgayKetThuc.ToString("dd/MM/yyyy")</small>
+                                    </td>
+                                    <td>
+                                        @if (isExpired)
+                                        {
+                                            <span class="text-danger small"><i class="bi bi-x-circle-fill"></i> Quá hạn</span>
+                                        }
+                                        else if (!isActive)
+                                        {
+                                            <span class="text-muted small"><i class="bi bi-pause-circle-fill"></i> Tạm dừng</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success small"><i class="bi bi-check-circle-fill"></i> Hoạt động</span>
+                                        }
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <a class="btn btn-outline-secondary btn-sm" asp-action="Details" asp-route-id="@item.KhuyenMaiId"><i class="bi bi-eye"></i>Chi tiết</a>
+                                        <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@item.KhuyenMaiId"><i class="bi bi-pencil"></i>Sửa</a>
+                                        <a class="btn btn-outline-danger btn-sm" asp-action="Delete" asp-route-id="@item.KhuyenMaiId"><i class="bi bi-trash"></i>Xóa</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
                             <tr>
-                                <td><span class="badge bg-light text-success border border-success fw-bold font-monospace px-2 py-1">@item.VoucherCode</span></td>
-                                <td class="fw-semibold text-dark">@item.TenChuongTrinh</td>
-                                <td class="fw-bold text-danger">
-                                    @if (item.LoaiGiamGia == 1) // Giảm theo %
-                                    {
-                                        <span>@item.MucGiam.ToString("0")%</span>
-                                    }
-                                    else // Giảm theo số tiền cố định
-                                    {
-                                        <span>@item.MucGiam.ToString("#,##0") đ</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="small fw-medium text-dark">@item.SoLuotDaDung / @item.SoLuotPhatHanh</div>
-                                    <div class="progress mt-1" style="height: 5px; max-width: 120px;">
-                                        <div class="progress-bar bg-success" role="progressbar" 
-                                             style="width: @((double)item.SoLuotDaDung / item.SoLuotPhatHanh * 100)%"></div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <small class="d-block text-secondary">Bắt đầu: @item.NgayBatDau.ToString("dd/MM/yyyy")</small>
-                                    <small class="d-block text-secondary">Kết thúc: @item.NgayKetThuc.ToString("dd/MM/yyyy")</small>
-                                </td>
-                                <td>
-                                    @if (isExpired)
-                                    {
-                                        <span class="text-danger small"><i class="bi bi-x-circle-fill"></i> Quá hạn</span>
-                                    }
-                                    else if (!isActive)
-                                    {
-                                        <span class="text-muted small"><i class="bi bi-pause-circle-fill"></i> Tạm dừng</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-success small"><i class="bi bi-check-circle-fill"></i> Hoạt động</span>
-                                    }
-                                </td>
-                                <td>
-                                    <a class="btn btn-outline-secondary btn-sm" asp-action="Details" asp-route-id="@item.KhuyenMaiId"><i class="bi bi-eye"></i>Chi tiết</a>
-                                    <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@item.KhuyenMaiId"><i class="bi bi-pencil"></i>Sửa</a>
-                                    <a class="btn btn-outline-danger btn-sm" asp-action="Delete" asp-route-id="@item.KhuyenMaiId"><i class="bi bi-trash"></i>Xóa</a>
-                                </td>
+                                <td colspan="7" class="text-center text-muted py-4">Không tìm thấy chương trình khuyến mãi nào.</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">Không tìm thấy chương trình khuyến mãi nào.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

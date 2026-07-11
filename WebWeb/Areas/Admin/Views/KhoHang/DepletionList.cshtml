@@ -1,0 +1,85 @@
+@model IEnumerable<WebWeb.Models.BaoCaoHaoHut>
+@{
+    ViewData["Title"] = "Nhật Ký Hao Hụt";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-card p-4">
+    <!-- Đồng bộ thanh điều hướng Tab từ file mẫu -->
+    <div class="d-flex border-bottom mb-4">
+        <a class="nav-link text-muted pb-2 pe-3" asp-action="Index">Tồn Kho Hiện Tại</a>
+        <a class="nav-link text-muted pb-2 ps-3 pe-3" asp-action="LoHangList">Nhật Ký Lô Hàng</a>
+        <a class="nav-link active fw-bold text-success border-bottom border-2 border-success pb-2 ps-3" asp-action="DepletionList">Nhật Ký Hao Hụt</a>
+    </div>
+
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Lịch sử & Nhật ký hao hụt nông sản</h3>
+            <p class="text-muted mb-0">Hồ sơ lưu trữ toàn bộ chứng từ kiểm kê hàng hóa hư hỏng, biến chất.</p>
+        </div>
+        <a asp-action="CreateBaoCao" class="btn btn-success"><i class="bi bi-plus-circle-fill"></i> Lập báo cáo mới</a>
+    </div>
+
+    <div class="admin-panel p-4">
+        <div class="table-responsive">
+            <div class="lohang-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Báo Cáo</th>
+                            <th>Ngày Lập</th>
+                            <th>Nhân Viên Kiểm Kê</th>
+                            <th>Lý Do Hao Hụt</th>
+                            <th>Tổng Giá Trị Thiệt Hại</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Chưa có lịch sử ghi nhận hao hụt nào.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-danger">#HH-@item.BaoCaoId</td>
+                                    <td>@item.NgayLap.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="fw-semibold">@(item.NhanVien?.HoTen ?? "Không rõ")</td>
+                                    <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@item.LyDoHaoHut</td>
+                                    <td class="fw-bold text-danger">@item.TongGiaTriThietHai.ToString("N0")đ</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a class="btn btn-outline-info btn-sm" asp-action="DetailsBaoCao" asp-route-id="@item.BaoCaoId">
+                                                <i class="bi bi-eye"></i> Xem
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

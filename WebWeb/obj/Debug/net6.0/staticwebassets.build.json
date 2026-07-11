@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "bfaSiJqAEWvEznrVg6c7eWS0nXxt+mnnTGjGFxdqzZE=",
+  "Hash": "0qup+HJyxd/L7jaQ6QzQuuoFTilBAuojlBTLtz4MBUU=",
   "Source": "WebWeb",
   "BasePath": "_content/WebWeb",
   "Mode": "Default",
@@ -100,6 +100,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\customer.css"
+    },
+    {
+      "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\css\\order.css",
+      "SourceId": "WebWeb",
+      "SourceType": "Discovered",
+      "ContentRoot": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\",
+      "BasePath": "_content/WebWeb",
+      "RelativePath": "css/order.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\order.css"
     },
     {
       "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\css\\site.css",
@@ -423,6 +440,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\cart.js"
+    },
+    {
+      "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\js\\notification.js",
+      "SourceId": "WebWeb",
+      "SourceType": "Discovered",
+      "ContentRoot": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\",
+      "BasePath": "_content/WebWeb",
+      "RelativePath": "js/notification.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\notification.js"
     },
     {
       "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\js\\order.js",

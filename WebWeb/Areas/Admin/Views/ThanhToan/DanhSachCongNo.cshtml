@@ -12,99 +12,103 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold text-dark mb-1">Theo dõi công nợ đối tác</h3>
-            <p class="text-muted mb-0">Quản lý các khoản chi trả tiền nông sản định kỳ cho các Nhà vườn liên kết.</p>
+            <h3 class="fw-bold text-dark mb-1">Theo dõi tổng hợp công nợ đối tác</h3>
+            <p class="text-muted mb-0">Hệ thống tự động gom nhóm tổng số tiền từ các Lô Hàng nhập kho chưa tất toán theo từng Nhà Vườn.</p>
         </div>
     </div>
 
     <div class="admin-panel p-4 bg-white border rounded-3">
         <form method="get" asp-action="DanhSachCongNo" class="mb-3">
-            <div class="position-relative" style="max-width: 380px;">
-                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm theo tên Nhà vườn..." />
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                <div class="position-relative" style="max-width: 380px;">
+                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                    <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm theo tên Nhà vườn..." />
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm admin-btn">Tìm kiếm</button>
+                </div>
             </div>
         </form>
 
         <div class="table-responsive">
-            <table class="table align-middle table-hover fs-15">
-                <thead class="table-light">
-                    <tr>
-                        <th>Mã Phiếu Chi</th>
-                        <th>Nhà Vườn (Đối tác)</th>
-                        <th>Số Tiền Chi Trả</th>
-                        <th>Hình Thức</th>
-                        <th>Ngày Lập</th>
-                        <th>Mã Giao Dịch Ngân Hàng</th>
-                        <th>Trạng Thái</th>
-                        <th class="text-center">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td>#PC-@item.PhieuChiId</td>
-                            <td class="fw-semibold text-dark">@item.NhaVuon.TenNhaVuon</td>
-                            <td class="text-danger fw-bold">@item.SoTienThucChi.ToString("#,##0") đ</td>
-                            <td>@(item.PhuongThuc == 1 ? "Chuyển khoản" : "Tiền mặt")</td>
-                            <td>@item.NgayLap.ToString("dd/MM/yyyy")</td>
-                            <td class="font-monospace text-muted">
-                                @(string.IsNullOrEmpty(item.MaGiaoDich) ? "---" : item.MaGiaoDich)
-                            </td>
-                            <td>
-                                @if (!string.IsNullOrEmpty(item.MaGiaoDich))
-                                {
-                                    <span class="badge bg-success-subtle text-success p-2"><i class="bi bi-patch-check"></i> Đã tất toán</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-warning-subtle text-warning p-2"><i class="bi bi-clock-history"></i> Chờ chuyển khoản</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <a class="btn btn-outline-secondary btn-sm" asp-action="DetailsCongNo" asp-route-id="@item.PhieuChiId">
-                                        <i class="bi bi-eye"></i> Chi tiết
-                                    </a>
-                                    @if (string.IsNullOrEmpty(item.MaGiaoDich))
-                                    {
-                                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#confirmModal-@item.PhieuChiId">
-                                            <i class="bi bi-credit-card"></i> Xác nhận Đã Chuyển
-                                        </button>
-                                    }
-                                </div>
-
-                                <div class="modal fade" id="confirmModal-@item.PhieuChiId" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <form asp-action="XacNhanThanhToanCongNo" method="post">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@item.PhieuChiId" />
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title fw-bold text-dark">Xác nhận chuyển tiền công nợ</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body text-start">
-                                                    <p class="mb-2">Bạn đang xác nhận đã thanh toán số tiền <strong class="text-danger">@item.SoTienThucChi.ToString("#,##0") đ</strong> cho đối tác <strong>@item.NhaVuon.TenNhaVuon</strong>.</p>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-medium text-dark small">Nhập Mã Giao Dịch Ngân Hàng (Ủy nhiệm chi / Mã Bank-FT):</label>
-                                                        <input type="text" name="maGiaoDich" class="form-control font-monospace" style="text-transform: uppercase;" placeholder="Ví dụ: FT260682345" required />
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-                                                    <button type="submit" class="btn btn-success btn-sm">Xác nhận hoàn thành</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </td>
+            <div class="thanhtoan-congno-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr class="text-nowrap">
+                            <th>ID Đối Tác</th>
+                            <th>Nhà Vườn (Đối tác)</th>
+                            <th>Tổng Công Nợ</th>
+                            <th>Cập Nhật Lúc</th>
+                            <th>Trạng Thái</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>#NV-@item.NhaVuon.NhaVuonId</td>
+                                    <td class="fw-semibold text-dark">@item.NhaVuon.TenNhaVuon</td>
+                                    <td class="text-danger fw-bold">@item.SoTienThucChi.ToString("#,##0") đ</td>
+                                    <td>@item.NgayLap.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="badge bg-warning-subtle text-warning p-2"><i class="bi bi-clock-history"></i> Chờ đối soát chi tiền</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex gap-1 justify-content-center text-nowrap">
+                                            <!-- NÚT CHI TIẾT: Xem danh sách các phiếu nhập kho cấu thành nên công nợ này -->
+                                            <a class="btn btn-outline-secondary btn-sm rounded-2 px-3" asp-action="DetailsCongNo" asp-route-id="@item.NhaVuonId">
+                                                <i class="bi bi-eye"></i> Chi tiết
+                                            </a>
+
+                                            <!-- NÚT TẤT TOÁN: Kích hoạt modal xác nhận chuyển tiền như thanh toán đơn hàng -->
+                                            <a asp-action="LapPhieuTatToan" asp-route-id="@item.NhaVuonId" class="btn btn-success btn-sm rounded-2 px-3">
+                                                <i class="bi bi-credit-card"></i> Thanh toán
+                                            </a>
+                                        </div>
+
+                                        <!-- MODAL XÁC NHẬN CHUYỂN TIỀN CHO NHÀ VƯỜN -->
+                                        <div class="modal fade" id="confirmModal-@item.PhieuChiId" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <form asp-action="XacNhanThanhToanCongNo" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <!-- Truyền ID nhà vườn lên để xử lý cập nhật trạng thái các lô hàng -->
+                                                        <input type="hidden" name="id" value="@item.NhaVuon.NhaVuonId" />
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title fw-bold text-dark">Xác nhận thanh toán tích lũy</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-start">
+                                                            <p class="mb-2">Bạn đang thực hiện lập phiếu tất toán số tiền công nợ <strong class="text-danger">@item.SoTienThucChi.ToString("#,##0") đ</strong> cho đối tác <strong>@item.NhaVuon.TenNhaVuon</strong>.</p>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-medium text-dark small">Mã Giao Dịch Ngân Hàng (Ủy nhiệm chi):</label>
+                                                                <input type="text" name="maGiaoDich" class="form-control font-monospace" style="text-transform: uppercase;" placeholder="Ví dụ: FT260682345" required />
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                                            <button type="submit" class="btn btn-success btn-sm">Xác nhận hoàn thành</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Hiện không có công nợ lô hàng nào chưa thanh toán.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

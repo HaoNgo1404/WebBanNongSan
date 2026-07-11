@@ -5,6 +5,21 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<!-- Nhúng thư viện CSS & JS Bản đồ mở (Thêm vào đầu file Addresses.cshtml) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    /* Đảm bảo các mảnh bản đồ hiển thị mượt mà, không bị vỡ hoặc ẩn mất */
+    .leaflet-container {
+        font-family: inherit;
+    }
+    #map-selection img {
+        max-width: none !important;
+        max-height: none !important;
+    }
+</style>
+
 <div class="account-dashboard">
     <div class="row g-4">
         <div class="col-lg-3">
@@ -100,7 +115,16 @@
                     
                     <div class="mb-3">
                         <label class="form-label text-secondary small fw-bold">Địa chỉ giao hàng cụ thể <span class="text-danger">*</span></label>
-                        <textarea class="form-control rounded-3" id="DiaChiGiao" name="DiaChiGiao" rows="2" required></textarea>
+                        <textarea class="form-control rounded-3" id="DiaChiGiao" name="DiaChiGiao" rows="2" required placeholder="Nhập địa chỉ hoặc chọn trực tiếp trên bản đồ phía dưới..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold d-flex justify-content-between">
+                            <span><i class="bi bi-map"></i> Bản đồ định vị nhanh</span>
+                            <span class="text-success small fw-normal"><i class="bi bi-info-circle"></i> Di chuyển marker để chọn vị trí chính xác</span>
+                        </label>
+                        <!-- Tạo khung chứa bản đồ có bo viền đồng bộ giao diện -->
+                        <div id="map-selection" class="border rounded-3 shadow-sm bg-light" style="width: 100%; height: 260px; position: relative; z-index: 1;"></div>
                     </div>
 
                     <div class="mb-3">
@@ -135,7 +159,73 @@
 
 @section Scripts {
     <script>
-        // Gọi hiển thị Modal (id = 0 là Thêm mới, id > 0 là sửa)
+        // Khởi tạo bản đồ Leaflet
+        var mapInstance = null;
+        var mapMarker = null;
+
+        // Hàm khởi tạo và cấu hình Bản đồ
+        function initMapSelection() {
+            // Tọa độ mặc định (Ví dụ: Trung tâm TP.HCM hoặc Hà Nội)
+            const defaultLat = 10.762622;
+            const defaultLng = 106.660172;
+
+            // Nếu bản đồ chưa được dựng lên lần nào
+            if (mapInstance === null) {
+                // Tọa độ trung tâm mặc định (Ví dụ đặt ở Việt Nam: 10.762622, 106.660172)
+                mapInstance = L.map('map-selection').setView([10.762622, 106.660172], 13);
+
+                // Nạp giao diện bản đồ từ OpenStreetMap vệ tinh mở
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(mapInstance);
+
+                // Tạo dấu Marker cho phép người dùng bấm giữ và kéo đi bất cứ đâu (draggable: true)
+                mapMarker = L.marker([10.762622, 106.660172], { draggable: true }).addTo(mapInstance);
+
+                // Sự kiện 1: Khi kết thúc hành động kéo Marker, tự động dịch ngược tọa độ sang chữ địa chỉ
+                mapMarker.on('dragend', function (e) {
+                    var position = mapMarker.getLatLng();
+                    getAddressFromCoords(position.lat, position.lng);
+                });
+
+                // Sự kiện 2: Khi người dùng click chuột vào bất kỳ điểm nào trên bản đồ, di chuyển marker tới đó và dịch chữ
+                mapInstance.on('click', function (e) {
+                    mapMarker.setLatLng(e.latlng);
+                    getAddressFromCoords(e.latlng.lat, e.latlng.lng);
+                });
+            }
+
+            // Fix lỗi hiển thị của Leaflet khi nằm trong Modal Bootstrap (Kích hoạt vẽ lại kích thước)
+            setTimeout(function() {
+                mapInstance.invalidateSize();
+            }, 400);
+        }
+
+        // Hàm gọi API ngầm dịch ngược Tọa độ (Vĩ độ, Kinh độ) thành Chuỗi chữ Địa chỉ tiếng Việt
+        function getAddressFromCoords(lat, lng) {
+            var apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=vi`;
+
+            fetch(apiUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    let fullAddress = data.display_name;
+
+                    // BỔ SUNG: Dùng Regex tự động xóa mã bưu chính (6 chữ số liên tiếp) và các dấu phẩy dư thừa xung quanh
+                    // Biểu thức này tìm cụm số có độ dài từ 5 đến 6 chữ số
+                    fullAddress = fullAddress.replace(/,?\s*\b\d{5,6}\b/g, '');
+
+                    // Làm sạch lại chuỗi nếu vô tình để lại dấu phẩy ở cuối do vừa xóa số
+                    fullAddress = fullAddress.replace(/,\s*$/, '').trim();
+
+                    // Đổ chuỗi địa chỉ đã được làm sạch vào ô nhập liệu
+                    document.getElementById('DiaChiGiao').value = fullAddress;
+                }
+            })
+            .catch(err => console.error("Không thể lấy thông tin địa chỉ từ tọa độ:", err));
+        }
+
+        // CẬP NHẬT: Sửa lại hàm openAddressModal cũ của bạn để kích hoạt bản đồ mượt mà
         function openAddressModal(id, name = '', phone = '', address = '', type = 'Nhà riêng', isDefault = false) {
             document.getElementById('addressForm').reset();
             document.getElementById('DiaChiId').value = id;
@@ -155,7 +245,6 @@
                     document.getElementById('typeNhaRieng').checked = true;
                 }
 
-                // Nếu đang là địa chỉ mặc định rồi thì ẩn checkbox mặc định đi (bắt buộc phải giữ mặc định)
                 if (isDefault) {
                     document.getElementById('divDefaultCheckbox').style.display = "none";
                     document.getElementById('IsDefault').checked = true;
@@ -167,7 +256,56 @@
             
             var myModal = new bootstrap.Modal(document.getElementById('addressModal'));
             myModal.show();
+
+            // Kích hoạt nạp bản đồ lên ngay sau khi mở modal thành công
+            initMapSelection();
         }
+        
+        // Gọi hiển thị Modal (id = 0 là Thêm mới, id > 0 là sửa)
+        // 1. SỬA LẠI HÀM OPEN MODAL: Chỉ làm nhiệm vụ đổ dữ liệu và bật Modal lên
+        function openAddressModal(id, name = '', phone = '', address = '', type = 'Nhà riêng', isDefault = false) {
+            document.getElementById('addressForm').reset();
+            document.getElementById('DiaChiId').value = id;
+            
+            if (id === 0) {
+                document.getElementById('modalTitle').innerText = "Thêm địa chỉ giao nhận mới";
+                document.getElementById('divDefaultCheckbox').style.display = "block";
+            } else {
+                document.getElementById('modalTitle').innerText = "Cập nhật địa chỉ nhận hàng";
+                document.getElementById('TenNguoiNhan').value = name;
+                document.getElementById('SoDienThoaiNhan').value = phone;
+                document.getElementById('DiaChiGiao').value = address;
+                
+                if (type === 'Văn phòng') {
+                    document.getElementById('typeVanPhong').checked = true;
+                } else {
+                    document.getElementById('typeNhaRieng').checked = true;
+                }
+
+                if (isDefault) {
+                    document.getElementById('divDefaultCheckbox').style.display = "none";
+                    document.getElementById('IsDefault').checked = true;
+                } else {
+                    document.getElementById('divDefaultCheckbox').style.display = "block";
+                    document.getElementById('IsDefault').checked = false;
+                }
+            }
+            
+            // Bật modal lên bình thường
+            var myModal = new bootstrap.Modal(document.getElementById('addressModal'));
+            myModal.show();
+        }
+
+        // 2. BỔ SUNG: Bắt sự kiện Modal ĐÃ HIỂN THỊ XONG hoàn toàn thì mới dựng bản đồ
+        document.addEventListener("DOMContentLoaded", function () {
+            const addressModalEl = document.getElementById('addressModal');
+            if (addressModalEl) {
+                addressModalEl.addEventListener('shown.bs.modal', function () {
+                    // Khởi tạo hoặc cập nhật lại bản đồ khi vùng chứa đã có kích thước thực tế
+                    initMapSelection();
+                });
+            }
+        });
 
         // Thực hiện gửi dữ liệu Lưu (Add/Edit) thông qua AJAX Fetch ngầm
         function submitAddressForm() {

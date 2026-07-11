@@ -1,0 +1,87 @@
+@model WebWeb.Models.DanhGiaSanPham
+@{
+    ViewData["Title"] = "Chi Tiết Đánh Giá Đơn Hàng #" + Model.DonHangLeId;
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container-fluid px-4 py-3">
+    <!-- Nút quay lại trang danh sách -->
+    <div class="mb-3">
+        <a asp-action="IndexDonHang" class="btn btn-link text-success p-0 fw-bold text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách đánh giá đơn hàng
+        </a>
+    </div>
+
+    <div class="admin-card p-4 bg-white rounded-3 shadow-sm">
+        <div class="border-bottom pb-3 mb-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold text-dark mb-1"><i class="bi bi-chat-square-text text-success"></i> Chi tiết đánh giá đơn hàng</h3>
+                <p class="text-muted mb-0">Xem toàn bộ phản hồi, mức độ hài lòng và hình ảnh thực tế từ khách hàng thân thiết.</p>
+            </div>
+            <div>
+                <!-- Nút xóa nhanh nếu nội dung phản cảm -->
+                <form asp-action="DeleteReview" asp-route-id="@Model.DanhGiaId" asp-route-fromAction="IndexDonHang" method="post" onsubmit="return confirm('Hào có chắc chắn muốn xóa bài đánh giá này không?');">
+                    <button type="submit" class="btn btn-danger rounded-2 px-3"><i class="bi bi-trash"></i> Xóa đánh giá này</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Thông tin khách hàng & Đơn hàng -->
+            <div class="col-md-5 border-end">
+                <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-info-circle"></i> Thông tin chung</h5>
+                <table class="table table-borderless align-middle">
+                    <tr>
+                        <td class="text-muted" style="width: 40%;">Mã Đơn Hàng Lẻ:</td>
+                        <td class="fw-bold text-dark">#DHL-@Model.DonHangLeId</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Khách Hàng ĐG:</td>
+                        <td class="fw-bold text-success">@(Model.KhachHang?.HoTen ?? "Khách hàng hệ thống")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Ngày Đánh Giá:</td>
+                        <td class="text-dark">@Model.NgayDanhGia.ToString("dd/MM/yyyy HH:mm:6")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Mức độ hài lòng:</td>
+                        <td class="text-warning fw-bold fs-5">
+                            @Model.SoSao <i class="bi bi-star-fill"></i>
+                            <span class="text-muted small fs-6">/ 5 sao</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Nội dung đánh giá & Hình ảnh thực tế -->
+            <div class="col-md-7 ps-md-4">
+                <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-chat-left-quote"></i> Phản hồi chi tiết</h5>
+                
+                <div class="mb-4">
+                    <label class="small fw-bold text-muted d-block mb-2">Nội dung bình luận đóng góp:</label>
+                    <div class="p-3 bg-light rounded-3 text-dark border italic" style="white-space: pre-line; min-height: 80px;">
+                        "@Model.BinhLuan"
+                    </div>
+                </div>
+
+                <div>
+                    <label class="small fw-bold text-muted d-block mb-2">Hình ảnh thực tế đính kèm (nếu có):</label>
+                    @if (!string.IsNullOrEmpty(Model.HinhAnhThucTe))
+                    {
+                        <div style="max-width: 300px;">
+                            <img src="@Url.Content("~/images/" + Model.HinhAnhThucTe)" 
+                                 class="img-thumbnail rounded shadow-sm w-100 border" 
+                                 alt="Ảnh thực tế khách hàng chụp" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-3 bg-light rounded-3 text-muted border text-center small">
+                            <i class="bi bi-image"></i> Khách không tải lên hình ảnh thực tế cho đơn hàng này.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

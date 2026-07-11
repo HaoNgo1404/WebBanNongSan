@@ -1,0 +1,62 @@
+@model WebWeb.Models.BaoCaoHaoHut
+
+@{
+    ViewData["Title"] = "Lập Báo Cáo Hao Hụt Nông Sản";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Quản Lý Kho</h1>
+
+    <div class="card mb-4 shadow">
+        <div class="card-header bg-danger text-white">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            <strong>LẬP CHỨNG TỪ BÁO CÁO HAO HỤT / BIẾN CHẤT HÀNG HÓA</strong>
+        </div>
+        <div class="card-body">
+            <form asp-action="CreateBaoCao" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row">
+                    <!-- Nhân viên xác nhận -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Nhân viên kiểm kê / Lập phiếu</label>
+                        <select name="nhanVienId" class="form-select" asp-items="ViewBag.NhanVienId" required>
+                            <option value="">-- Chọn nhân viên chịu trách nhiệm --</option>
+                        </select>
+                    </div>
+
+                    <!-- Chọn lô hàng bị hao hụt -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Chọn lô hàng bị tổn thất</label>
+                        <select name="loHangId" class="form-select" asp-items="ViewBag.LoHangId" required>
+                            <option value="">-- Chọn lô hàng cần báo cáo --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Số lượng hao hụt -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Số lượng hao hụt (Kg / Tấn / Thùng)</label>
+                        <input name="soLuongHaoHut" type="number" step="0.01" class="form-control" placeholder="Nhập số lượng thực tế bị tổn thất..." required />
+                        <span class="small text-muted">*Hệ thống tự động nhân đơn giá nhập của lô để tính giá trị thiệt hại.</span>
+                    </div>
+
+                    <!-- Lý do hao hụt -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Lý do hao hụt cụ thể</label>
+                        <textarea name="lyDoHaoHut" rows="2" class="form-control" placeholder="Ví dụ: Nông sản bị dập nát do vận chuyển, hết hạn sử dụng, thối rữa..." required></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="fas fa-save me-1"></i> Xác nhận & Trừ kho
+                    </button>
+                    <a asp-action="DepletionList" class="btn btn-secondary px-4 ms-2">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -23,6 +23,7 @@
     <div class="d-flex border-bottom mb-4">
         <a class="nav-link text-muted pb-2 pe-3" asp-action="Index">Tồn Kho Hiện Tại</a>
         <a class="nav-link active fw-bold text-success border-bottom border-2 border-success pb-2 ps-3" asp-action="LoHangList">Nhật Ký Lô Hàng</a>
+        <a class="nav-link text-muted pb-2 ps-3" asp-action="DepletionList">Nhật Ký Hao Hụt</a>
     </div>
 
     <div class="mb-4">
@@ -32,38 +33,40 @@
 
     <div class="admin-panel p-4">
         <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Mã Lô</th>
-                        <th>Mã Phiếu Nhập</th>
-                        <th>Nông Sản</th>
-                        <th>Nhà Cung Cấp</th>
-                        <th>Số Lượng Nhập</th>
-                        <th>Ngày Nhập Kho</th>
-                        <th>Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
+            <div class="lohang-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
                         <tr>
-                            <td>#LH-@item.LoHangId</td>
-                            <td class="fw-semibold text-primary">#PN-@item.PhieuNhapId</td>
-                            <td class="fw-bold">@(item.NongSan?.TenNongSan ?? "Không rõ")</td>
-                            <td>@(item.PhieuNhapKho?.NhaVuon?.TenNhaVuon ?? "Không rõ")</td>
-                            <td>@item.SoLuongNhap</td>
-                            <td>@item.NgayNhapKho.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <a class="btn btn-outline-info btn-sm" asp-action="DetailsLoHang" asp-route-id="@item.LoHangId"><i class="bi bi-eye"></i> Xem</a>
-                                    <a class="btn btn-outline-danger btn-sm" asp-action="DeleteLoHang" asp-route-id="@item.LoHangId"><i class="bi bi-trash"></i> Xóa</a>
-                                </div>
-                            </td>
+                            <th>Mã Lô</th>
+                            <th>Mã Phiếu Nhập</th>
+                            <th>Nông Sản</th>
+                            <th>Nhà Cung Cấp</th>
+                            <th>Số Lượng Nhập</th>
+                            <th>Ngày Nhập Kho</th>
+                            <th>Thao Tác</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>#LH-@item.LoHangId</td>
+                                <td class="fw-semibold text-primary">#PN-@item.PhieuNhapId</td>
+                                <td class="fw-bold">@(item.NongSan?.TenNongSan ?? "Không rõ")</td>
+                                <td>@(item.PhieuNhapKho?.NhaVuon?.TenNhaVuon ?? "Không rõ")</td>
+                                <td>@item.SoLuongNhap</td>
+                                <td>@item.NgayNhapKho.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-outline-info btn-sm" asp-action="DetailsLoHang" asp-route-id="@item.LoHangId"><i class="bi bi-eye"></i> Xem</a>
+                                        <a class="btn btn-outline-danger btn-sm" asp-action="DeleteLoHang" asp-route-id="@item.LoHangId"><i class="bi bi-trash"></i> Xóa</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

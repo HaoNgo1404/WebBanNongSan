@@ -57,39 +57,41 @@
     <div class="admin-panel p-4">
         <h4 class="fw-bold mb-3 text-dark"><i class="bi bi-graph-up-arrow text-success"></i> Top 5 nông sản bán chạy nhất</h4>
         <div class="table-responsive">
-            <table class="admin-table table align-middle">
-                <thead>
-                    <tr class="bg-success text-white">
-                        <th style="width: 10%;">Thứ hạng</th>
-                        <th>Tên Nông Sản</th>
-                        <th class="text-end">Số lượng bán ra</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{
-                        int index = 1;
-                        var topProducts = ViewBag.TopNongSan as List<WebWeb.Areas.Admin.Controllers.TopNongSanViewModel>;
-                    }
-                    @if (topProducts != null && topProducts.Any())
-                    {
-                        foreach (var item in topProducts)
+            <div class="thongke-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table table align-middle">
+                    <thead>
+                        <tr class="bg-success text-white">
+                            <th style="width: 10%;">Thứ hạng</th>
+                            <th>Tên Nông Sản</th>
+                            <th class="text-end">Số lượng bán ra</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int index = 1;
+                            var topProducts = ViewBag.TopNongSan as List<WebWeb.Areas.Admin.Controllers.TopNongSanViewModel>;
+                        }
+                        @if (topProducts != null && topProducts.Any())
+                        {
+                            foreach (var item in topProducts)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary text-white">#@index</span></td>
+                                    <td class="fw-semibold text-dark">@item.TenNongSan</td>
+                                    <td class="text-end text-success fw-bold">@item.SoLuongBan.ToString("#,##0")</td>
+                                </tr>
+                                index++;
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td><span class="badge bg-secondary text-white">#@index</span></td>
-                                <td class="fw-semibold text-dark">@item.TenNongSan</td>
-                                <td class="text-end text-success fw-bold">@item.SoLuongBan.ToString("#,##0")</td>
+                                <td colspan="3" class="text-center text-muted">Không có dữ liệu trong khoảng thời gian này.</td>
                             </tr>
-                            index++;
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="3" class="text-center text-muted">Không có dữ liệu trong khoảng thời gian này.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

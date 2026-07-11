@@ -1,0 +1,156 @@
+@{
+    ViewData["Title"] = "Ưu Đãi & Khuyến Mãi Nổi Bật";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Thay thế theo Layout chuẩn của bạn
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-success"><i class="bi bi-tags-fill me-2"></i>TRUNG TÂM ƯU ĐÃI THÀNH VIÊN</h2>
+        <p class="text-muted fs-5">Săn ngay mã giảm giá và tham gia các chương trình khuyến mãi nông sản sạch cực hot tuần này!</p>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden coupon-card">
+                <div class="coupon-left bg-success text-white text-center p-4 d-flex flex-column justify-content-center align-items-center">
+                    <h3 class="fw-bold m-0">20K</h3>
+                    <small class="opacity-75">GIẢM THẲNG</small>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title fw-bold text-dark mb-1">Ưu đãi bạn mới</h5>
+                        <p class="card-text text-muted small mb-3">Áp dụng cho khách hàng đặt đơn nông sản lẻ đầu tiên trên hệ thống.</p>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-dashed mb-2">
+                            <span class="fw-mono text-success fw-bold text-uppercase" id="code-newbie">NONGSANNEW</span>
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="copyToClipboard('NONGSANNEW', this)">Chép mã</button>
+                        </div>
+                        <small class="text-muted d-block"><i class="bi bi-clock me-1"></i>Hạn dùng: 31/12/2026</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden coupon-card">
+                <div class="coupon-left bg-warning text-dark text-center p-4 d-flex flex-column justify-content-center align-items-center">
+                    <h3 class="fw-bold m-0">FREE</h3>
+                    <small class="fw-semibold opacity-75">SHIP</small>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title fw-bold text-dark mb-1">Freeship cuối tuần</h5>
+                        <p class="card-text text-muted small mb-3">Miễn phí vận chuyển tối đa 25.000đ cho mọi hóa đơn đặt vào T7 và Chủ Nhật.</p>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-dashed mb-2">
+                            <span class="fw-mono text-warning fw-bold text-uppercase" id="code-ship">WEEKENDSHIP</span>
+                            <button class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" onclick="copyToClipboard('WEEKENDSHIP', this)">Chép mã</button>
+                        </div>
+                        <small class="text-muted d-block"><i class="bi bi-clock me-1"></i>Hạn dùng: Hàng tuần</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden coupon-card">
+                <div class="coupon-left bg-danger text-white text-center p-4 d-flex flex-column justify-content-center align-items-center">
+                    <h3 class="fw-bold m-0">10%</h3>
+                    <small class="opacity-75">GIẢM GIÁ</small>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title fw-bold text-dark mb-1">Đặc quyền VIP Gold</h5>
+                        <p class="card-text text-muted small mb-3">Mã giảm giá đặc biệt tri ân tài khoản thành viên tích lũy đạt hạng Vàng trở lên.</p>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-dashed mb-2">
+                            <span class="fw-mono text-danger fw-bold text-uppercase" id="code-vip">VIPGOLD10</span>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="copyToClipboard('VIPGOLD10', this)">Chép mã</button>
+                        </div>
+                        <small class="text-muted d-block"><i class="bi bi-clock me-1"></i>Hạn dùng: 30/09/2026</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-5 p-4 p-md-5 rounded-3 bg-success-subtle text-success position-relative shadow-sm overflow-hidden">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="badge bg-success text-white px-3 py-2 rounded-pill mb-2">Sự kiện độc quyền</span>
+                <h3 class="fw-bold mb-2">Ngày Hội Nông Sản Xanh - Săn Quà Xanh</h3>
+                <p class="mb-0 text-dark opacity-75">Tặng ngay combo 1kg rau mầm hữu cơ cho mọi đơn hàng ký gói định kỳ dài hạn từ 3 tháng trở lên trong tháng này.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="/Order/CheckoutDinhKy" class="btn btn-success px-4 py-2 rounded-pill fw-semibold shadow-sm">Tham gia ngay</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(text, buttonElement) {
+        navigator.clipboard.writeText(text).then(function() {
+            // Thay đổi chữ trên nút bấm để báo thành công
+            var originalText = buttonElement.innerHTML;
+            buttonElement.innerHTML = "<i class='bi bi-check2'></i> Đã chép";
+            buttonElement.classList.remove('btn-outline-success', 'btn-outline-warning', 'btn-outline-danger');
+            buttonElement.classList.add('btn-dark', 'text-white');
+            
+            // Phục hồi lại nút sau 2 giây
+            setTimeout(function() {
+                buttonElement.innerHTML = originalText;
+                buttonElement.classList.remove('btn-dark', 'text-white');
+                if(text === 'NONGSANNEW') buttonElement.classList.add('btn-outline-success');
+                if(text === 'WEEKENDSHIP') buttonElement.classList.add('btn-outline-warning');
+                if(text === 'VIPGOLD10') buttonElement.classList.add('btn-outline-danger');
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Không thể sao chép mã: ', err);
+        });
+    }
+</script>
+
+<style>
+    .coupon-card {
+        display: flex;
+        flex-direction: row;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .coupon-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    /* Phần rãnh xé bên trái của Voucher */
+    .coupon-left {
+        width: 100px;
+        position: relative;
+        border-right: 2px dashed #ffffff;
+    }
+    /* Tạo hiệu ứng rãnh bán nguyệt ở mép vé */
+    .coupon-left::before, .coupon-left::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background-color: #f8f9fa; /* Trùng với màu nền nền web */
+        border-radius: 50%;
+        right: -9px;
+    }
+    .coupon-left::before { top: -8px; }
+    .coupon-left::after { bottom: -8px; }
+    
+    .fw-mono {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+    }
+    .border-dashed {
+        border-style: dashed !important;
+    }
+</style>

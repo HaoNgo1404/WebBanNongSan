@@ -17,6 +17,7 @@ namespace WebWeb.Models
         public int? KhachHangId { get; set; }
         public int? DiaChiId { get; set; }
         public int? NhanVienId { get; set; }
+        public int? KhuyenMaiId { get; set; }
         public DateTime NgayDat { get; set; }
         public decimal TongTienTamTinh { get; set; }
         public decimal? TongTienThucTe { get; set; }
@@ -28,14 +29,14 @@ namespace WebWeb.Models
         public string? PhoneNonAccount { get; set; }
         public string? NameCusNonAccount { get; set; }
         public string? AddressNonAccount { get; set; }
-        public string? EmailCusNonAccount { get; set; }
 
         public virtual SoDiaChi? DiaChi { get; set; }
         public virtual KhachHang? KhachHang { get; set; }
         public virtual NhanVien? NhanVien { get; set; }
-        public virtual ICollection<ChiTietDonHangLe> ChiTietDonHangLes { get; set; }
-        public virtual ICollection<DanhGiaSanPham> DanhGiaSanPhams { get; set; }
-        public virtual ICollection<GiaoDichThanhToan> GiaoDichThanhToans { get; set; }
-        public virtual ICollection<KhieuNai> KhieuNais { get; set; }
+        public virtual KhuyenMai? KhuyenMai { get; set; }
+        public virtual ICollection<ChiTietDonHangLe>? ChiTietDonHangLes { get; set; }
+        public virtual ICollection<DanhGiaSanPham>? DanhGiaSanPhams { get; set; }
+        public virtual ICollection<GiaoDichThanhToan>? GiaoDichThanhToans { get; set; }
+        public virtual ICollection<KhieuNai>? KhieuNais { get; set; }
     }
 }

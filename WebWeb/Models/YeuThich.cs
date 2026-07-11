@@ -9,7 +9,7 @@ namespace WebWeb.Models
         public int NongSanId { get; set; }
         public DateTime? NgayThem { get; set; }
 
-        public virtual KhachHang KhachHang { get; set; } = null!;
-        public virtual NongSan NongSan { get; set; } = null!;
+        public virtual KhachHang? KhachHang { get; set; }
+        public virtual NongSan? NongSan { get; set; }
     }
 }

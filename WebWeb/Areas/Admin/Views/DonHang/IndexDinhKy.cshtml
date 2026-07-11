@@ -1,4 +1,5 @@
-﻿@model IEnumerable<WebWeb.Models.GoiDangKyDinhKy>
+﻿@using WebWeb.Models
+@model IEnumerable<WebWeb.Models.GoiDangKyDinhKy>
 @{
     ViewData["Title"] = "Quản Lý Đơn Hàng Định Kỳ";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
@@ -36,64 +37,69 @@
 
     <div class="admin-panel p-4">
         <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Mã Gói</th>
-                        <th>Khách Hàng</th>
-                        <th>Thời Gian Gói</th>
-                        <th>Tần Suất Giao</th>
-                        <th>Thứ Giao Hàng</th>
-                        <th>Tổng Giá Trị</th>
-                        <th>Trạng Thái Gói</th>
-                        <th>Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        @foreach (var item in Model)
+            <div class="dinhky-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr class="text-nowrap">
+                            <th>Mã Gói</th>
+                            <th>Khách Hàng</th>
+                            <th>Thời Gian Gói</th>
+                            <th>Tần Suất Giao</th>
+                            <th>Thứ Giao Hàng</th>
+                            <th>Tổng Giá Trị</th>
+                            <th>Trạng Thái Gói</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">#GOI-@item.GoiId</td>
+                                    <td class="fw-semibold text-dark">@(item.KhachHang?.HoTen ?? "Khách hàng hệ thống")</td>
+                                    <td>
+                                        <small class="d-block text-secondary">Từ: @item.NgayBatDau.ToString("dd/MM/yyyy")</small>
+                                        <small class="d-block text-secondary">Đến: @item.NgayKetThuc.ToString("dd/MM/yyyy")</small>
+                                    </td>
+                                    <td><span class="badge bg-success text-white px-2 py-1">@item.TanSuatGiao</span></td>
+                                    <td><span class="text-dark fw-medium"><i class="bi bi-calendar3"></i> @item.ThuTrongTuan</span></td>
+                                    <td class="text-success fw-bold">@item.TongTienGoi.ToString("#,##0") đ</td>
+                                    <td>
+                                        @if (item.TrangThaiGoi == OrderStatuses.HoatDong)
+                                        {
+                                            <span class="text-success fw-medium"><i class="bi bi-play-circle-fill"></i> Đang hoạt động</span>
+                                        }
+                                        else if (item.TrangThaiGoi == OrderStatuses.DaHuy)
+                                        {
+                                            <span class="text-muted fw-medium"><i class="bi bi-stop-circle-fill"></i> Đã hủy</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-warning fw-medium"><i class="bi bi-pause-circle-fill"></i> @item.TrangThaiGoi</span>
+                                        }
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <a class="btn btn-outline-secondary btn-sm rounded-2 px-3" asp-area="Admin" asp-controller="DonHang" asp-action="DetailsDinhKy" asp-route-id="@item.GoiId">
+                                            <i class="bi bi-calendar-check"></i> Xem lịch
+                                        </a>
+                                        <a asp-action="DeleteDinhKy" asp-route-id="@item.GoiId" class="btn btn-sm btn-outline-danger rounded-3">
+                                            <i class="bi bi-trash"></i> Xóa đơn
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td class="fw-bold text-dark">#GOI-@item.GoiId</td>
-                                <td class="fw-semibold text-dark">@(item.KhachHang?.HoTen ?? "Khách hàng hệ thống")</td>
-                                <td>
-                                    <small class="d-block text-secondary">Từ: @item.NgayBatDau.ToString("dd/MM/yyyy")</small>
-                                    <small class="d-block text-secondary">Đến: @item.NgayKetThuc.ToString("dd/MM/yyyy")</small>
-                                </td>
-                                <td><span class="badge bg-success text-white px-2 py-1">@item.TanSuatGiao</span></td>
-                                <td><span class="text-dark fw-medium"><i class="bi bi-calendar3"></i> @item.ThuTrongTuan</span></td>
-                                <td class="text-success fw-bold">@item.TongTienGoi.ToString("#,##0") đ</td>
-                                <td>
-                                    @if (item.TrangThaiGoi == "Đang hoạt động")
-                                    {
-                                        <span class="text-success fw-medium"><i class="bi bi-play-circle-fill"></i> Đang hoạt động</span>
-                                    }
-                                    else if (item.TrangThaiGoi == "Đã kết thúc")
-                                    {
-                                        <span class="text-muted fw-medium"><i class="bi bi-stop-circle-fill"></i> Đã kết thúc</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-warning fw-medium"><i class="bi bi-pause-circle-fill"></i> @item.TrangThaiGoi</span>
-                                    }
-                                </td>
-                                <td>
-                                    <a class="btn btn-outline-secondary btn-sm rounded-2 px-3 text-nowrap" asp-area="Admin" asp-controller="DonHang" asp-action="DetailsDinhKy" asp-route-id="@item.GoiId">
-                                        <i class="bi bi-calendar-check"></i> Xem lịch giao
-                                    </a>
-                                </td>
+                                <td colspan="8" class="text-center text-muted py-4">Không có gói đăng ký định kỳ nào trong hệ thống.</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">Không có gói đăng ký định kỳ nào trong hệ thống.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

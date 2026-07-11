@@ -2,6 +2,8 @@
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
+    <!-- Cấu hình mặc định cho trình duyệt nhận diện cả 2 chế độ Sáng/Tối -->
+    <meta name="theme-color" content="#ffffff" id="browser-theme-color" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Green Fresh Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +28,7 @@
                 </div>
             </div>
 
-            <nav class="admin-nav px-3 mt-3">
+            <nav id="adminNavSidebar" class="admin-nav px-3 mt-3" style="overflow-y: auto; height: 620px;">
                 <a class="admin-nav__link" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
                     <i class="bi bi-speedometer2"></i>
                     <span>Tổng quan</span>
@@ -57,6 +59,16 @@
                     <span>Đơn hàng</span>
                 </a>
 
+                <a class="admin-nav__link" asp-area="Admin" asp-controller="DanhGia" asp-action="Index">
+                    <i class="bi bi-star"></i>
+                    <span>Đánh giá</span>
+                </a>
+
+                <a class="admin-nav__link" asp-area="Admin" asp-controller="NhanVien" asp-action="Index">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Nhân viên</span>
+                </a>
+
                 <a class="admin-nav__link" asp-area="Admin" asp-controller="KhachHang" asp-action="Index">
                     <i class="bi bi-people"></i>
                     <span>Khách hàng</span>
@@ -72,18 +84,16 @@
                     <span>Thanh Toán</span>
                 </a>
 
+                <a class="admin-nav__link" asp-area="Admin" asp-controller="ThamSo" asp-action="Index">
+                    <i class="bi bi-gear"></i>
+                    <span>Tham số</span>
+                </a>
+
                 <a class="admin-nav__link" asp-area="Admin" asp-controller="ThongKe" asp-action="Index">
                     <i class="bi bi-bar-chart"></i>
                     <span>Thống kê</span>
                 </a>
             </nav>
-
-            <div class="admin-sidebar__footer p-3">
-                <div class="admin-mini-card">
-                    <p class="mb-1 fw-semibold text-white">Hỗ trợ</p>
-                    <small class="text-white-50">Cập nhật hệ thống mới</small>
-                </div>
-            </div>
         </aside>
 
         <div class="admin-main flex-grow-1">
@@ -98,8 +108,8 @@
                 </div>
                 
                 <div class="admin-topbar__actions">
-                    <button class="btn btn-light admin-icon-btn border">
-                        <i class="bi bi-moon"></i>
+                    <button class="btn btn-light admin-icon-btn border" type="button" id="dark-mode-toggle">
+                        <i class="bi bi-moon" id="dark-mode-icon"></i>
                     </button>
 
                     <button class="btn btn-light admin-icon-btn border">
@@ -183,6 +193,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/admin.js" asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
