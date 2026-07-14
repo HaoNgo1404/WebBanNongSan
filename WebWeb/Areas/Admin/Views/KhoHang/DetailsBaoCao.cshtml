@@ -1,0 +1,92 @@
+﻿@model WebWeb.Models.BaoCaoHaoHut
+@{
+    ViewData["Title"] = "Chi Tiết Chứng Từ Báo Cáo Hao Hụt";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+<link href="~/css/admin.css" rel="stylesheet"/>
+
+<div class="container-fluid px-4 py-3">
+    <div class="mb-3">
+        <a asp-action="DepletionList" class="btn btn-link text-danger p-0 fw-bold text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Quay lại nhật ký hao hụt
+        </a>
+    </div>
+
+    <div class="admin-card p-4 bg-white rounded-3 shadow-sm">
+        <div class=" d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+            <div>
+                <h4 class="fw-bold mb-0"><i class="bi bi-file-earmark-break-fill"></i> CHỨNG TỪ BÁO CÁO HAO HỤT #BC-@Model.BaoCaoId</h4>
+                <small class="opacity-75">Ngày lập hệ thống: @Model.NgayLap.ToString("dd/MM/yyyy HH:mm")</small>
+            </div>
+            <span class="badge bg-white text-danger fw-bold px-3 py-2 fs-6 shadow-sm">
+                Thiệt hại: @Model.TongGiaTriThietHai.ToString("#,##0") đ
+            </span>
+        </div>
+
+        <div class="card-body p-4 bg-white">
+            <h5 class="fw-bold text-secondary mb-3 border-bottom pb-2"><i class="bi bi-info-circle-fill"></i> Thông tin tổng quan</h5>
+            <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                <div class="col-md-6 col-lg-4">
+                    <span class="text-muted d-block small">Nhân viên lập phiếu / Kiểm kho</span>
+                    <strong class="text-dark fs-6"><i class="bi bi-person-badge"></i> @(Model.NhanVien?.HoTen ?? "Không rõ nhân viên")</strong>
+                </div>
+                <div class="col-md-6 col-lg-8">
+                    <span class="text-muted d-block small">Lý do hao hụt / tổn thất tổng quan</span>
+                    <strong class="text-danger fs-6"><i class="bi bi-chat-left-text"></i> @Model.LyDoHaoHut</strong>
+                </div>
+            </div>
+
+            <h5 class="fw-bold text-secondary mb-3 border-bottom pb-2"><i class="bi bi-box-seam"></i> Chi tiết các lô hàng bị ảnh hưởng</h5>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered align-middle bg-white">
+                    <thead class="table bg-danger text-white text-nowrap">
+                        <tr>
+                            <th class="text-center" style="width: 10%">Mã Lô</th>
+                            <th style="width: 35%">Tên Sản Phẩm Nông Sản</th>
+                            <th class="text-end" style="width: 15%">Đơn Giá Nhập</th>
+                            <th class="text-center" style="width: 15%">Số Lượng Hao Hụt</th>
+                            <th class="text-end" style="width: 25%">Giá Trị Thiệt Hại</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ChiTietBaoCaoHaoHuts != null && Model.ChiTietBaoCaoHaoHuts.Any())
+                        {
+                            foreach (var ct in Model.ChiTietBaoCaoHaoHuts)
+                            {
+                                decimal thanhTienDong = ct.SoLuongHaoHut * ct.DonGiaHaoHut;
+                                <tr>
+                                    <td class="text-center fw-bold text-secondary">#LO-@ct.LoHangId</td>
+                                    <td>
+                                        <span class="fw-semibold text-dark">@(ct.LoHang?.NongSan?.TenNongSan ?? "Nông sản không xác định")</span>
+                                    </td>
+                                    <td class="text-end text-muted">@ct.DonGiaHaoHut.ToString("#,##0") đ</td>
+                                    <td class="text-center fw-bold text-danger">@ct.SoLuongHaoHut</td>
+                                    <td class="text-end fw-bold text-danger">@thanhTienDong.ToString("#,##0") đ</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">Không có thông tin chi tiết lô hàng bị hao hụt cho chứng từ này.</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td colspan="4" class="text-end text-dark fs-6">Tổng cộng giá trị thiệt hại thực tế:</td>
+                            <td class="text-end text-danger fs-5 font-monospace">@Model.TongGiaTriThietHai.ToString("#,##0") đ</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end border-top pt-3 mt-4">
+                <button type="button" class="btn btn-outline-secondary px-3" onclick="window.print();">
+                    <i class="bi bi-printer"></i> In phiếu báo cáo
+                </button>
+                <a asp-action="DepletionList" class="btn btn-secondary px-4">Đóng chi tiết</a>
+            </div>
+        </div>
+    </div>
+</div>

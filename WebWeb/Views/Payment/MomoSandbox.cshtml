@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "MoMo Sandbox";
+}
+
+<div class="container mt-5">
+
+    <div class="card shadow">
+
+        <div class="card-body text-center">
+
+            <h3 class="text-success">
+                Thanh toán MoMo Sandbox
+            </h3>
+
+            <hr />
+
+            <p>
+                API MoMo đã tạo giao dịch thành công.
+            </p>
+
+            <p>
+                Chọn 2 cách thanh toán dưới đây:
+            </p>
+
+            <a class="btn btn-primary"
+               target="_blank"
+               href="@ViewBag.PayUrl">
+                Mở QR MoMo
+            </a>
+
+            <a class="btn btn-success ms-2"
+               href="@Url.Action("MomoSandboxSuccess",
+                                 "Payment",
+                                 new { orderId = ViewBag.OrderId })">
+                Hoàn tất thanh toán (Demo)
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

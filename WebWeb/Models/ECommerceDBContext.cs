@@ -34,7 +34,6 @@ namespace WebWeb.Models
         public virtual DbSet<NhaVuon> NhaVuons { get; set; } = null!;
         public virtual DbSet<NhanVien> NhanViens { get; set; } = null!;
         public virtual DbSet<NongSan> NongSans { get; set; } = null!;
-        public virtual DbSet<PhienDangNhap> PhienDangNhaps { get; set; } = null!;
         public virtual DbSet<PhieuChiCongNo> PhieuChiCongNos { get; set; } = null!;
         public virtual DbSet<PhieuNhapKho> PhieuNhapKhos { get; set; } = null!;
         public virtual DbSet<SoDiaChi> SoDiaChis { get; set; } = null!;
@@ -822,39 +821,6 @@ namespace WebWeb.Models
                     .HasForeignKey(d => d.NhaVuonId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_NongSan_NhaVuon");
-            });
-
-            modelBuilder.Entity<PhienDangNhap>(entity =>
-            {
-                entity.HasKey(e => e.TokenId)
-                    .HasName("PK__PhienDan__AC16DAA7788BEE16");
-
-                entity.ToTable("PhienDangNhap");
-
-                entity.HasIndex(e => e.TokenChuoi, "UQ__PhienDan__926C6CDB2B4E9CD6")
-                    .IsUnique();
-
-                entity.Property(e => e.TokenId).HasColumnName("tokenID");
-
-                entity.Property(e => e.NgayHetHan)
-                    .HasColumnType("datetime")
-                    .HasColumnName("ngayHetHan");
-
-                entity.Property(e => e.NgayTao)
-                    .HasColumnType("datetime")
-                    .HasColumnName("ngayTao")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.TaiKhoanId).HasColumnName("taiKhoanID");
-
-                entity.Property(e => e.ThietBi)
-                    .HasMaxLength(150)
-                    .HasColumnName("thietBi");
-
-                entity.Property(e => e.TokenChuoi)
-                    .HasMaxLength(500)
-                    .IsUnicode(false)
-                    .HasColumnName("tokenChuoi");
             });
 
             modelBuilder.Entity<PhieuChiCongNo>(entity =>

@@ -46,9 +46,15 @@
         </div>
         <div class="col-md-4">
             <div class="p-4 bg-light border rounded shadow-sm text-center">
-                <div class="text-warning mb-2" style="font-size: 2rem;"><i class="bi bi-bag-check-fill"></i></div>
+                <div class="text-warning mb-2" style="font-size: 2rem;">
+                    <i class="bi bi-bag-check-fill"></i>
+                </div>
                 <h5 class="text-muted fw-semibold">Tỷ lệ hoàn thành</h5>
-                <h3 class="fw-bold text-warning">100%</h3>
+                
+                <h3 class="fw-bold text-warning">
+                    @(ViewBag.TyLeHoanThanh ?? 0)%
+                </h3>
+                
                 <small class="text-muted">Dữ liệu tính từ hóa đơn thành công</small>
             </div>
         </div>

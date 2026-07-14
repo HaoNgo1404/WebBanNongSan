@@ -812,3 +812,23 @@ body.admin-body {
         grid-template-columns: 1fr;
     }
 }
+/* Hỗ trợ tối ưu hóa giao diện khi bấm nút In phiếu (window.print) */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .card, .card * {
+        visibility: visible;
+    }
+    .card {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    .btn, .bi-printer, .mb-3 {
+        display: none !important;
+    }
+}

@@ -111,10 +111,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcS2hhY2hIYW5nXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[E:/WebBanNongSan/WebWeb/Areas/Admin/Views/KhoHang/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcS2hvSGFuZ1xDcmVhdGUuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
 [E:/WebBanNongSan/WebWeb/Areas/Admin/Views/KhoHang/CreateBaoCao.cshtml]
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcS2hvSGFuZ1xDcmVhdGVCYW9DYW8uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -133,6 +129,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [E:/WebBanNongSan/WebWeb/Areas/Admin/Views/KhoHang/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcS2hvSGFuZ1xEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/WebBanNongSan/WebWeb/Areas/Admin/Views/KhoHang/DetailsBaoCao.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcS2hvSGFuZ1xEZXRhaWxzQmFvQ2FvLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [E:/WebBanNongSan/WebWeb/Areas/Admin/Views/KhoHang/DetailsLoHang.cshtml]
@@ -339,10 +339,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBZGRyZXNzZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[E:/WebBanNongSan/WebWeb/Views/Account/AdminLogin.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBZG1pbkxvZ2luLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [E:/WebBanNongSan/WebWeb/Views/Account/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxDaGFuZ2VQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -395,6 +391,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uXE9mZmVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[E:/WebBanNongSan/WebWeb/Views/Notification/OrderFailed.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uXE9yZGVyRmFpbGVkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [E:/WebBanNongSan/WebWeb/Views/Notification/OrderPackageSuccess.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uXE9yZGVyUGFja2FnZVN1Y2Nlc3MuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -445,6 +445,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [E:/WebBanNongSan/WebWeb/Views/Order/Review.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3JkZXJcUmV2aWV3LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/WebBanNongSan/WebWeb/Views/Payment/MomoSandbox.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF5bWVudFxNb21vU2FuZGJveC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [E:/WebBanNongSan/WebWeb/Views/Policy/Index.cshtml]

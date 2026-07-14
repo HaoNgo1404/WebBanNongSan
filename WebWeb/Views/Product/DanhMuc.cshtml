@@ -63,7 +63,24 @@
                                     
                                     <div class="d-flex justify-content-between align-items-center mt-auto">
                                         <div>
-                                            <span class="text-danger fw-bold fs-5">@item.GiaBanNiemYet.ToString("N0")₫</span>
+                                            <span class="text-danger fw-bold fs-5">
+                                                @{
+                                                    // Lấy giá thực tế từ Dictionary truyền từ Controller sang, nếu không có thì lấy giá niêm yết
+                                                    var giaThucTeDict = ViewBag.GiaThucTeDict as Dictionary<int, decimal>;
+                                                    decimal giaThucTeItem = (giaThucTeDict != null && giaThucTeDict.ContainsKey(item.NongSanId)) 
+                                                                            ? giaThucTeDict[item.NongSanId] 
+                                                                            : item.GiaBanNiemYet;
+                                                }
+                                                @if (giaThucTeItem < item.GiaBanNiemYet)
+                                                {
+                                                    <span>@((giaThucTeItem).ToString("#,##0")) VNĐ </span>
+                                                    <span class="text-muted text-decoration-line-through small">@item.GiaBanNiemYet.ToString("N0") VNĐ </span>
+                                                }
+                                                else 
+                                                {
+                                                    <span>@item.GiaBanNiemYet.ToString("N0") VNĐ </span>
+                                                }
+                                            </span>
                                             <small class="text-muted">/@item.DonViTinh</small>
                                         </div>
                                         <a asp-action="Detail" asp-route-id="@item.NongSanId" class="btn btn-success btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">

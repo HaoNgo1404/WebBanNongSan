@@ -13,7 +13,7 @@ namespace WebWeb.Models
         public int KhuyenMaiId { get; set; }
         public int? NongSanId { get; set; }
         public int? DanhMucId { get; set; }
-        public string VoucherCode { get; set; } = null!;
+        public string? VoucherCode { get; set; }
         public string TenChuongTrinh { get; set; } = null!;
         public int LoaiGiamGia { get; set; }
         public decimal MucGiam { get; set; }

@@ -48,6 +48,20 @@ namespace WebWeb.Controllers
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
+                // Đọc giá trị ra một biến và xóa ngay lập tức khỏi TempData để lượt sau không bị dính
+                var isNewUser = TempData["IsNewUserRegistered"]?.ToString();
+
+                if (isNewUser == "YES")
+                {
+                    // Bắn thông báo tặng mã BANMOI50 cho người vừa mới đăng ký xong
+                    TempData["NewUserWelcome"] = $"Chào mừng {customer.HoTen} gia nhập Fresh Farm! Món quà ra mắt dành riêng cho bạn là mã giảm giá 50.000đ: <strong class='text-danger fs-4'>BANMOI50</strong> (Áp dụng cho đơn hàng từ 100k). Hãy nhanh tay mua sắm nhé!";
+                }
+                else
+                {
+                    // Tài khoản cũ đăng nhập hoàn toàn bình thường, không bao giờ hiện popup quà thành viên mới nữa
+                    TempData["SuccessMessage"] = $"Chào mừng bạn quay trở lại, {customer.HoTen}!";
+                }
+
                 // Đọc danh sách yêu thích tạm thời từ Session trước khi đăng nhập
                 var sessionData = HttpContext.Session.GetString("UserWishlist");
                 if (!string.IsNullOrEmpty(sessionData))
@@ -109,6 +123,9 @@ namespace WebWeb.Controllers
 
             _context.KhachHangs.Add(newCustomer);
             await _context.SaveChangesAsync();
+
+            // ---- Đánh dấu đây là người mới vừa đăng ký xong ----
+            TempData["IsNewUserRegistered"] = "YES";
 
             return RedirectToAction(nameof(Login));
         }

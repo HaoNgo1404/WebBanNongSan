@@ -20,6 +20,7 @@ namespace WebWeb.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var danhSachDonHang = await _context.DonHangLes
+                .Include(d => d.ChiTietDonHangLes)
                 .Include(d => d.KhachHang)
                 .OrderByDescending(d => d.NgayDat)
                 .ToListAsync();

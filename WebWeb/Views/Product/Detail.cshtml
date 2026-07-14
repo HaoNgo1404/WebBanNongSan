@@ -33,7 +33,22 @@
                     <span class="stars">★★★★★</span>
                     <span class="text-muted">4.9 • 128 đánh giá</span>
                 </div>
-                <div class="detail-price">@Model.GiaBanNiemYet.ToString("N0") VNĐ / @Model.DonViTinh</div>
+                <div class="detail-price">@if (ViewBag.GiaBanThucTe != null && (decimal)ViewBag.GiaBanThucTe < Model.GiaBanNiemYet)
+                    {
+                        <h3 class="text-danger fw-bold mb-0">
+                            @(((decimal)ViewBag.GiaBanThucTe).ToString("#,##0")) VNĐ / @Model.DonViTinh
+                        </h3>
+                        <span class="text-muted text-decoration-line-through small">
+                            Giá gốc: @Model.GiaBanNiemYet.ToString("#,##0") VNĐ / @Model.DonViTinh
+                        </span>
+                    }
+                    else
+                    {
+                        <h3 class="text-success fw-bold mb-0">
+                            @Model.GiaBanNiemYet.ToString("#,##0") VNĐ / @Model.DonViTinh
+                        </h3>
+                    }  
+                </div>
                 <p class="detail-description">
                     @(string.IsNullOrWhiteSpace(Model.MoTa) ? "Chưa có mô tả chi tiết cho sản phẩm này." : Model.MoTa)
                 </p>

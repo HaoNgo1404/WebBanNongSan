@@ -49,3 +49,26 @@
         </form>
     </div>
 </div>
+
+<script>
+    // Hàm xử lý ẩn/hiện mật khẩu viết độc lập
+    function togglePasswordVisibility(button) {
+        // Tìm ô input nằm cùng cấp lớp hoặc gần nhất với nút bấm này
+        const inputGroup = button.closest('.input-group');
+        if (!inputGroup) return;
+
+        const passwordField = inputGroup.querySelector('.password-field');
+        const icon = button.querySelector('i');
+
+        if (passwordField && icon) {
+            // Chuyển đổi thuộc tính type
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.className = 'bi bi-eye-slash'; // Đổi sang mắt gạch chéo
+            } else {
+                passwordField.type = 'password';
+                icon.className = 'bi bi-eye';       // Đổi về mắt bình thường
+            }
+        }
+    }
+</script>

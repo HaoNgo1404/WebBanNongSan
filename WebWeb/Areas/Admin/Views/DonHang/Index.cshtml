@@ -111,6 +111,25 @@
                                         <a class="btn btn-outline-secondary btn-sm rounded-2 px-3 text-nowrap" asp-area="Admin" asp-controller="DonHang" asp-action="Details" asp-route-id="@item.DonHangLeId">
                                             <i class="bi bi-eye"></i> Chi tiết
                                         </a>
+                                        
+                                        @if (item.TrangThaiDonHang == WebWeb.Models.OrderStatuses.ChoDuyet) {
+                                            // Chuẩn bị dữ liệu danh sách sản phẩm để truyền vào HTML attribute
+                                            var dsSanPham = item.ChiTietDonHangLes?.Select(ct => new {
+                                                ten = ct.NongSan?.TenNongSan ?? "Nông sản",
+                                                soluong = ct.SoLuongDat,
+                                                dvt = ct.NongSan?.DonViTinh ?? "kg"
+                                            }).ToList();
+                                            
+                                            var jsonSanPham = System.Text.Json.JsonSerializer.Serialize(dsSanPham);
+
+                                            <button class="btn btn-sm btn-success rounded-3 btn-duyet-don" 
+                                                    data-id="@item.DonHangLeId"
+                                                    data-total="@item.TongTienTamTinh.ToString("#,##0")"
+                                                    data-products='@jsonSanPham'>
+                                                <i class="bi bi-check-circle-fill"></i> Duyệt đơn
+                                            </button>
+                                        }
+
                                         <a asp-action="Delete" asp-route-id="@item.DonHangLeId" class="btn btn-sm btn-outline-danger rounded-3">
                                             <i class="bi bi-trash"></i> Xóa đơn
                                         </a>
@@ -130,3 +149,131 @@
         </div>
     </div>
 </div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const duyetButtons = document.querySelectorAll('.btn-duyet-don');
+
+            duyetButtons.forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const donHangId = this.getAttribute('data-id');
+                    const tongTien = this.getAttribute('data-total');
+                    
+                    // Bốc và giải mã chuỗi danh sách sản phẩm
+                    const rawProducts = this.getAttribute('data-products');
+                    let productsList = [];
+                    try {
+                        productsList = JSON.parse(rawProducts) || [];
+                    } catch (err) {
+                        console.error("Lỗi đọc dữ liệu sản phẩm:", err);
+                    }
+
+                    // Dựng bảng HTML hiển thị danh sách nông sản và số lượng
+                    let tableRows = '';
+                    if(productsList.length > 0) {
+                        productsList.forEach((p, i) => {
+                            tableRows += `
+                                <tr>
+                                    <td style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">${i + 1}. <b>${p.ten}</b></td>
+                                    <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;" class="text-success fw-bold">${p.soluong} ${p.dvt}</td>
+                                </tr>`;
+                        });
+                    } else {
+                        tableRows = `<tr><td colspan="2" style="padding: 8px; text-align: center; color: #888;">Không có dữ liệu chi tiết</td></tr>`;
+                    }
+
+                    // Nội dung HTML sẽ chèn vào ruột của Pop-up
+                    const popupContent = `
+                        <div style="font-size: 14px; color: #333;">
+                            <p style="text-align: left; margin-bottom: 12px;">Xem trước thông tin đơn hàng trước khi phê duyệt:</p>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: #f9f9f9; border-radius: 6px; overflow: hidden;">
+                                <thead style="background: #e9ecef;">
+                                    <tr>
+                                        <th style="text-align: left; padding: 8px;">Tên nông sản</th>
+                                        <th style="text-align: right; padding: 8px;">Số lượng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableRows}
+                                </tbody>
+                            </table>
+                            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; padding-top: 5px; border-top: 2px dashed #ccc;">
+                                <span>TỔNG TIỀN THANH TOÁN:</span>
+                                <span style="color: #dc3545;">${tongTien} VNĐ</span>
+                            </div>
+                        </div>
+                    `;
+
+                    // Hiển thị Pop-up xác nhận chứa thông tin trực quan
+                    Swal.fire({
+                        title: `XÁC NHẬN DUYỆT ĐƠN HÀNG #${donHangId}`,
+                        html: popupContent,
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonColor: '#198754', // Nút duyệt màu xanh
+                        cancelButtonColor: '#6c757d',  // Nút hủy màu xám
+                        confirmButtonText: '<i class="bi bi-check2-circle"></i> Phê duyệt & Trừ kho',
+                        cancelButtonText: 'Đóng lại',
+                        allowOutsideClick: false,
+                        width: '500px'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Mở trạng thái loading trong khi gửi Ajax
+                            Swal.fire({
+                                title: 'Đang tiến hành duyệt...',
+                                text: 'Vui lòng chờ hệ thống xử lý kho.',
+                                allowOutsideClick: false,
+                                didOpen: () => { Swal.showLoading(); }
+                            });
+
+                            // Gửi yêu cầu ngầm lên DonHangController
+                            fetch(`/Admin/DonHang/DuyetDonHang/${donHangId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: 'Duyệt thành công!',
+                                        text: data.message || 'Đơn hàng đã được xử lý hoàn tất.',
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    }).then(() => {
+                                        location.reload(); // Làm mới trang để cập nhật giao diện bảng
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Duyệt thất bại!',
+                                        text: data.message || 'Số lượng trong kho không đủ đáp ứng.',
+                                        icon: 'error',
+                                        confirmButtonText: 'Đóng'
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Lỗi kết nối máy chủ:', error);
+                                Swal.fire({
+                                    title: 'Lỗi hệ thống!',
+                                    text: 'Không thể kết nối đến máy chủ.',
+                                    icon: 'error',
+                                    confirmButtonText: 'Đóng'
+                                });
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Thanh toán thất bại";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <!-- Header -->
+                <div class="bg-danger text-white text-center py-5">
+
+                    <div class="mb-3">
+                        <i class="bi bi-x-circle-fill display-1"></i>
+                    </div>
+
+                    <h2 class="fw-bold mb-2">
+                        Thanh toán thất bại
+                    </h2>
+
+                    <p class="mb-0 opacity-75">
+                        Rất tiếc! Giao dịch của bạn chưa được thực hiện.
+                    </p>
+
+                </div>
+
+                <!-- Body -->
+                <div class="card-body p-5">
+
+                    <div class="alert alert-warning border-0 rounded-3">
+
+                        <h5 class="fw-bold mb-3">
+                            Có thể do một trong các nguyên nhân sau:
+                        </h5>
+
+                        <ul class="mb-0">
+                            <li>Khách hàng đã hủy thanh toán.</li>
+                            <li>Giao dịch đã hết thời gian xử lý.</li>
+                            <li>Số dư tài khoản không đủ.</li>
+                            <li>Lỗi kết nối đến cổng thanh toán.</li>
+                            <li>Thông tin xác thực không hợp lệ.</li>
+                        </ul>
+
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="text-center">
+
+                        <a asp-controller="GioHang"
+                           asp-action="Checkout"
+                           class="btn btn-success btn-lg px-4 me-2">
+
+                            <i class="bi bi-arrow-repeat"></i>
+                            Thanh toán lại
+
+                        </a>
+
+                        <a asp-controller="Home"
+                           asp-action="Index"
+                           class="btn btn-outline-secondary btn-lg px-4">
+
+                            <i class="bi bi-house-door-fill"></i>
+                            Về trang chủ
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using WebWeb.Models;
+using WebWeb.Services;
 
 namespace WebWeb.Controllers
 {
@@ -9,10 +10,12 @@ namespace WebWeb.Controllers
     {
         private readonly ECommerceDBContext _context;
         private const string CART_SESSION_KEY = "UserCart";
+        private readonly KhuyenMaiService _khuyenMaiService;
 
-        public CartController(ECommerceDBContext context)
+        public CartController(ECommerceDBContext context, KhuyenMaiService khuyenMaiService)
         {
             _context = context;
+            _khuyenMaiService = khuyenMaiService;
         }
 
         // 1. Đọc danh sách giỏ hàng từ Session
@@ -33,6 +36,16 @@ namespace WebWeb.Controllers
         {
             // 1. Lấy danh sách sản phẩm trong giỏ từ Session hiện tại
             var cart = GetCartItems();
+
+            foreach (var item in cart)
+            {
+                // Gọi Service dùng chung tính giá thực tế tại thời điểm xem giỏ hàng
+                decimal giaThucTe = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, item.Gia);
+                
+                item.Gia = giaThucTe; 
+            }
+            
+            SaveCartItems(cart);
 
             // Tính tổng tiền các mặt hàng có trong giỏ (Dùng kiểu decimal để khớp tính toán)
             decimal tongTienHang = cart.Sum(item => (decimal)item.ThanhTien);

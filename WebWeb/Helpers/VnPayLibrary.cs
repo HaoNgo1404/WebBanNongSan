@@ -39,33 +39,27 @@ namespace WebWeb.Helpers
 
         public string CreateRequestUrl(string baseUrl, string vnpHashSecret)
         {
-            StringBuilder data = new StringBuilder();
-            StringBuilder query = new StringBuilder();
+            var data = new StringBuilder();
+            var query = new StringBuilder();
 
-            foreach (KeyValuePair<string, string> kv in _requestData)
+            foreach (var kv in _requestData)
             {
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    // VNPAY v2.1.0 Quy định: Chuỗi băm ký (data) PHẢI dùng WebUtility.UrlEncode nhưng KHÔNG mã hóa các kí tự tên tham số
-                    data.Append(kv.Key + "=" + WebUtility.UrlEncode(kv.Value) + "&");
-                    
-                    // Chuỗi Query URL bám vào trình duyệt
+                    data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
                     query.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
                 }
             }
 
-            string searchUrl = query.ToString();
-            string rawData = data.ToString();
-            
-            if (searchUrl.EndsWith("&")) searchUrl = searchUrl.Remove(searchUrl.Length - 1);
-            if (rawData.EndsWith("&")) rawData = rawData.Remove(rawData.Length - 1);
+            if (data.Length > 0)
+                data.Length--;
 
-            // Xử lý đồng bộ dấu cộng (+) thành %20 cho cả chuỗi băm để khớp chữ ký Server VNPAY
-            rawData = rawData.Replace("+", "%20");
-            searchUrl = searchUrl.Replace("+", "%20");
+            if (query.Length > 0)
+                query.Length--;
 
-            string vnpSecureHash = HmacSha256(vnpHashSecret, rawData);
-            return baseUrl + "?" + searchUrl + "&vnp_SecureHash=" + vnpSecureHash;
+            string secureHash = HmacSha512(vnpHashSecret, data.ToString());
+
+            return $"{baseUrl}?{query}&vnp_SecureHashType=HMACSHA512&vnp_SecureHash={secureHash}";
         }
 
         public bool ValidateSignature(string inputHash, string secretKey)
@@ -75,31 +69,31 @@ namespace WebWeb.Helpers
             {
                 if (!string.IsNullOrEmpty(kv.Key) && !kv.Key.StartsWith("vnp_SecureHash"))
                 {
-                    data.Append(kv.Key + "=" + kv.Value + "&");
+                    data.Append(WebUtility.UrlEncode(kv.Key));
+                    data.Append("=");
+                    data.Append(WebUtility.UrlEncode(kv.Value));
+                    data.Append("&");
                 }
             }
             
             string rawData = data.ToString();
             if (rawData.EndsWith("&")) rawData = rawData.Remove(rawData.Length - 1);
 
-            string checkSum = HmacSha256(secretKey, rawData);
+            string checkSum = HmacSha512(secretKey, rawData);
             return checkSum.Equals(inputHash, StringComparison.OrdinalIgnoreCase);
         }
 
-        private string HmacSha256(string key, string inputData)
+        private string HmacSha512(string key, string inputData)
         {
-            var hash = new StringBuilder();
             byte[] keyBytes = Encoding.UTF8.GetBytes(key);
             byte[] inputBytes = Encoding.UTF8.GetBytes(inputData);
-            using (var hmac = new HMACSHA256(keyBytes))
+
+            using (var hmac = new HMACSHA512(keyBytes))
             {
-                byte[] hashValue = hmac.ComputeHash(inputBytes);
-                foreach (var theByte in hashValue)
-                {
-                    hash.Append(theByte.ToString("x2"));
-                }
+                return BitConverter.ToString(hmac.ComputeHash(inputBytes))
+                    .Replace("-", "")
+                    .ToLower();
             }
-            return hash.ToString().ToUpper();
         }
     }
 

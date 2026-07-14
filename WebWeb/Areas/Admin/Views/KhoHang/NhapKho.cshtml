@@ -6,49 +6,103 @@
 
 <div class="admin-card p-4">
     <div class="mb-4">
-        <h3 class="fw-bold mb-1">Tiến hành lập phiếu & Nhập kho nông sản</h3>
-        <p class="text-muted">Hệ thống sẽ tự động đồng bộ hóa tạo Phiếu Nhập và thêm Lô hàng vào kho cùng lúc.</p>
+        <h3 class="fw-bold mb-1"><i class="bi bi-cart-plus text-success"></i> Lập phiếu & Nhập kho nhiều lô nông sản</h3>
+        <p class="text-muted">Nhập thông tin nhân viên, đối tác và thêm danh sách các mặt hàng nông sản cần nhập kho cùng lúc.</p>
     </div>
 
     <div class="admin-form-panel p-4 bg-white border rounded shadow-sm">
         <form asp-action="NhapKho" method="post">
             @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
+            <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                <div class="col-md-4">
                     <label class="form-label fw-semibold">Nhân viên tiếp nhận phiếu</label>
                     <select name="nhanVienId" class="form-select" asp-items="ViewBag.NhanVienId" required></select>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label fw-semibold">Đối tác nhà vườn cung ứng</label>
                     <select name="nhaVuonId" class="form-select" asp-items="ViewBag.NhaVuonId" required></select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Chọn sản phẩm nông sản</label>
-                    <select name="nongSanId" class="form-select" asp-items="ViewBag.NongSanId" required></select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Số lượng thực nhập</label>
-                    <input name="soLuongNhap" type="number" class="form-control" min="1" required />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Đơn giá nhập kho (đ)</label>
-                    <input name="donGiaNhap" type="number" step="0.01" class="form-control" required />
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Thời gian nhập kho</label>
                     <input name="ngayNhap" type="datetime-local" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Hạn sử dụng nông sản</label>
-                    <input name="ngayHetHan" type="date" class="form-control" />
-                </div>
             </div>
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2-circle me-1"></i> Xác nhận nhập kho</button>
-                <a class="btn btn-outline-secondary" asp-action="LoHangList">Hủy bỏ</a>
+            <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-list-ul"></i> Danh sách nông sản nhập</h5>
+            <div class="table-responsive mb-3">
+                <table class="table table-bordered align-middle">
+                    <thead class="table bg-success text-white text-nowrap">
+                        <tr>
+                            <th style="width: 30%">Chọn sản phẩm nông sản</th>
+                            <th style="width: 15%">Số lượng thực nhập</th>
+                            <th style="width: 20%">Đơn giá nhập kho (đ)</th>
+                            <th style="width: 20%">Hạn sử dụng</th>
+                            <th style="width: 15%" class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="DanhSachItem">
+                        <tr>
+                            <td>
+                                <select name="nongSanId" class="form-select" asp-items="ViewBag.NongSanId" required>
+                                    <option value="">-- Chọn nông sản --</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input name="soLuongNhap" type="number" class="form-control" min="0.01" step="any" placeholder="0.0" required />
+                            </td>
+                            <td>
+                                <input name="donGiaNhap" type="number" step="0.01" class="form-control" placeholder="Giá nhập" required />
+                            </td>
+                            <td>
+                                <input name="ngayHetHan" type="date" class="form-control" />
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-outline-danger btn-sm nut-xoa-dong"><i class="bi bi-trash"></i> Xóa</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mb-4">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="BtnThemDong">
+                    <i class="bi bi-plus-circle"></i> Thêm nông sản vào danh sách
+                </button>
+            </div>
+
+            <div class="d-flex gap-2 border-top pt-3">
+                <button type="submit" class="btn btn-success px-4 fw-bold"><i class="bi bi-check2-circle me-1"></i> Xác nhận nhập kho</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Hủy bỏ</a>
             </div>
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Sự kiện bấm nút thêm dòng nông sản mới
+            $("#BtnThemDong").click(function () {
+                // Copy cấu trúc HTML bên trong dòng đầu tiên
+                var rowTemplate = $("#DanhSachItem tr:first").html();
+                // Thêm vào cuối bảng
+                $("#DanhSachItem").append("<tr>" + rowTemplate + "</tr>");
+                // Xóa sạch giá trị của các ô nhập dữ liệu ở dòng vừa thêm
+                $("#DanhSachItem tr:last input").val("");
+                $("#DanhSachItem tr:last select").val("");
+            });
+
+            // Sự kiện xóa dòng (Dùng kỹ thuật ủy quyền sự kiện - Delegate trong jQuery)
+            $(document).on("click", ".nut-xoa-dong", function () {
+                var soLuongDong = $("#DanhSachItem tr").length;
+                if (soLuongDong > 1) {
+                    $(this).closest("tr").remove();
+                } else {
+                    alert("Phiếu nhập kho phải có ít nhất một mặt hàng nông sản cần nhập!");
+                }
+            });
+        });
+    </script>
+}

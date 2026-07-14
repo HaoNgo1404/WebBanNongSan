@@ -1,4 +1,5 @@
 @model WebWeb.Models.NongSan
+@inject WebWeb.Services.KhuyenMaiService KhuyenMaiService
 
 <div class="product-card h-100">
     <div class="product-card-image">
@@ -18,7 +19,20 @@
         <p class="product-card-text">@Model.DonViTinh</p>
         <div class="product-card-footer">
             <div>
-                <div class="price">@Model.GiaBanNiemYet.ToString("N0") VNĐ</div>
+                <div class="price">
+                    @{
+                        decimal giaThucTeCard = KhuyenMaiService.TinhGiaBanThucTe(Model.NongSanId, Model.GiaBanNiemYet);
+                    }
+                    @if (giaThucTeCard < Model.GiaBanNiemYet)
+                    {
+                        <span>@((giaThucTeCard).ToString("#,##0")) VNĐ </span>
+                        <span class="text-muted text-decoration-line-through small">@Model.GiaBanNiemYet.ToString("N0") VNĐ </span>
+                    }
+                    else 
+                    {
+                        <span>@Model.GiaBanNiemYet.ToString("N0") VNĐ </span>
+                    }
+                </div>
                 <div class="text-muted small">Từ @(string.IsNullOrWhiteSpace(Model.NhaVuon?.TenNhaVuon) ? "Fresh Farm" : Model.NhaVuon.TenNhaVuon)</div>
             </div>
             <a asp-controller="Product" asp-action="Detail" asp-route-id="@Model.NongSanId" class="btn btn-success btn-sm">Chi tiết</a>

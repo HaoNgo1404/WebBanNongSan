@@ -32,12 +32,12 @@ namespace WebWeb.Areas.Admin.Controllers
 
             // 1. Thống kê tổng doanh thu đơn hàng lẻ (đã thanh toán thành công)
             var doanhThuDonLe = await _context.DonHangLes
-                .Where(d => d.NgayDat >= start && d.NgayDat <= end && d.TrangThaiThanhToan == "Đã thanh toán")
+                .Where(d => d.NgayDat >= start && d.NgayDat <= end && d.TrangThaiThanhToan == OrderStatuses.DaThanhToan)
                 .SumAsync(d => (decimal?)d.TongTienThucTe ?? d.TongTienTamTinh);
 
             // 2. Thống kê tổng doanh thu gói đăng ký định kỳ
             var doanhThuGoiDinhKy = await _context.GoiDangKyDinhKies
-                .Where(g => g.NgayBatDau >= start && g.NgayBatDau <= end && g.TrangThaiGoi == "Đã thanh toán")
+                .Where(g => g.NgayBatDau >= start && g.NgayBatDau <= end && g.TrangThaiGoi == OrderStatuses.DaThanhToan)
                 .SumAsync(g => g.TongTienGoi);
 
             // 3. Tổng số lượng khách hàng mới đăng ký trong khoảng thời gian
@@ -46,7 +46,7 @@ namespace WebWeb.Areas.Admin.Controllers
 
             // 4. Lấy danh sách nông sản bán chạy nhất (Đơn lẻ)
             var topNongSan = await _context.ChiTietDonHangLes
-                .Where(ct => ct.DonHangLe.NgayDat >= start && ct.DonHangLe.NgayDat <= end && ct.DonHangLe.TrangThaiThanhToan == "Đã thanh toán")
+                .Where(ct => ct.DonHangLe.NgayDat >= start && ct.DonHangLe.NgayDat <= end && ct.DonHangLe.TrangThaiThanhToan == OrderStatuses.DaThanhToan)
                 .GroupBy(ct => new { ct.NongSanId, ct.NongSan.TenNongSan })
                 .Select(g => new TopNongSanViewModel
                 {
@@ -57,7 +57,25 @@ namespace WebWeb.Areas.Admin.Controllers
                 .Take(5)
                 .ToListAsync();
 
+            // 5. Tỉ lệ đơn hàng thành công
+            // 5.1. Đếm tổng số đơn hàng phát sinh trong khoảng thời gian
+            var tongSoDonHang = await _context.DonHangLes
+                .CountAsync(d => d.NgayDat >= start && d.NgayDat <= end);
+
+            // 5.2. Đếm số đơn hàng đã thanh toán/hoàn thành thành công
+            var soDonThanhCong = await _context.DonHangLes
+                .CountAsync(d => d.NgayDat >= start && d.NgayDat <= end && d.TrangThaiThanhToan == OrderStatuses.DaThanhToan);
+
+            // 5.3. Tính tỷ lệ phần trăm (Tránh lỗi chia cho 0 nếu chưa có đơn nào)
+            double tyLeHoanThanh = 0;
+            if (tongSoDonHang > 0)
+            {
+                tyLeHoanThanh = Math.Round(((double)soDonThanhCong / tongSoDonHang) * 100, 1);
+            }
+  
+
             // Truyền dữ liệu sang View thông qua ViewBag hoặc ViewModel
+            ViewBag.TyLeHoanThanh = tyLeHoanThanh;  
             ViewBag.DoanhThuDonLe = doanhThuDonLe;
             ViewBag.DoanhThuGoiDinhKy = doanhThuGoiDinhKy;
             ViewBag.TongDoanhThu = doanhThuDonLe + doanhThuGoiDinhKy;
@@ -71,7 +89,7 @@ namespace WebWeb.Areas.Admin.Controllers
     // Dùng ViewModel bổ trợ để hứng dữ liệu nông sản bán chạy
     public class TopNongSanViewModel
     {
-        public string TenNongSan { get; set; }
+        public string? TenNongSan { get; set; }
         public int SoLuongBan { get; set; }
     }
 }

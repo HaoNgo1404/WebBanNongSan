@@ -34,12 +34,18 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Mật khẩu</label>
-                <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu" />
-                <span asp-validation-for="Password" class="text-danger small"></span>
+                <div class="input-group">
+                    <input asp-for="Password" type="password" class="form-control reg-password" placeholder="Nhập mật khẩu" />
+                    <button class="btn btn-outline-secondary toggle-reg-password" type="button"><i class="bi bi-eye"></i></button>
                 </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
             <div class="mb-3">
                 <label class="form-label">Xác nhận mật khẩu</label>
-                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+                <div class="input-group">
+                    <input asp-for="ConfirmPassword" type="password" class="form-control reg-confirm-password" placeholder="Nhập lại mật khẩu" />
+                    <button class="btn btn-outline-secondary toggle-reg-confirm" type="button"><i class="bi bi-eye"></i></button>
+                </div>
                 <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
             </div>
             <button type="submit" class="btn btn-success w-100 mb-3">Đăng ký</button>
@@ -47,3 +53,25 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function setupToggle(buttonSelector, inputSelector) {
+                const btn = document.querySelector(buttonSelector);
+                const input = document.querySelector(inputSelector);
+                if (btn && input) {
+                    btn.addEventListener('click', function () {
+                        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                        input.setAttribute('type', type);
+                        const icon = this.querySelector('i');
+                        icon.classList.toggle('bi-eye');
+                        icon.classList.toggle('bi-eye-slash');
+                    });
+                }
+            }
+            setupToggle('.toggle-reg-password', '.reg-password');
+            setupToggle('.toggle-reg-confirm', '.reg-confirm-password');
+        });
+    </script>
+}

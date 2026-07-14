@@ -96,7 +96,7 @@ CREATE TABLE KhuyenMai (
     khuyenMaiID INT IDENTITY(1,1) PRIMARY KEY,
     NongSanId INT NULL,
     DanhMucId INT NULL,
-    voucherCode VARCHAR(50) NOT NULL UNIQUE,
+    voucherCode VARCHAR(50) NULL UNIQUE,
     tenChuongTrinh NVARCHAR(100) NOT NULL,
     loaiGiamGia INT NOT NULL CHECK (loaiGiamGia IN (1, 2)),
     mucGiam DECIMAL(18,2) NOT NULL CHECK (mucGiam > 0),
@@ -111,7 +111,6 @@ CREATE TABLE KhuyenMai (
     CONSTRAINT FK_KhuyenMai_NongSan FOREIGN KEY (NongSanId) REFERENCES NongSan(NongSanId),
     CONSTRAINT FK_KhuyenMai_DanhMuc FOREIGN KEY (DanhMucId) REFERENCES DanhMuc(DanhMucId)
 );
-
 
 -- 7. Bảng KhachHang
 CREATE TABLE KhachHang (
@@ -281,17 +280,6 @@ CREATE TABLE DanhGiaSanPham (
     CONSTRAINT FK_DanhGia_NongSan FOREIGN KEY (nongSanID) REFERENCES NongSan(nongSanID)
 );
 
--- 21. Bảng PhienDangNhap
-CREATE TABLE PhienDangNhap (
-    tokenID INT IDENTITY(1,1) PRIMARY KEY,
-    taiKhoanID INT NOT NULL, -- Đồng bộ chung ID người dùng/nhân viên
-    tokenChuoi VARCHAR(500) NOT NULL UNIQUE,
-    ngayTao DATETIME NOT NULL DEFAULT GETDATE(),
-    ngayHetHan DATETIME NOT NULL,
-    thietBi NVARCHAR(150) NULL,
-    CONSTRAINT CK_PhienDN_Dates CHECK (ngayHetHan > ngayTao)
-);
-
 -- 22. Bảng ChiTietGioHang
 CREATE TABLE ChiTietGioHang (
     khachHangID INT NOT NULL,
@@ -432,4 +420,5 @@ select * from NongSan
 select * from DanhMuc
 select * from LoHang
 select * from ChiTietGioHang
+select * from KhuyenMai
 

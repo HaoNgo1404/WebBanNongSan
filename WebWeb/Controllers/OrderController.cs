@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using WebWeb.Models;
+using WebWeb.Services;
 using WebWeb.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -17,10 +18,12 @@ namespace WebWeb.Controllers
     public class OrderController : Controller
     {
         private readonly ECommerceDBContext _context;
+        private readonly KhuyenMaiService _khuyenMaiService;
 
-        public OrderController(ECommerceDBContext context)
+        public OrderController(ECommerceDBContext context, KhuyenMaiService khuyenMaiService)
         {
             _context = context;
+            _khuyenMaiService = khuyenMaiService;
         }
 
         // Helper lấy ID khách hàng từ Cookie Claims
@@ -68,7 +71,7 @@ namespace WebWeb.Controllers
                 {
                     NongSanId = item.NongSanId,
                     SoLuongDat = item.SoLuong, 
-                    DonGiaThoiDiem = item.Gia
+                    DonGiaThoiDiem = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, item.Gia)
                 });
             }
 
@@ -164,6 +167,7 @@ namespace WebWeb.Controllers
                 TempData["ErrorMessage"] = "Giỏ hàng của bạn đang trống!";
                 return RedirectToAction("Index", "Cart");
             }
+            
 
             foreach (var item in cartItems)
             {
@@ -292,12 +296,13 @@ namespace WebWeb.Controllers
                     // 4. LƯU CHI TIẾT ĐƠN HÀNG LẺ
                     foreach (var item in cart)
                     {
+                        var product = await _context.NongSans.FindAsync(item.NongSanId);
                         var chiTiet = new ChiTietDonHangLe
                         {
                             DonHangLeId = donHang.DonHangLeId,
                             NongSanId = item.NongSanId,
                             SoLuongDat = item.SoLuong,
-                            DonGiaThoiDiem = item.Gia
+                            DonGiaThoiDiem = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, product.GiaBanNiemYet)
                         };
                         _context.ChiTietDonHangLes.Add(chiTiet);
                     }

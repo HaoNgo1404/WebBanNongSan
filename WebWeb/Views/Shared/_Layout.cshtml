@@ -266,5 +266,37 @@
     <script src="~/js/order.js" asp-append-version="true"></script>
     <script src="~/js/notification.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    @if (TempData["NewUserWelcome"] != null)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                Swal.fire({
+                    title: '🎉 QUÀ RA MẮT THÀNH VIÊN MỚI! 🎉',
+                    html: `@Html.Raw(TempData["NewUserWelcome"])`,
+                    icon: 'success',
+                    confirmButtonText: 'Tuyệt vời, mua sắm ngay!',
+                    confirmButtonColor: '#198754', // Màu xanh thương hiệu
+                    allowOutsideClick: true
+                });
+            });
+        </script>
+    }
+    else if (TempData["SuccessMessage"] != null)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                Swal.fire({
+                    title: 'CHÀO MỪNG TRỞ LẠI!',
+                    html: `@Html.Raw(TempData["SuccessMessage"])`,
+                    icon: 'success',
+                    confirmButtonText: 'Bắt đầu mua sắm ngay!',
+                    confirmButtonColor: '#198754', // Màu xanh thương hiệu
+                    allowOutsideClick: true
+                });
+            });
+        </script>
+    }
 </body>
 </html>

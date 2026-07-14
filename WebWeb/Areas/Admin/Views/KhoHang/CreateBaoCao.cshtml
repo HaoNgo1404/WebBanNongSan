@@ -11,48 +11,62 @@
     <div class="card mb-4 shadow">
         <div class="card-header bg-danger text-white">
             <i class="fas fa-exclamation-triangle me-1"></i>
-            <strong>LẬP CHỨNG TỪ BÁO CÁO HAO HỤT / BIẾN CHẤT HÀNG HÓA</strong>
+            <strong>LẬP CHỨNG TỪ BÁO CÁO HAO HỤT </strong>
         </div>
         <div class="card-body">
             <form asp-action="CreateBaoCao" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <div class="row">
-                    <!-- Nhân viên xác nhận -->
-                    <div class="col-md-6 mb-3">
+                <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                    <div class="col-md-6">
                         <label class="form-label fw-bold">Nhân viên kiểm kê / Lập phiếu</label>
                         <select name="nhanVienId" class="form-select" asp-items="ViewBag.NhanVienId" required>
                             <option value="">-- Chọn nhân viên chịu trách nhiệm --</option>
                         </select>
                     </div>
-
-                    <!-- Chọn lô hàng bị hao hụt -->
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Chọn lô hàng bị tổn thất</label>
-                        <select name="loHangId" class="form-select" asp-items="ViewBag.LoHangId" required>
-                            <option value="">-- Chọn lô hàng cần báo cáo --</option>
-                        </select>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Lý do hao hụt cụ thể (Tổng quan)</label>
+                        <textarea name="lyDoHaoHut" rows="1" class="form-control" placeholder="Ví dụ: Kiểm kho định kỳ phát hiện nông sản dập nát, thối rữa, hết hạn..." required></textarea>
                     </div>
                 </div>
 
-                <div class="row">
-                    <!-- Số lượng hao hụt -->
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Số lượng hao hụt (Kg / Tấn / Thùng)</label>
-                        <input name="soLuongHaoHut" type="number" step="0.01" class="form-control" placeholder="Nhập số lượng thực tế bị tổn thất..." required />
-                        <span class="small text-muted">*Hệ thống tự động nhân đơn giá nhập của lô để tính giá trị thiệt hại.</span>
-                    </div>
-
-                    <!-- Lý do hao hụt -->
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Lý do hao hụt cụ thể</label>
-                        <textarea name="lyDoHaoHut" rows="2" class="form-control" placeholder="Ví dụ: Nông sản bị dập nát do vận chuyển, hết hạn sử dụng, thối rữa..." required></textarea>
-                    </div>
+                <h5 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-octagon"></i> Danh sách lô hàng bị tổn thất</h5>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table bg-danger text-white">
+                            <tr>
+                                <th style="width: 55%">Chọn lô hàng bị tổn thất (Tên mặt hàng - Tồn thực tế)</th>
+                                <th style="width: 30%">Số lượng hao hụt</th>
+                                <th style="width: 15%" class="text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="DanhSachHaoHut">
+                            <tr>
+                                <td>
+                                    <select name="loHangId" class="form-select" asp-items="ViewBag.LoHangId" required>
+                                        <option value="">-- Chọn lô hàng cần báo cáo --</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input name="soLuongHaoHut" type="number" step="0.01" class="form-control" placeholder="Nhập SL thực tế bị mất..." required />
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm nut-xoa-hao-hut"><i class="bi bi-trash"></i> Xóa</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="mt-4">
+                <div class="mb-4">
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="BtnThemLoHaoHut">
+                        <i class="bi bi-plus-circle"></i> Bổ sung lô hàng hao hụt khác
+                    </button>
+                </div>
+
+                <div class="mt-4 border-top pt-3">
                     <button type="submit" class="btn btn-danger px-4">
-                        <i class="fas fa-save me-1"></i> Xác nhận & Trừ kho
+                        <i class="fas fa-save me-1"></i> Xác nhận & Trừ kho hàng loạt
                     </button>
                     <a asp-action="DepletionList" class="btn btn-secondary px-4 ms-2">Hủy bỏ</a>
                 </div>
@@ -60,3 +74,27 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Khi người dùng bấm nút thêm lô hàng hao hụt mới
+            $("#BtnThemLoHaoHut").click(function () {
+                var rowTemplate = $("#DanhSachHaoHut tr:first").html();
+                $("#DanhSachHaoHut").append("<tr>" + rowTemplate + "</tr>");
+                $("#DanhSachHaoHut tr:last input").val("");
+                $("#DanhSachHaoHut tr:last select").val("");
+            });
+
+            // Khi người dùng bấm nút xóa dòng
+            $(document).on("click", ".nut-xoa-hao-hut", function () {
+                var soLuongDong = $("#DanhSachHaoHut tr").length;
+                if (soLuongDong > 1) {
+                    $(this).closest("tr").remove();
+                } else {
+                    alert("Chứng từ hao hụt phải khai báo ít nhất một lô hàng bị tổn thất!");
+                }
+            });
+        });
+    </script>
+}

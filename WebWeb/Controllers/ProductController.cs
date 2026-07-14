@@ -3,16 +3,19 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Security.Claims;
 using WebWeb.Models;
+using WebWeb.Services;
 
 namespace WebWeb.Controllers;
 
 public class ProductController : Controller
 {
     private readonly ECommerceDBContext _context;
+    private readonly KhuyenMaiService _khuyenMaiService;
 
-    public ProductController(ECommerceDBContext context)
+    public ProductController(ECommerceDBContext context, KhuyenMaiService khuyenMaiService)
     {
         _context = context;
+        _khuyenMaiService = khuyenMaiService;
     }
 
     public async Task<IActionResult> Detail(int id)
@@ -23,6 +26,9 @@ public class ProductController : Controller
             .FirstOrDefaultAsync(n => n.NongSanId == id);
 
         if (product == null) return NotFound();
+
+        decimal giaBanThucTe = _khuyenMaiService.TinhGiaBanThucTe(product.NongSanId, product.GiaBanNiemYet);
+            ViewBag.GiaBanThucTe = giaBanThucTe;
 
         // LOGIC CHECK TIM: Lấy danh sách ID đã thích của User hiện tại
         List<int> likedProductIds = new List<int>();
@@ -72,7 +78,14 @@ public class ProductController : Controller
             .Where(ns => ns.DanhMucId == id)
             .ToListAsync();
 
-        // Gửi thông tin sang View hiển thị
+        // 2. KHỞI TẠO DICTIONARY ĐỂ CHỨA GIÁ ĐÃ GIẢM
+        var giaThucTeDict = new Dictionary<int, decimal>();
+            foreach (var product in dsNongSan)
+            {
+                // Gọi qua Service dùng chung
+                giaThucTeDict[product.NongSanId] = _khuyenMaiService.TinhGiaBanThucTe(product.NongSanId, product.GiaBanNiemYet);
+            }
+            ViewBag.GiaThucTeDict = giaThucTeDict;
         ViewBag.TenDanhMuc = danhMuc.TenDanhMuc;
         ViewData["Title"] = danhMuc.TenDanhMuc;
 

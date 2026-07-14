@@ -41,11 +41,14 @@ namespace WebWeb.Areas.Admin.Controllers
             return View(khuyenMai);
         }
 
-        // 3. TẠO MỚI (GET)
+        // 3. TẠO MỚI (GET) 
         public async Task<IActionResult> CreateAsync()
         {
-            ViewBag.NongSanId = new SelectList(await _context.NongSans.ToListAsync(), "NongSanId", "TenNongSan");
-            ViewBag.DanhMucId = new SelectList(await _context.DanhMucs.ToListAsync(), "DanhMucId", "TenDanhMuc");
+            // Nạp danh sách nông sản để chọn mặt hàng giảm giá riêng biệt
+            ViewData["NongSanId"] = new SelectList(_context.NongSans.OrderBy(n => n.TenNongSan), "NongSanId", "TenNongSan");
+            
+            // Nạp danh sách danh mục để chọn giảm giá nguyên một danh mục (ví dụ: Rau củ, Trái cây...)
+            ViewData["DanhMucId"] = new SelectList(_context.DanhMucs.OrderBy(d => d.TenDanhMuc), "DanhMucId", "TenDanhMuc");
             return View(new KhuyenMai { NgayBatDau = DateTime.Now, NgayKetThuc = DateTime.Now.AddMonths(1), TrangThai = true });
         }
 
@@ -56,12 +59,15 @@ namespace WebWeb.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                km.VoucherCode = km.VoucherCode.ToUpper().Trim();
+                km.VoucherCode = km.VoucherCode?.ToUpper().Trim();
                 km.SoLuotDaDung = 0;
                 _context.Add(km);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            // NẾU FORM BỊ LỖI, PHẢI NẠP LẠI XUỐNG ĐÂY TRƯỚC KHI RETURN VIEW
+            ViewData["NongSanId"] = new SelectList(_context.NongSans.OrderBy(n => n.TenNongSan), "NongSanId", "TenNongSan", km.NongSanId);
+            ViewData["DanhMucId"] = new SelectList(_context.DanhMucs.OrderBy(d => d.TenDanhMuc), "DanhMucId", "TenDanhMuc", km.DanhMucId);
             return View(km);
         }
 

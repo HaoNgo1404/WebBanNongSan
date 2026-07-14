@@ -43,7 +43,7 @@ namespace WebWeb.Areas.Admin.Controllers
                     TongSoLuongTon = g.Sum(l => l.SoLuongTon),
                     SoLuongLoHangActive = g.Count(l => l.SoLuongTon > 0)
                 })
-                .OrderBy(x => x.TenNongSan)
+                .OrderBy(x => x.NongSanId)
                 .ToList();
 
             return View(listTonKhoGop);
@@ -122,68 +122,92 @@ namespace WebWeb.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> NhapKho(int nhanVienId, int nhaVuonId, int nongSanId, decimal soLuongNhap, decimal donGiaNhap, DateTime ngayNhap, DateTime? ngayHetHan)
+        public async Task<IActionResult> NhapKho(int nhanVienId, int nhaVuonId, DateTime ngayNhap, 
+            List<int> nongSanId, List<decimal> soLuongNhap, List<decimal> donGiaNhap, List<DateTime?> ngayHetHan)
         {
-            if (soLuongNhap <= 0 || donGiaNhap <= 0)
+            // Kiểm tra nếu danh sách nông sản trống hoặc không khớp số lượng phần tử
+            if (nongSanId == null || nongSanId.Count == 0 || soLuongNhap == null || soLuongNhap.Count != nongSanId.Count)
             {
-                ModelState.AddModelError("", "Số lượng nhập và đơn giá nhập phải lớn hơn 0.");
+                ModelState.AddModelError("", "Danh sách nông sản nhập kho không hợp lệ.");
+            }
+            else
+            {
+                // Kiểm tra tính hợp lệ của từng dòng dữ liệu đầu vào
+                for (int i = 0; i < nongSanId.Count; i++)
+                {
+                    if (soLuongNhap[i] <= 0 || donGiaNhap[i] <= 0)
+                    {
+                        ModelState.AddModelError("", $"Dòng số {i + 1}: Số lượng và Đơn giá nhập phải lớn hơn 0.");
+                    }
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
                 ViewData["NhanVienId"] = new SelectList(_context.NhanViens.Where(n => n.TrangThai == true), "NhanVienId", "HoTen", nhanVienId);
                 ViewData["NhaVuonId"] = new SelectList(_context.NhaVuons, "NhaVuonId", "TenNhaVuon", nhaVuonId);
-                ViewData["NongSanId"] = new SelectList(_context.NongSans, "NongSanId", "TenNongSan", nongSanId);
+                ViewData["NongSanId"] = new SelectList(_context.NongSans, "NongSanId", "TenNongSan");
                 return View();
             }
 
-            // Tính toán tổng tiền của phiếu nhập kho này
-            decimal tongTien = soLuongNhap * donGiaNhap;
-
-            // Sử dụng Transaction để đảm bảo tính toàn vẹn (Hoặc tạo cả hai đồng thời qua Entity Framework)
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    // 1. Khởi tạo và lưu Phiếu Nhập Kho trước
+                    // 1. Khởi tạo Master: Một Phiếu Nhập Kho dùng chung cho tất cả các lô nhập đợt này
                     var phieuNhap = new PhieuNhapKho
                     {
                         NhaVuonId = nhaVuonId,
                         NhanVienId = nhanVienId,
                         NgayLapPhieu = ngayNhap,
-                        TongTienNhap = tongTien
+                        TongTienNhap = 0 // Sẽ cộng dồn ở vòng lặp phía dưới
                     };
                     _context.PhieuNhapKhos.Add(phieuNhap);
-                    await _context.SaveChangesAsync(); // Lưu để sinh ra tự động PhieuNhapId
+                    await _context.SaveChangesAsync(); 
 
-                    // 2. Khởi tạo Lô Hàng liên kết với Phiếu Nhập Kho vừa tạo
-                    var loHang = new LoHang
+                    decimal tongTienPhieu = 0;
+
+                    // 2. Vòng lặp duyệt qua từng dòng nông sản để tạo nhiều Lô Hàng chi tiết
+                    for (int i = 0; i < nongSanId.Count; i++)
                     {
-                        PhieuNhapId = phieuNhap.PhieuNhapId, // Khóa ngoại kết nối
-                        NongSanId = nongSanId,
-                        DonGiaNhap = donGiaNhap,
-                        SoLuongNhap = soLuongNhap,
-                        SoLuongTon = soLuongNhap, // Lúc mới nhập thì Tồn kho thực tế = Số lượng nhập vào
-                        NgayNhapKho = ngayNhap,
-                        NgayThuHoach = ngayNhap.AddDays(-2), // Mặc định lùi lại 2 ngày làm mẫu hoặc để trống
-                        HanSuDung = ngayHetHan ?? ngayNhap.AddDays(7), // Nếu không nhập HSD thì mặc định là 7 ngày
-                        TrangThaiHsd = ProductStatuses.ConHan
-                    };
-                    _context.LoHangs.Add(loHang);
-                    await _context.SaveChangesAsync();
+                        decimal thanhTienDong = soLuongNhap[i] * donGiaNhap[i];
+                        tongTienPhieu += thanhTienDong;
 
-                    // Xác nhận transaction thành công hoàn toàn
+                        var loHang = new LoHang
+                        {
+                            PhieuNhapId = phieuNhap.PhieuNhapId, // Gắn chung vào một mã phiếu nhập
+                            NongSanId = nongSanId[i],
+                            DonGiaNhap = donGiaNhap[i],
+                            SoLuongNhap = soLuongNhap[i],
+                            SoLuongTon = soLuongNhap[i], 
+                            NgayNhapKho = ngayNhap,
+                            NgayThuHoach = ngayNhap.AddDays(-2), 
+                            HanSuDung = ngayHetHan[i] ?? ngayNhap.AddDays(7), 
+                            TrangThaiHsd = ProductStatuses.ConHan
+                        };
+                        _context.LoHangs.Add(loHang);
+                    }
+
+                    // Cập nhật lại tổng tiền thực tế của toàn bộ phiếu nhập kho
+                    phieuNhap.TongTienNhap = tongTienPhieu;
+                    _context.PhieuNhapKhos.Update(phieuNhap);
+                    
+                    await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
+                    TempData["SuccessMessage"] = $"Đã nhập kho thành công phiếu #{phieuNhap.PhieuNhapId} với {nongSanId.Count} lô hàng.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    ModelState.AddModelError("", "Đã xảy ra lỗi hệ thống trong quá trình lưu dữ liệu: " + ex.Message);
+                    ModelState.AddModelError("", "Lỗi hệ thống khi lưu chuỗi danh sách nhập kho: " + ex.Message);
                 }
             }
 
-            // Nếu thất bại, nạp lại dữ liệu cho DropdownList để người dùng không bị mất form
             ViewData["NhanVienId"] = new SelectList(_context.NhanViens.Where(n => n.TrangThai == true), "NhanVienId", "HoTen", nhanVienId);
             ViewData["NhaVuonId"] = new SelectList(_context.NhaVuons, "NhaVuonId", "TenNhaVuon", nhaVuonId);
-            ViewData["NongSanId"] = new SelectList(_context.NongSans, "NongSanId", "TenNongSan", nongSanId);
+            ViewData["NongSanId"] = new SelectList(_context.NongSans, "NongSanId", "TenNongSan");
             return View();
         }
 
@@ -384,94 +408,99 @@ namespace WebWeb.Areas.Admin.Controllers
         // 4.4. Xử lý lưu báo cáo hao hụt và cập nhật số lượng tồn kho
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateBaoCao(int nhanVienId, string lyDoHaoHut, int loHangId, decimal soLuongHaoHut)
+        public async Task<IActionResult> CreateBaoCao(int nhanVienId, string lyDoHaoHut, List<int> loHangId, List<decimal> soLuongHaoHut)
         {
             if (string.IsNullOrWhiteSpace(lyDoHaoHut))
             {
-                ModelState.AddModelError("", "Vui lòng nhập lý do hao hụt (Ví dụ: dập nát, hết hạn, biến chất...).");
+                ModelState.AddModelError("", "Vui lòng nhập lý do hao hụt tổng quan.");
             }
 
-            var loHang = await _context.LoHangs.FindAsync(loHangId);
-            if (loHang == null)
+            if (loHangId == null || loHangId.Count == 0 || soLuongHaoHut == null || soLuongHaoHut.Count != loHangId.Count)
             {
-                ModelState.AddModelError("", "Lô hàng được chọn không tồn tại.");
-            }
-            else if (soLuongHaoHut <= 0 || soLuongHaoHut > loHang.SoLuongTon)
-            {
-                ModelState.AddModelError("", $"Số lượng hao hụt phải lớn hơn 0 và không được vượt quá số lượng tồn hiện tại ({loHang.SoLuongTon}).");
+                ModelState.AddModelError("", "Danh sách báo cáo hao hụt trống hoặc không hợp lệ.");
             }
 
             if (!ModelState.IsValid)
             {
-                // Nạp lại dữ liệu nếu có lỗi dữ liệu đầu vào
+                // Nạp lại các SelectList cho View khi có lỗi form
                 ViewData["NhanVienId"] = new SelectList(_context.NhanViens.Where(n => n.TrangThai == true), "NhanVienId", "HoTen", nhanVienId);
-                var danhSachLoHangActive = await _context.LoHangs
-                    .Include(l => l.NongSan)
-                    .Where(l => l.SoLuongTon > 0)
-                    .Select(l => new { l.LoHangId, HienThi = $"Mã Lô: {l.LoHangId} - {l.NongSan.TenNongSan} (Còn tồn: {l.SoLuongTon})" })
-                    .ToListAsync();
-                ViewData["LoHangId"] = new SelectList(danhSachLoHangActive, "LoHangId", "HienThi", loHangId);
+                var danhSachLoHangActive = await _context.LoHangs.Include(l => l.NongSan).Where(l => l.SoLuongTon > 0).Select(l => new { l.LoHangId, HienThi = $"Mã Lô: {l.LoHangId} - {l.NongSan.TenNongSan} (Còn tồn: {l.SoLuongTon})" }).ToListAsync();
+                ViewData["LoHangId"] = new SelectList(danhSachLoHangActive, "LoHangId", "HienThi");
                 return View();
             }
-
-            // Tính toán tổng giá trị thiệt hại của đợt hao hụt dựa trên Đơn giá nhập của lô đó
-            decimal donGiaHaoHut = loHang!.DonGiaNhap;
-            decimal giaTriThietHai = soLuongHaoHut * donGiaHaoHut;
 
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    // 1. Khởi tạo và lưu master chứng từ BaoCaoHaoHut
+                    // 1. Tạo Master: Chứng từ báo cáo tổn thất dùng chung
                     var baoCao = new BaoCaoHaoHut
                     {
                         NhanVienId = nhanVienId,
                         NgayLap = DateTime.Now,
                         LyDoHaoHut = lyDoHaoHut,
-                        TongGiaTriThietHai = giaTriThietHai
+                        TongGiaTriThietHai = 0 // Sẽ cộng dồn giá trị thiệt hại các dòng
                     };
                     _context.BaoCaoHaoHuts.Add(baoCao);
-                    await _context.SaveChangesAsync(); // Lưu để sinh BaoCaoId tự động
-
-                    // 2. Khởi tạo ChiTietBaoCaoHaoHut tương ứng
-                    var chiTiet = new ChiTietBaoCaoHaoHut
-                    {
-                        BaoCaoId = baoCao.BaoCaoId,
-                        LoHangId = loHangId,
-                        SoLuongHaoHut = soLuongHaoHut,
-                        DonGiaHaoHut = donGiaHaoHut
-                    };
-                    _context.ChiTietBaoCaoHaoHuts.Add(chiTiet);
-
-                    // 3. Trừ trực tiếp số lượng tồn kho của Lô hàng hiện tại
-                    loHang.SoLuongTon -= soLuongHaoHut;
-                    
-                    // Cập nhật lại trạng thái hạn sử dụng/tồn kho dựa trên logic có sẵn của hệ thống
-                    if (loHang.SoLuongTon == 0)
-                    {
-                        loHang.TrangThaiHsd = "Hết hàng";
-                    }
-
-                    _context.LoHangs.Update(loHang);
                     await _context.SaveChangesAsync();
 
-                    // Xác nhận hoàn tất thành công
+                    decimal tongThietHai = 0;
+
+                    // 2. Duyệt qua danh sách mảng các lô hàng được khai báo hao hụt
+                    for (int i = 0; i < loHangId.Count; i++)
+                    {
+                        int currentLoId = loHangId[i];
+                        decimal currentSlHaoHut = soLuongHaoHut[i];
+
+                        var loHang = await _context.LoHangs.FindAsync(currentLoId);
+                        if (loHang == null || currentSlHaoHut <= 0 || currentSlHaoHut > loHang.SoLuongTon)
+                        {
+                            throw new Exception($"Lô hàng mã #{currentLoId} không hợp lệ hoặc số lượng hao hụt ({currentSlHaoHut}) vượt quá lượng tồn ({loHang?.SoLuongTon ?? 0}).");
+                        }
+
+                        decimal giaTriDong = currentSlHaoHut * loHang.DonGiaNhap;
+                        tongThietHai += giaTriDong;
+
+                        // Thêm vào bảng chi tiết báo cáo hao hụt (Bảng con)
+                        var chiTiet = new ChiTietBaoCaoHaoHut
+                        {
+                            BaoCaoId = baoCao.BaoCaoId,
+                            LoHangId = currentLoId,
+                            SoLuongHaoHut = currentSlHaoHut,
+                            DonGiaHaoHut = loHang.DonGiaNhap
+                        };
+                        _context.ChiTietBaoCaoHaoHuts.Add(chiTiet);
+
+                        // 3. Tiến hành trừ kho thực tế của lô đó luôn
+                        loHang.SoLuongTon -= currentSlHaoHut;
+                        if (loHang.SoLuongTon == 0)
+                        {
+                            loHang.TrangThaiHsd = "Hết hàng";
+                        }
+                        _context.LoHangs.Update(loHang);
+                    }
+
+                    // Cập nhật ngược lại tổng thiệt hại tài chính
+                    baoCao.TongGiaTriThietHai = tongThietHai;
+                    _context.BaoCaoHaoHuts.Update(baoCao);
+
+                    await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    TempData["SuccessMessage"] = $"Đã lập thành công báo cáo hao hụt #{baoCao.BaoCaoId} và trừ kho thành công.";
+                    TempData["SuccessMessage"] = $"Đã lập thành công chứng từ hao hụt #{baoCao.BaoCaoId} cho {loHangId.Count} lô hàng.";
                     return RedirectToAction(nameof(DepletionList));
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    ModelState.AddModelError("", "Đã xảy ra lỗi hệ thống khi xử lý báo cáo: " + ex.Message);
+                    ModelState.AddModelError("", "Quá trình lập danh sách hao hụt bị hủy bỏ do phát sinh lỗi: " + ex.Message);
                 }
             }
 
-            // Nạp lại dữ liệu nếu transaction thất bại
+            // Nạp lại danh sách khi lưu thất bại
             ViewData["NhanVienId"] = new SelectList(_context.NhanViens.Where(n => n.TrangThai == true), "NhanVienId", "HoTen", nhanVienId);
-            var activeLoHangs = await _context.LoHangs.Include(l => l.NongSan).Where(l => l.SoLuongTon > 0).ToListAsync();
-            ViewData["LoHangId"] = new SelectList(activeLoHangs, "LoHangId", "LoHangId", loHangId);
+            var activeLoHangs = await _context.LoHangs.Include(l => l.NongSan).Where(l => l.SoLuongTon > 0).Select(l => new { l.LoHangId, HienThi = $"Mã Lô: {l.LoHangId} - {l.NongSan.TenNongSan} (Còn tồn: {l.SoLuongTon})" }).ToListAsync();
+            ViewData["LoHangId"] = new SelectList(activeLoHangs, "LoHangId", "HienThi");
             return View();
         }
     }
