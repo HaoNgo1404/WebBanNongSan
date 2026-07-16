@@ -298,5 +298,263 @@
             });
         </script>
     }
+
+<style>
+    /* Nút bong bóng chat nổi tròn tròn ở góc dưới bên phải */
+    #chatbot-bubble {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        width: 60px;
+        height: 60px;
+        background-color: #198754; /* Màu xanh lá cây thương hiệu */
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        z-index: 9999;
+        transition: all 0.3s ease;
+    }
+    #chatbot-bubble:hover {
+        transform: scale(1.1);
+        background-color: #157347;
+    }
+    /* Hộp thoại chat ẩn/hiện */
+    #chatbot-box {
+        position: fixed;
+        bottom: 95px;
+        right: 25px;
+        width: 350px;
+        height: 480px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        display: none; /* Mặc định ẩn */
+        flex-direction: column;
+        z-index: 9999;
+        overflow: hidden;
+        border: 1px solid #e1e1e1;
+    }
+    /* Header hộp chat */
+    .chat-header {
+        background-color: #198754;
+        color: white;
+        padding: 12px 15px;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    /* Khung chứa các dòng tin nhắn */
+    .chat-messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background-color: #f8f9fa;
+    }
+    /* Bong bóng tin nhắn */
+    .message {
+        max-width: 80%;
+        padding: 8px 12px;
+        border-radius: 15px;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    .message.user {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        align-self: flex-end;
+        border-bottom-right-radius: 2px;
+    }
+    .message.bot {
+        background-color: white;
+        color: #212529;
+        align-self: flex-start;
+        border-bottom-left-radius: 2px;
+        border: 1px solid #dee2e6;
+    }
+    /* Form gõ tin nhắn */
+    .chat-input-area {
+        padding: 10px;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        gap: 8px;
+        background: white;
+    }
+    .chat-input-area input {
+        flex: 1;
+        border: 1px solid #ced4da;
+        border-radius: 20px;
+        padding: 6px 15px;
+        font-size: 14px;
+        outline: none;
+    }
+</style>
+
+<div id="chatbot-bubble">
+    <i class="bi bi-chat-dots-fill"></i>
+</div>
+
+<div id="chatbot-box" class="flex-column">
+    <div class="chat-header">
+        <span class="d-flex align-items-center"><i class="bi bi-robot me-2"></i> Trợ lý ảo Green Fresh</span>
+        <button type="button" class="btn-close btn-close-white" style="font-size: 12px;" id="close-chat"></button>
+    </div>
+    <div class="chat-messages" id="chat-messages-container">
+        @* <div class="message bot">
+            Xin chào! Em là trợ lý ảo thông minh của Green Fresh. Em có thể giúp gì cho Anh/Chị hôm nay ạ? 🌱🌸
+        </div> *@
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="user-chat-input" placeholder="Nhập câu hỏi của bạn..." autocomplete="off">
+        <button class="btn btn-success btn-sm rounded-circle px-2" id="send-chat-btn">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const bubble = document.getElementById('chatbot-bubble');
+        const box = document.getElementById('chatbot-box');
+        const closeBtn = document.getElementById('close-chat');
+        const sendBtn = document.getElementById('send-chat-btn');
+        const inputField = document.getElementById('user-chat-input');
+        const messagesContainer = document.getElementById('chat-messages-container');
+
+        // Biến kiểm tra xem câu chào mừng đã chạy chưa
+        let isWelcomeTyped = false; 
+        const welcomeMessage = "Xin chào! Em là trợ lý ảo thông minh của Green Fresh. Em có thể giúp gì cho Anh/Chị hôm nay ạ? 🌱🌸";
+
+        // 1. Click bong bóng để mở/đóng khung chat
+        bubble.addEventListener('click', () => {
+            const isOpening = (box.style.display !== 'flex');
+            box.style.display = isOpening ? 'flex' : 'none';
+            inputField.focus();
+
+            // Nếu đang mở hộp chat VÀ chưa từng chạy câu chào mừng
+            if (isOpening && !isWelcomeTyped) {
+                isWelcomeTyped = true; // Đánh dấu đã chạy để không lặp lại lần sau
+                
+                // Chờ hộp chat hiển thị hoàn toàn rồi bắt đầu gõ chữ (delay 100ms cho mượt)
+                setTimeout(() => {
+                    appendMessageWithTypingEffect(welcomeMessage, 'bot');
+                }, 100);
+            }
+        });
+
+        // 2. Click nút Close để đóng khung chat
+        closeBtn.addEventListener('click', () => {
+            box.style.display = 'none';
+        });
+
+        // 3. Hàm gửi tin nhắn
+        function sendMessage() {
+            const messageText = inputField.value.trim();
+            if (!messageText) return;
+
+            // Hiển thị tin nhắn của Người dùng lên khung
+            appendMessage(messageText, 'user');
+            inputField.value = '';
+
+            // Hiển thị biểu tượng AI đang suy nghĩ (Đang gõ...)
+            const typingIndicatorId = 'typing-' + Date.now();
+            appendTypingIndicator(typingIndicatorId);
+
+            // Gửi Ajax lên BotController
+            fetch('/api/Bot/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: messageText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Xóa biểu tượng đang suy nghĩ
+                removeTypingIndicator(typingIndicatorId);
+                // Hiển thị câu trả lời của AI với hiệu ứng gõ chữ
+                appendMessageWithTypingEffect(data.response, 'bot');
+            })
+            .catch(error => {
+                console.error("Lỗi Chatbot:", error);
+                removeTypingIndicator(typingIndicatorId);
+                appendMessageWithTypingEffect("Dạ, kết nối mạng của em đang bị gián đoạn, anh/chị chờ em một xíu nhé!", 'bot');
+            });
+        }
+
+        // Đăng ký sự kiện click gửi tin nhắn
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Đăng ký sự kiện nhấn phím Enter để gửi tin nhắn
+        inputField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Hàm chèn tin nhắn tĩnh thông thường (dành cho User)
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender);
+            msgDiv.innerHTML = text.replace(/\n/g, '<br>'); // Hỗ trợ xuống dòng
+            messagesContainer.appendChild(msgDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight; // Tự động cuộn xuống dưới cùng
+        }
+
+        // Hiển thị tin nhắn của Bot từng ký tự một (Typing Effect)
+        function appendMessageWithTypingEffect(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender);
+            messagesContainer.appendChild(msgDiv);
+
+            let index = 0;
+            const typingSpeed = 15; // Tốc độ gõ chữ (15ms/ký tự)
+
+            // Định dạng trước xuống dòng
+            const htmlFormattedText = text.replace(/\n/g, '<br>');
+            
+            function typeCharacter() {
+                if (index < htmlFormattedText.length) {
+                    if (htmlFormattedText.substring(index, index + 4) === '<br>') {
+                        msgDiv.innerHTML += '<br>';
+                        index += 4;
+                    } else {
+                        msgDiv.innerHTML += htmlFormattedText.charAt(index);
+                        index++;
+                    }
+                    
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight; // Cuộn mượt theo chữ chạy
+                    setTimeout(typeCharacter, typingSpeed);
+                }
+            }
+
+            typeCharacter();
+        }
+
+        // Hàm tạo hiệu ứng "AI đang suy nghĩ"
+        function appendTypingIndicator(id) {
+            const indicatorDiv = document.createElement('div');
+            indicatorDiv.id = id;
+            indicatorDiv.classList.add('message', 'bot');
+            indicatorDiv.innerHTML = `<span class="spinner-grow spinner-grow-sm text-success" role="status"></span> Đang suy nghĩ...`;
+            messagesContainer.appendChild(indicatorDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Hàm xóa hiệu ứng "AI đang suy nghĩ"
+        function removeTypingIndicator(id) {
+            const elem = document.getElementById(id);
+            if (elem) elem.remove();
+        }
+    });
+</script>
 </body>
 </html>

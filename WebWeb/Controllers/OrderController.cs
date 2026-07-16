@@ -414,6 +414,7 @@ namespace WebWeb.Controllers
             {
                 KhachHangId = currentUserId.Value,
                 DiaChiId = model.DiaChiId,
+                KhuyenMaiId = null,
                 NgayBatDau = ngayGiaoDuKien, // Lấy ngày đợt giao đầu tiên để chuẩn lịch trình
                 NgayKetThuc = ngayGiaoDuKien.AddMonths(soThang),
                 TanSuatGiao = model.TanSuatGiao ?? Date.HangTuan,
@@ -472,7 +473,7 @@ namespace WebWeb.Controllers
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    ModelState.AddModelError("", "Đã xảy ra lỗi khi tạo gói định kỳ: " + ex.Message);
+                    ModelState.AddModelError("", "Đã xảy ra lỗi khi tạo gói định kỳ: " + ex.InnerException?.Message ?? ex.Message);
                     return View("CheckoutDinhKy", model);
                 }
             }

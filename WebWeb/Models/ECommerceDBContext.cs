@@ -40,6 +40,7 @@ namespace WebWeb.Models
         public virtual DbSet<ThamSo> ThamSos { get; set; } = null!;
         public virtual DbSet<VaiTroPhanQuyen> VaiTroPhanQuyens { get; set; } = null!;
         public virtual DbSet<YeuThich> YeuThiches { get; set; } = null!;
+        public DbSet<BotCache> BotCaches { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -1000,6 +1001,44 @@ namespace WebWeb.Models
                     .WithMany(p => p.YeuThiches)
                     .HasForeignKey(d => d.NongSanId)
                     .HasConstraintName("FK__YeuThich__NongSa__73852659");
+            });
+
+            modelBuilder.Entity<BotCache>(entity =>
+            {
+                // 1. Ánh xạ tên bảng
+                entity.ToTable("BotCache");
+
+                // 2. Định nghĩa khóa chính
+                entity.HasKey(e => e.BotId);
+
+                // 3. Ánh xạ các cột & Ràng buộc dữ liệu
+                entity.Property(e => e.BotId)
+                    .HasColumnName("botID")
+                    .ValueGeneratedOnAdd(); // Tự động tăng (Identity)
+
+                entity.Property(e => e.UserQuery)
+                    .HasColumnName("userQuery")
+                    .HasMaxLength(450) // Khớp chính xác độ dài NVARCHAR(450)
+                    .IsRequired();     // NOT NULL
+
+                entity.Property(e => e.BotResponse)
+                    .HasColumnName("botResponse")
+                    .IsRequired();     // NOT NULL (NVARCHAR(MAX))
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnName("createAt")
+                    .HasDefaultValueSql("GETDATE()") // Thiết lập mặc định ngày tạo dưới DB
+                    .IsRequired();
+
+                entity.Property(e => e.HitCount)
+                    .HasColumnName("hitCount")
+                    .HasDefaultValue(1)             // Mặc định ban đầu là 1
+                    .IsRequired();
+
+                // 🔥 4. ĐĂNG KÝ INDEX CHO CỘT TÌM KIẾM (QUAN TRỌNG NHẤT!)
+                // Giúp EF Core biết và tối ưu các câu lệnh LINQ truy vấn theo cột này
+                entity.HasIndex(e => e.UserQuery)
+                    .HasDatabaseName("IX_BotCache_UserQuery");
             });
 
             OnModelCreatingPartial(modelBuilder);

@@ -215,7 +215,15 @@ namespace WebWeb.Controllers
                             TrangThai = 1,
                             NgayGiaoDich = DateTime.Now
                         });
-                        await _context.SaveChangesAsync();
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            var message = ex.InnerException?.Message ?? ex.Message;
+                            return Content(message);
+                        }
                         return RedirectToAction("OrderPackageSuccess", "Notification", new { orderId = goiKy.GoiId, platform = "VNPAY", amount = amount, type = "dinhky" });
                     }
                 }
@@ -234,7 +242,14 @@ namespace WebWeb.Controllers
                             TrangThai = 1,
                             NgayGiaoDich = DateTime.Now
                         });
-                        await _context.SaveChangesAsync();
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            return Content(ex.InnerException?.Message ?? ex.Message);
+                        }
                         return RedirectToAction("OrderSuccess", "Notification", new { orderId = donHang.DonHangLeId, platform = "VNPAY", amount = amount, type = "le" });
                     }
                 }
@@ -276,7 +291,15 @@ namespace WebWeb.Controllers
                             TrangThai = 1,
                             NgayGiaoDich = DateTime.Now
                         });
-                        await _context.SaveChangesAsync();
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            var message = ex.InnerException?.Message ?? ex.Message;
+                            return Content(message);
+                        }
                         return RedirectToAction("OrderPackageSuccess", "Notification", new { orderId = goiKy.GoiId, platform = "MOMO", amount = goiKy.TongTienGoi, type = "dinhky" });
                     }
                 }
@@ -295,7 +318,14 @@ namespace WebWeb.Controllers
                             TrangThai = 1,
                             NgayGiaoDich = DateTime.Now
                         });
-                        await _context.SaveChangesAsync();
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            return Content(ex.InnerException?.Message ?? ex.Message);
+                        }
                         return RedirectToAction("OrderSuccess", "Notification", new { orderId = donHang.DonHangLeId, platform = "MOMO", amount = donHang.TongTienTamTinh, type = "le" });
                     }
                 }
@@ -360,7 +390,14 @@ namespace WebWeb.Controllers
                 NgayGiaoDich = DateTime.Now
             });
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return Content(ex.InnerException?.Message ?? ex.Message);
+            }
 
             return RedirectToAction(
                 "OrderSuccess",

@@ -15,7 +15,7 @@ namespace WebWeb.Models
         public int GoiId { get; set; }
         public int KhachHangId { get; set; }
         public int DiaChiId { get; set; }
-        public int KhuyenMaiId { get; set; }
+        public int? KhuyenMaiId { get; set; }
         public DateTime NgayBatDau { get; set; }
         public DateTime NgayKetThuc { get; set; }
         public string TanSuatGiao { get; set; } = null!;

@@ -311,6 +311,19 @@ CREATE TABLE ThamSo (
     giaTri DECIMAL(18,2) NOT NULL,
     ghiChu NVARCHAR(250) NULL
 );
+
+-- 25. Bảng ChatBot (Đã tối ưu cấu trúc và hiệu năng)
+CREATE TABLE BotCache (
+    botID INT IDENTITY(1,1) PRIMARY KEY,
+    userQuery NVARCHAR(450) NOT NULL, -- Giới hạn độ dài để tạo Index và bắt buộc có dữ liệu
+    botResponse NVARCHAR(MAX) NOT NULL, -- Câu trả lời của AI (không được để trống)
+    createAt DATETIME NOT NULL DEFAULT GETDATE(),
+    hitCount INT NOT NULL DEFAULT 1
+);
+
+-- Tạo Index để tìm kiếm câu hỏi trùng lặp siêu tốc!
+CREATE INDEX IX_BotCache_UserQuery ON BotCache(userQuery);
+--TRUNCATE TABLE BotCache;
 GO
 
 -- Chèn dữ liệu mặc định ban đầu cho bảng Tham So
@@ -421,4 +434,5 @@ select * from DanhMuc
 select * from LoHang
 select * from ChiTietGioHang
 select * from KhuyenMai
+select * from BotCache
 
