@@ -19,8 +19,15 @@ namespace WebWeb.Areas.Admin.Controllers
         // ==========================================================
         // 1. TAB 1: DANH SÁCH ĐÁNH GIÁ SẢN PHẨM
         // ==========================================================
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm)
         {
+            var query = _context.DanhGiaSanPhams.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(n => n.NongSan.TenNongSan.Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
             var dsNongSanReview = await _context.NongSans
                 .Include(ns => ns.DanhGiaSanPhams)
                 .ToListAsync();
@@ -33,11 +40,20 @@ namespace WebWeb.Areas.Admin.Controllers
             return View();
         }
 
-        // ==========================================================\r
-        // 2. TAB 2: DANH SÁCH ĐÁNH GIÁ ĐƠN HÀNG (ĐÃ KHẮC PHỤC LỖI TRÙNG LẶP)\r
-        // ==========================================================\r
-        public async Task<IActionResult> IndexDonHang()
+        // ==========================================================
+        // 2. TAB 2: DANH SÁCH ĐÁNH GIÁ ĐƠN HÀNG (ĐÃ KHẮC PHỤC LỖI TRÙNG LẶP)
+        // ==========================================================
+        public async Task<IActionResult> IndexDonHang(string searchTerm)
         {
+            var query = _context.DanhGiaSanPhams.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(n => n.DonHangLeId.ToString().Contains(searchTerm) ||
+                                         n.KhachHang.HoTen.Contains(searchTerm) ||
+                                         n.NgayDanhGia.ToString("dd/MM/yyyy").Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
             // 1. Lấy danh sách đánh giá từ DB lên
             var tatCaReviewDonHang = await _context.DanhGiaSanPhams
                 .Include(r => r.DonHangLe)
@@ -96,8 +112,18 @@ namespace WebWeb.Areas.Admin.Controllers
         // ==========================================================
         // 3. TAB 3: DANH SÁCH KHIẾU NẠI ĐƠN HÀNG
         // ==========================================================
-        public async Task<IActionResult> IndexKhieuNai()
+        public async Task<IActionResult> IndexKhieuNai(string searchTerm)
         {
+            var query = _context.KhieuNais.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(n => n.KhieuNaiId.ToString().Contains(searchTerm) ||
+                                         n.KhachHang.HoTen.Contains(searchTerm) ||
+                                         n.DonHangLeId.ToString().Contains(searchTerm) ||
+                                         n.NgayGui.ToString("dd/MM/yyyy").Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
             var dsKhieuNai = await _context.KhieuNais
                 .Include(kn => kn.KhachHang)
                 .Include(kn => kn.DonHangLe)

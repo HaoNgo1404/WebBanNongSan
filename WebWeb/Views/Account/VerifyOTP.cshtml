@@ -1,0 +1,144 @@
+@{
+    ViewData["Title"] = "Xác thực OTP";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var demoOTP = TempData["DemoOTP"]?.ToString();
+}
+
+<div class="account-shell">
+    <div class="account-card auth-card">
+        <div class="auth-brand">
+            <div class="brand-icon"><i class="bi bi-shield-lock-fill"></i></div>
+            <div>
+                <h3>Green Fresh</h3>
+                <p>Xác minh mã OTP</p>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success small mb-3">
+                <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <!-- KHUNG HIỂN THỊ MÃ OTP MẪU CHO DEMO -->
+        <div id="demoOtpAlert" class="alert alert-warning border-warning border-2 mb-3 text-center @(string.IsNullOrEmpty(demoOTP) ? "d-none" : "")">
+            <div class="fw-bold text-dark mb-1"><i class="bi bi-bug-fill text-warning"></i> [DEMO] Mã OTP khôi phục của bạn là:</div>
+            <div class="d-flex align-items-center justify-content-center gap-2 my-2">
+                <span id="otpCodeText" class="badge bg-success fs-3 px-3 py-2 text-white" style="letter-spacing: 4px;">@demoOTP</span>
+                <button id="btnCopyOtp" type="button" class="btn btn-sm btn-outline-secondary" onclick="copyOTP(document.getElementById('otpCodeText').innerText)" title="Sao chép">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+            </div>
+            <small class="text-muted d-block">(Trong thực tế mã này sẽ được gửi ẩn qua Email)</small>
+        </div>
+
+        <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+
+        <p class="text-muted small">Mã OTP đã được gửi đến email: <strong id="displayEmail">@ViewBag.Email</strong></p>
+
+        <form asp-action="VerifyOTP" method="post" class="auth-form">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Mã OTP (6 chữ số)</label>
+                <input id="inputOTP" name="inputOTP" class="form-control text-center fs-4 fw-bold" placeholder="• • • • • •" maxlength="6" required style="letter-spacing: 5px;" />
+            </div>
+            <button type="submit" class="btn btn-success w-100 mb-3">Xác nhận OTP</button>
+
+            <!-- NÚT GỬI LẠI OTP CÓ ĐỒNG HỒ ĐẾM NGƯỢC 60S -->
+            <div class="text-center">
+                <button type="button" id="btnResendOtp" class="btn btn-link text-decoration-none text-muted p-0 fw-semibold" disabled>
+                    Gửi lại mã OTP (<span id="timer">60</span>s)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let countdown = 60;
+        let timerInterval = null;
+
+        $(document).ready(function () {
+            // Chạy đồng hồ đếm ngược ngay khi vừa load trang
+            startTimer();
+
+            // Sự kiện bấm nút Gửi lại OTP
+            $('#btnResendOtp').click(function () {
+                if ($(this).is(':disabled')) return;
+
+                var $btn = $(this);
+                $btn.prop('disabled', true).text('Đang tạo mã mới...');
+
+                $.ajax({
+                    url: '/Account/ResendOTP',
+                    type: 'POST',
+                    success: function (res) {
+                        if (res.success) {
+                            // 1. Cập nhật mã OTP mới lên giao diện Demo
+                            $('#otpCodeText').text(res.newOtp);
+                            $('#demoOtpAlert').removeClass('d-none');
+                            $('#inputOTP').value = ''; // Reset ô input
+
+                            // 2. Thông báo cho người dùng
+                            alert("Đã tạo thành công mã OTP mới: " + res.newOtp);
+
+                            // 3. Reset lại đếm ngược 60s
+                            countdown = 60;
+                            startTimer();
+                        } else {
+                            alert(res.message);
+                            $btn.prop('disabled', false).text('Gửi lại mã OTP');
+                        }
+                    },
+                    error: function () {
+                        alert("Không thể kết nối máy chủ để gửi lại OTP!");
+                        $btn.prop('disabled', false).text('Gửi lại mã OTP');
+                    }
+                });
+            });
+        });
+
+        // Hàm bắt đầu đếm ngược 60s
+        function startTimer() {
+            clearInterval(timerInterval);
+            const $btn = $('#btnResendOtp');
+            $btn.prop('disabled', true);
+
+            timerInterval = setInterval(function () {
+                countdown--;
+                if (countdown > 0) {
+                    $btn.html(`Gửi lại mã OTP (<span id="timer">${countdown}</span>s)`).addClass('text-muted').removeClass('text-success');
+                } else {
+                    clearInterval(timerInterval);
+                    $btn.prop('disabled', false)
+                        .html('<i class="bi bi-arrow-counterclockwise"></i> Gửi lại mã OTP')
+                        .removeClass('text-muted')
+                        .addClass('text-success fw-bold');
+                }
+            }, 1000);
+        }
+
+        // Hàm sao chép mã OTP
+        function copyOTP(code) {
+            var inputElem = document.getElementById('inputOTP');
+            if (inputElem) {
+                inputElem.value = code;
+                inputElem.focus();
+            }
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(code);
+            } else {
+                var tempInput = document.createElement("input");
+                tempInput.value = code;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+            }
+
+            alert("Đã tự động điền và sao chép mã OTP: " + code);
+        }
+    </script>
+}

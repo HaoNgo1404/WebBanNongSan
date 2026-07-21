@@ -96,22 +96,111 @@ namespace WebWeb.Controllers
             int? currentUserId = GetCurrentKhachHangId();
             if (currentUserId == null) 
             {
-                return Json(new { success = false, message = "Chưa đăng nhập" });
+                return Json(new { success = false, message = "Chưa đăng nhập" }); 
             }
 
-            // Lấy tối đa 5 đơn hàng mới nhất để làm thông báo tiến độ thực tế
-            var danhSachDonHang = await _context.DonHangLes
+            var listNotifications = new List<object>();
+
+            // 1. LẤY THÔNG BÁO TỪ TIẾN ĐỘ ĐƠN HÀNG (Dữ liệu thật từ DB)
+            var donHangs = await _context.DonHangLes
                 .Where(d => d.KhachHangId == currentUserId.Value)
                 .OrderByDescending(d => d.NgayDat)
-                .Take(5)
-                .Select(d => new {
-                    orderId = d.DonHangLeId,
-                    trangThai = d.TrangThaiDonHang,
-                    ngayDat = d.NgayDat.ToString("dd/MM/yyyy")
-                })
+                .Take(3)
                 .ToListAsync();
 
-            return Json(new { success = true, data = danhSachDonHang });
+            foreach (var d in donHangs)
+            {
+                listNotifications.Add(new {
+                    id = d.DonHangLeId,
+                    type = "order",
+                    icon = d.TrangThaiDonHang == OrderStatuses.DangGiao ? "bi-truck" : (d.TrangThaiDonHang == OrderStatuses.HoanThanh ? "bi-check-circle-fill" : "bi-box-seam"),
+                    badgeClass = d.TrangThaiDonHang == OrderStatuses.DangGiao ? "bg-warning" : "bg-success",
+                    title = $"Đơn hàng #{d.DonHangLeId} - {d.TrangThaiDonHang}",
+                    content = $"Đơn hàng nông sản của bạn hiện tại đang ở trạng thái: {d.TrangThaiDonHang}.",
+                    time = d.NgayDat.ToString("dd/MM/yyyy HH:mm"),
+                    url = $"/Order/OrderHistoryDetail?id={d.DonHangLeId}",
+                    isPopup = true
+                });
+            }
+
+            // 2. LẤY THÔNG BÁO KHUYẾN MÃI MỚI (Dữ liệu thật 100% từ DB KhuyenMai)
+            var now = DateTime.Now;
+            var khuyenMais = await _context.KhuyenMais
+                .Where(k => k.TrangThai 
+                        && k.NgayKetThuc >= now 
+                        && k.NgayBatDau <= now 
+                        && k.SoLuotDaDung < k.SoLuotPhatHanh)
+                .OrderByDescending(k => k.NgayBatDau)
+                .Take(3)
+                .ToListAsync();
+
+            foreach (var km in khuyenMais)
+            {
+                string mucGiamStr = km.LoaiGiamGia == 1 ? $"{km.MucGiam:0}%" : $"{km.MucGiam:N0}đ";
+                string voucherCodeStr = string.IsNullOrEmpty(km.VoucherCode) ? "" : $" (Mã: {km.VoucherCode})";
+
+                listNotifications.Add(new {
+                    id = km.KhuyenMaiId,
+                    type = "promo",
+                    icon = "bi-tags-fill",
+                    badgeClass = "bg-danger",
+                    title = $"🎁 {km.TenChuongTrinh}",
+                    content = $"Ưu đãi giảm {mucGiamStr}{voucherCodeStr} cho đơn hàng từ {km.GiaTriDonToiThieu:N0}đ. Hạn dùng đến {km.NgayKetThuc:dd/MM/yyyy}.",
+                    time = km.NgayBatDau.ToString("dd/MM/yyyy"),
+                    url = "/Notification/Offers",
+                    isPopup = false
+                });
+            }
+
+            // Giả định quy ước TrangThai trong CSDL của bạn: 0 = Mới gửi, 1 = Đang xử lý, 2 = Đã xử lý (Hoàn tất)
+            int TRANG_THAI_DA_XU_LY = 1; 
+
+            // ==========================================
+            // 3. THÔNG BÁO KHIẾU NẠI / HỖ TRỢ CSKH
+            // ==========================================
+            var dsKhieuNaiDaXuLy = await _context.KhieuNais
+                .Where(k => k.KhachHangId == currentUserId.Value && k.TrangThai == TRANG_THAI_DA_XU_LY)
+                .OrderByDescending(k => k.NgayGui)
+                .Take(5)
+                .ToListAsync();
+
+            foreach (var khieuNai in dsKhieuNaiDaXuLy)
+            {
+                listNotifications.Add(new {
+                    id = khieuNai.KhieuNaiId,
+                    type = "support",
+                    icon = "bi-headset",
+                    badgeClass = "bg-info",
+                    title = $"Yêu cầu hỗ trợ #{khieuNai.KhieuNaiId} đã hoàn tất",
+                    content = string.IsNullOrEmpty(khieuNai.PhuongAnXuLy) 
+                                ? $"Khiếu nại về '{khieuNai.NoiDung}' của bạn đã được xử lý." 
+                                : $"Phương án xử lý: {khieuNai.PhuongAnXuLy}",
+                    time = khieuNai.NgayGui.ToString("dd/MM/yyyy HH:mm"),
+                    url = $"/Account/SupportDetail/{khieuNai.KhieuNaiId}",
+                    isPopup = false
+                });
+            }
+
+            // ==========================================
+            // 4. THÔNG BÁO TÍCH ĐIỂM / HẠNG THÀNH VIÊN
+            // ==========================================
+            var khachHang = await _context.KhachHangs.FindAsync(currentUserId.Value);
+            if (khachHang != null)
+            {
+                listNotifications.Add(new {
+                    id = khachHang.KhachHangId,
+                    type = "reward",
+                    icon = "bi-gem",
+                    badgeClass = "bg-warning text-dark",
+                    title = "Cập nhật điểm tích lũy thành viên",
+                    content = $"Bạn hiện đang có {khachHang.DiemTichLuy:N0} điểm. Tích cực mua sắm để nhận thêm nhiều ưu đãi!",
+                    time = DateTime.Now.ToString("dd/MM/yyyy"),
+                    url = "/Notification/RewardPoints",
+                    isPopup = false
+                });
+            }
+
+            return Json(new { success = true, data = listNotifications });
         }
 
         // =================================================================
@@ -119,13 +208,15 @@ namespace WebWeb.Controllers
         // URL: /Notification/Offers
         // =================================================================
         [HttpGet]
-        public IActionResult Offers()
+        public async Task<IActionResult> Offers()
         {
-            // Trong thực tế, bạn có thể bổ sung bảng `KhuyenMai` trong DB để nạp dữ liệu lên.
-            // Hiện tại, ta giả lập dữ liệu tĩnh để Hào thiết kế giao diện View đẹp mắt:
-            ViewBag.Message = "Danh sách chương trình ưu đãi tri ân khách hàng tháng này!";
-            
-            return View();
+            // Lấy danh sách các chương trình khuyến mãi còn hạn sử dụng
+            var listKhuyenMai = await _context.KhuyenMais
+                .Where(k => k.NgayKetThuc >= DateTime.Now) // Hoặc logic điều kiện khuyến mãi của Hào
+                .OrderByDescending(k => k.NgayBatDau)
+                .ToListAsync();
+
+            return View(listKhuyenMai);
         }
 
         // =================================================================

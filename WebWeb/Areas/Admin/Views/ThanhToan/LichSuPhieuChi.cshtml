@@ -1,0 +1,84 @@
+@model IEnumerable<WebWeb.Models.PhieuChiCongNo>
+@{
+    ViewData["Title"] = "Lịch sử phiếu chi công nợ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card p-4">
+    <div class="d-flex border-bottom mb-4">
+        <a class="nav-link text-muted pb-2 pe-3" asp-action="Index">Quản lý thanh toán đơn hàng</a>
+        <a class="nav-link text-muted pb-2 px-3" asp-action="DanhSachCongNo">Danh sách công nợ Nhà vườn</a>
+        <a class="nav-link active fw-bold text-success border-bottom border-2 border-success pb-2 ps-3" asp-action="LichSuPhieuChi">Lịch sử phiếu chi công nợ</a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Lịch sử giải ngân & chi tiền công nợ</h3>
+            <p class="text-muted mb-0">Danh sách toàn bộ các phiếu chi tiền mặt hoặc chuyển khoản đã tất toán cho các đối tác Nhà Vườn.</p>
+        </div>
+    </div>
+
+    <div class="admin-panel p-4 bg-white border rounded-3">
+        <form method="get" asp-action="DanhSachCongNo" class="mb-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                <div class="position-relative" style="max-width: 380px;">
+                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                    <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm theo tên Nhà vườn..." />
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm admin-btn">Tìm kiếm</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bg-white rounded mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã Phiếu</th>
+                        <th>Nhà Vườn Nhận</th>
+                        <th>Ngày Giải Ngân</th>
+                        <th>Mã Giao Dịch</th>
+                        <th>Nhân Viên Lập</th>
+                        <th>Phương Thức</th>
+                        <th class="text-end pe-4">Số Tiền Đã Chi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var pc in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">#PC-@pc.PhieuChiId</td>
+                                <td class="fw-semibold text-dark">@(pc.NhaVuon?.TenNhaVuon ?? "N/A")</td>
+                                <td>@pc.NgayLap.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <code class="text-uppercase fw-bold text-primary">@pc.MaGiaoDich</code>
+                                </td>
+                                <td>@(pc.NhanVien?.HoTen ?? "Hệ thống / Admin")</td>
+                                <td>
+                                    @if (pc.PhuongThuc == 1)
+                                    {
+                                        <span class="badge bg-info-subtle text-info"><i class="bi bi-bank"></i> Chuyển khoản</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary"><i class="bi bi-cash"></i> Tiền mặt</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4 fw-bold text-success">@pc.SoTienThucChi.ToString("#,##0") đ</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Chưa có lịch sử phiếu chi công nợ nào được ghi nhận.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

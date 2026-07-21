@@ -1,41 +1,52 @@
 @model WebWeb.Models.NongSan
 @inject WebWeb.Services.KhuyenMaiService KhuyenMaiService
 
-<div class="product-card h-100">
-    <div class="product-card-image">
-        <img src="@Url.Content("~/images/" + Model.HinhAnh)" style="width:100%; height:200px; object-fit:cover;" class="rounded-top"
-             alt="@Model.TenNongSan" />
-        <span class="product-badge">Sạch & tươi</span>
-        <button class="product-fav-btn" type="button" aria-label="Yêu thích">
-            <i class="bi bi-heart"></i>
-        </button>
-    </div>
-    <div class="product-card-body">
-        <div class="product-meta">
-            <span class="text-muted small">@(Model.DanhMuc?.TenDanhMuc ?? "Nông sản")</span>
-            <span class="text-muted small"><i class="bi bi-star-fill text-warning"></i> 4.8</span>
+<!-- BAO BỌC TOÀN BỘ PRODUCT CARD BẰNG THẺ A DẪN TỚI TRANG CHI TIẾT -->
+<a asp-controller="Product" asp-action="Detail" asp-route-id="@Model.NongSanId" class="text-decoration-none text-dark d-block h-100">
+    <div class="product-card h-100">
+        <div class="product-card-image">
+            <img src="@Url.Content("~/images/" + Model.HinhAnh)" style="width:100%; height:200px; object-fit:cover;" class="rounded-top"
+                 alt="@Model.TenNongSan" />
+            <span class="product-badge">Sạch & tươi</span>
+            <button class="product-fav-btn" type="button" aria-label="Yêu thích" onclick="event.preventDefault(); event.stopPropagation();">
+                <i class="bi bi-heart"></i>
+            </button>
         </div>
-        <h5 class="product-card-title">@Model.TenNongSan</h5>
-        <p class="product-card-text">@Model.DonViTinh</p>
-        <div class="product-card-footer">
-            <div>
-                <div class="price">
-                    @{
-                        decimal giaThucTeCard = KhuyenMaiService.TinhGiaBanThucTe(Model.NongSanId, Model.GiaBanNiemYet);
-                    }
-                    @if (giaThucTeCard < Model.GiaBanNiemYet)
-                    {
-                        <span>@((giaThucTeCard).ToString("#,##0")) VNĐ </span>
-                        <span class="text-muted text-decoration-line-through small">@Model.GiaBanNiemYet.ToString("N0") VNĐ </span>
-                    }
-                    else 
-                    {
-                        <span>@Model.GiaBanNiemYet.ToString("N0") VNĐ </span>
-                    }
-                </div>
-                <div class="text-muted small">Từ @(string.IsNullOrWhiteSpace(Model.NhaVuon?.TenNhaVuon) ? "Fresh Farm" : Model.NhaVuon.TenNhaVuon)</div>
+        <div class="product-card-body">
+            <div class="product-meta">
+                <span class="text-muted small">@(Model.DanhMuc?.TenDanhMuc ?? "Nông sản")</span>
+                <span class="text-muted small"><i class="bi bi-star-fill text-warning"></i> 4.8</span>
             </div>
-            <a asp-controller="Product" asp-action="Detail" asp-route-id="@Model.NongSanId" class="btn btn-success btn-sm">Chi tiết</a>
+            <h5 class="product-card-title">@Model.TenNongSan</h5>
+            <p class="product-card-text">@Model.DonViTinh</p>
+            <div class="product-card-footer">
+                <div>
+                    <div class="price">
+                        @{
+                            decimal giaThucTeCard = KhuyenMaiService.TinhGiaBanThucTe(Model.NongSanId, Model.GiaBanNiemYet);
+                        }
+                        @if (giaThucTeCard < Model.GiaBanNiemYet)
+                        {
+                            <span class="fw-bold text-success">@((giaThucTeCard).ToString("#,##0")) VNĐ </span>
+                            <span class="text-muted text-decoration-line-through small">@Model.GiaBanNiemYet.ToString("N0") VNĐ </span>
+                        }
+                        else 
+                        {
+                            <span class="fw-bold text-success">@Model.GiaBanNiemYet.ToString("N0") VNĐ </span>
+                        }
+                    </div>
+                    <div class="text-muted small">Từ @(string.IsNullOrWhiteSpace(Model.NhaVuon?.TenNhaVuon) ? "Fresh Farm" : Model.NhaVuon.TenNhaVuon)</div>
+                </div>
+
+                <!-- NÚT GIỎ HÀNG: Đã bỏ thẻ <form> con, dùng onclick chặn nhảy sang trang Detail và gọi hàm quickAddToCart -->
+                <button type="button" 
+                        class="btn btn-outline-success btn-sm rounded-3 btn-add-to-cart p-0 d-flex align-items-center justify-content-center" 
+                        style="width: 36px; height: 36px;"
+                        onclick="event.preventDefault(); event.stopPropagation(); quickAddToCart(@Model.NongSanId);" 
+                        title="Thêm vào giỏ hàng">
+                    <i class="bi bi-cart-plus fs-5"></i>
+                </button>
+            </div>
         </div>
     </div>
-</div>
+</a>

@@ -263,6 +263,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcVGhhbmhUb2FuXExhcFBoaWV1VGF0VG9hbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[E:/WebBanNongSan/WebWeb/Areas/Admin/Views/ThanhToan/LichSuPhieuChi.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcVGhhbmhUb2FuXExpY2hTdVBoaWV1Q2hpLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [E:/WebBanNongSan/WebWeb/Areas/Admin/Views/ThongKe/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcVGhvbmdLZVxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -357,6 +361,22 @@ build_metadata.AdditionalFiles.CssScope =
 
 [E:/WebBanNongSan/WebWeb/Views/Account/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/WebBanNongSan/WebWeb/Views/Account/ResetPassword.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZXNldFBhc3N3b3JkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/WebBanNongSan/WebWeb/Views/Account/SupportDetail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxTdXBwb3J0RGV0YWlsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/WebBanNongSan/WebWeb/Views/Account/SupportHistory.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxTdXBwb3J0SGlzdG9yeS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/WebBanNongSan/WebWeb/Views/Account/VerifyOTP.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxWZXJpZnlPVFAuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [E:/WebBanNongSan/WebWeb/Views/Blog/Details.cshtml]

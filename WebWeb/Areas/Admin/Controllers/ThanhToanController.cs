@@ -114,7 +114,9 @@ namespace WebWeb.Areas.Admin.Controllers
         {
             var nhaVuon = await _context.NhaVuons
                 .Include(nv => nv.PhieuNhapKhos)
+                    .ThenInclude(p => p.NhanVien)
                 .Include(nv => nv.PhieuChiCongNos)
+                    .ThenInclude(pc => pc.NhanVien) // 🔥 BỔ SUNG: Nạp thêm thông tin Nhân viên lập phiếu chi để hiện tên người chi
                 .FirstOrDefaultAsync(nv => nv.NhaVuonId == id);
 
             if (nhaVuon == null)
@@ -136,6 +138,30 @@ namespace WebWeb.Areas.Admin.Controllers
             var dsPhieuNhap = nhaVuon.PhieuNhapKhos?.OrderByDescending(p => p.NgayLapPhieu).ToList() ?? new List<PhieuNhapKho>();
             return View(dsPhieuNhap);
         }
+
+        // 🔥 TAB 3: DANH SÁCH LỊCH SỬ PHIẾU CHI CÔNG NỢ NHÀ VƯỜN
+        public async Task<IActionResult> LichSuPhieuChi(string searchTerm)
+        {
+            var query = _context.PhieuChiCongNos
+                .Include(pc => pc.NhaVuon)   // Nạp thông tin nhà vườn nhận tiền
+                .Include(pc => pc.NhanVien)  // Nạp thông tin nhân viên thực hiện chi
+                .AsQueryable();
+
+            // Hỗ trợ tìm kiếm theo Tên nhà vườn hoặc Mã giao dịch
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                searchTerm = searchTerm.Trim().ToLower();
+                query = query.Where(pc => pc.NhaVuon.TenNhaVuon.ToLower().Contains(searchTerm) || 
+                                    pc.MaGiaoDich.ToLower().Contains(searchTerm));
+            }
+
+            var dsPhieuChi = await query.OrderByDescending(pc => pc.NgayLap).ToListAsync();
+            
+            // Lưu lại từ khóa tìm kiếm để hiển thị lại trên ô Input ở View
+            ViewBag.SearchTerm = searchTerm;
+
+            return View(dsPhieuChi);
+}
 
         // 5. XÁC NHẬN THANH TOÁN CÔNG NỢ (POST)
         [HttpPost]

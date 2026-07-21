@@ -140,3 +140,75 @@ $(document).on('click', '#BtnQuickApply', function() {
     $('#BtnApplyVoucher').click();    // Tự kích hoạt nút kiểm tra tính tiền AJAX
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const chkUsePoints = document.getElementById("chkUsePoints");
+    const pointsInputArea = document.getElementById("pointsInputArea");
+    const inputDiemDung = document.getElementById("inputDiemDung");
+    const hiddenDiemDung = document.getElementById("hiddenDiemDung");
+    const btnApplyPoints = document.getElementById("btnApplyPoints");
+    const pointsError = document.getElementById("pointsError");
+
+    // SỬA TẠI ĐÂY: Thêm selector ".checkout-summary-total" để khớp chính xác với class trong _CheckoutSummary.cshtml
+    const priceElement = document.querySelector(".checkout-summary-total") 
+                       || document.querySelector(".text-end.fw-bold.fs-5") 
+                       || document.querySelector(".fs-5.fw-bold"); 
+
+    let rawPriceText = priceElement ? priceElement.innerText : "0";
+    let tongTienGoc = parseInt(rawPriceText.replace(/[^0-9]/g, '')) || 0;
+
+    // (Giữ nguyên phần logic sự kiện bên dưới của bạn...)
+    if (chkUsePoints) {
+        chkUsePoints.addEventListener("change", function () {
+            if (this.checked) {
+                pointsInputArea.style.display = "block";
+                
+                let maxPointsCuaKhach = parseInt(document.getElementById("maxPoints").innerText) || 0;
+                
+                // Điểm đề xuất = Giá trị nhỏ nhất giữa (Điểm hiện có) và (Tổng tiền đơn hàng)
+                let diemDungDeXuat = Math.min(maxPointsCuaKhach, tongTienGoc);
+                
+                inputDiemDung.value = diemDungDeXuat;
+                inputDiemDung.setAttribute("max", diemDungDeXuat); // Khóa nút bấm tăng mũi tên vượt mức
+                
+                apDungDiem(diemDungDeXuat);
+            } else {
+                pointsInputArea.style.display = "none";
+                inputDiemDung.value = 0;
+                apDungDiem(0);
+            }
+        });
+
+        btnApplyPoints.addEventListener("click", function () {
+            let maxPointsCuaKhach = parseInt(document.getElementById("maxPoints").innerText) || 0;
+            let nhapDiem = parseInt(inputDiemDung.value) || 0;
+
+            if (nhapDiem < 0) {
+                pointsError.innerText = "Số điểm không được là số âm!";
+                return;
+            }
+            if (nhapDiem > maxPointsCuaKhach) {
+                pointsError.innerText = `Bạn chỉ có tối đa ${maxPointsCuaKhach} điểm!`;
+                return;
+            }
+            
+            // RÀNG BUỘC PHÍA CLIENT: Điểm nhập thủ công không được vượt quá tiền đơn hàng
+            if (nhapDiem > tongTienGoc) {
+                pointsError.innerText = `Số điểm dùng không được vượt quá giá trị đơn hàng (${tongTienGoc.toLocaleString('vi-VN')} đ)!`;
+                return;
+            }
+
+            pointsError.innerText = "";
+            apDungDiem(nhapDiem);
+        });
+    }
+
+    function apDungDiem(diem) {
+        hiddenDiemDung.value = diem;
+        let tienSauGiam = tongTienGoc - diem;
+
+        if (priceElement) {
+            priceElement.innerHTML = tienSauGiam.toLocaleString('vi-VN') + " đ";
+        }
+    }
+});
+

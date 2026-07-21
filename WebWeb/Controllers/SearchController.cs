@@ -68,13 +68,25 @@ namespace WebWeb.Controllers
         // Action Suggest giữ nguyên...
         public async Task<IActionResult> Suggest(string keyword)
         {
-            if (string.IsNullOrWhiteSpace(keyword)) return Content("");
-            string searchKey = keyword.Trim().ToLower();
-            var goiY = await _context.NongSans
-                .Where(n => n.TenNongSan.ToLower().Contains(searchKey))
-                .Take(5)
-                .ToListAsync();
-            return PartialView("_SearchSuggestion", goiY);
+            IEnumerable<NongSan> items;
+
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                // Khi mới click vào (chưa gõ gì): Lấy 5 sản phẩm nổi bật/mới nhất làm mặc định
+                items = _context.NongSans
+                                .Take(5)
+                                .ToList();
+            }
+            else
+            {
+                // Khi đã gõ từ khóa: Lọc theo tên
+                items = _context.NongSans
+                                .Where(x => x.TenNongSan.Contains(keyword))
+                                .Take(5)
+                                .ToList();
+            }
+
+            return PartialView("_SearchSuggestion", items);
         }
     }
 }

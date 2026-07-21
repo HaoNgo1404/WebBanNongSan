@@ -116,6 +116,7 @@ namespace WebWeb.Controllers
             {
                 // 2. Lấy thông tin ngày tạo tài khoản của khách hàng
                 var khachHang = await _context.KhachHangs.FindAsync(currentUserId);
+                ViewBag.DiemTichLuy = khachHang?.DiemTichLuy ?? 0;
                 
                 if (khachHang != null)
                 {
@@ -211,11 +212,11 @@ namespace WebWeb.Controllers
         }
 
         // =================================================================
-        // UC01: ĐẶT ĐƠN HÀNG LẺ TRỰC TUYẾN - POST
+        // UC01: ĐẶT ĐƠN HÀNG LẺ TRỰC TUYẾN - POST (Có tích hợp điểm tích lũy)
         // =================================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DatDonHangLe(CheckoutViewModel model, int? KhuyenMaiId)
+        public async Task<IActionResult> DatDonHangLe(CheckoutViewModel model, int? KhuyenMaiId, int diemDungForm)
         {
             // 1. Đọc dữ liệu giỏ hàng từ Session
             var sessionData = HttpContext.Session.GetString("UserCart");
@@ -235,16 +236,52 @@ namespace WebWeb.Controllers
                 {
                     int? customerId = GetCurrentKhachHangId(); // Null nếu là khách vãng lai
                     decimal phiShip = await TinhToanTienShipThucTe(cart.Sum(item => item.SoLuong * item.Gia)); // Gọi hàm lấy cấu hình động ở trên
+                    decimal tongTienHang = cart.Sum(item => item.SoLuong * item.Gia) + phiShip;
 
-                    // Khởi tạo đối tượng đơn hàng mới
+                    // --- LOGIC XỬ LÝ ĐIỂM TÍCH LŨY (Đã ràng buộc không vượt quá giá trị đơn hàng) ---
+                    decimal soTienGiamByDiem = 0;
+                    if (customerId.HasValue && diemDungForm > 0)
+                    {
+                        var khachHang = await _context.KhachHangs.FindAsync(customerId.Value);
+                        if (khachHang != null)
+                        {
+                            // Điểm tối đa được phép dùng = Giá trị nhỏ hơn giữa (Điểm đang có) và (Tổng tiền đơn hàng)
+                            int diemHợpLeToiDa = Math.Min(khachHang.DiemTichLuy, (int)tongTienHang);
+
+                            // Nếu số điểm form gửi lên hợp lệ (không vượt quá số điểm thực tế của họ)
+                            if (diemDungForm <= khachHang.DiemTichLuy)
+                            {
+                                // Khống chế số điểm sử dụng thực tế không vượt quá giá trị đơn hàng
+                                int diemThucTeSuDung = Math.Min(diemDungForm, diemHợpLeToiDa);
+                                
+                                soTienGiamByDiem = diemThucTeSuDung;
+
+                                // Trừ số điểm thực tế sử dụng dưới Database
+                                khachHang.DiemTichLuy -= diemThucTeSuDung;
+                                _context.KhachHangs.Update(khachHang);
+                            }
+                            else
+                            {
+                                // Phát hiện gian lận gửi điểm giả lập lớn hơn số điểm họ có thực tế
+                                ModelState.AddModelError("", "Số điểm tích lũy sử dụng không hợp lệ.");
+                                return View("CheckoutDonLe", model);
+                            }
+                        }
+                    }
+
+                    // Khởi tạo đối tượng đơn hàng mới với số tiền đã trừ điểm
                     var donHang = new DonHangLe
                     {
-                        KhachHangId = customerId, // Lưu NULL nếu là khách vãng lai
+                        KhachHangId = customerId,
                         NgayDat = DateTime.Now,
                         KhungGioGiaoHang = model.KhungGioGiaoHang,
                         PhuongThucThanhToan = model.PhuongThucThanhToan,
-                        TrangThaiDonHang = OrderStatuses.ChoDuyet, // Mặc định là "Chờ duyệt"
-                        TongTienTamTinh = cart.Sum(item => item.SoLuong * item.Gia) + phiShip
+                        TrangThaiDonHang = OrderStatuses.ChoDuyet,
+                        
+                        // Khấu trừ điểm trực tiếp vào hóa đơn
+                        TongTienTamTinh = tongTienHang - soTienGiamByDiem,
+                        TongTienThucTe = tongTienHang - soTienGiamByDiem, 
+                        TienChenhLech = soTienGiamByDiem // Lưu số tiền đã giảm bằng điểm vào đây để thống kê đối soát
                     };
 
                     // 2. XỬ LÝ ĐỊA CHỈ: GÁN THẲNG VÀO 3 CỘT TEXT CỦA ĐƠN HÀNG LẺ
@@ -315,6 +352,12 @@ namespace WebWeb.Controllers
 
                     // 5. XÓA SẠCH GIỎ HÀNG KHỎI SESSION
                     HttpContext.Session.Remove("UserCart");
+
+                    // Ghi nhận thông báo thành công có kèm thông tin điểm
+                    if (soTienGiamByDiem > 0)
+                    {
+                        TempData["OrderSuccessMessage"] = $"Đặt hàng thành công! Bạn đã dùng {soTienGiamByDiem:#,##0} điểm để giảm giá {soTienGiamByDiem:#,##0} đ.";
+                    }
 
                     // 6. ĐIỀU HƯỚNG THANH TOÁN HOẶC THÀNH CÔNG
                     if (donHang.PhuongThucThanhToan == "VNPAY")

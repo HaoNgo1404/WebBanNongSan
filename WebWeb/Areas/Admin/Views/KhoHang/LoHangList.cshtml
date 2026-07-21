@@ -32,6 +32,19 @@
     </div>
 
     <div class="admin-panel p-4">
+        <form method="get" asp-area="Admin" asp-controller="KhoHang" asp-action="LoHangList" class="mb-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                <div class="position-relative" style="max-width: 400px; width: 100%;">
+                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                    <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm kiếm lô hàng..." />                 
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm admin-btn">Tìm kiếm</button>
+                </div>
+            </div>
+        </form>
+
         <div class="table-responsive">
             <div class="lohang-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
                 <table class="admin-table">

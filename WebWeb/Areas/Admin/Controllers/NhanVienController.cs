@@ -18,8 +18,17 @@ namespace WebWeb.Areas.Admin.Controllers
         }
 
         // 1. DANH SÁCH NHÂN VIÊN (INDEX)
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm)
         {
+            var query = _context.NhanViens.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(k => k.HoTen.Contains(searchTerm) || 
+                                         k.VaiTro.TenVaiTro.Contains(searchTerm) || 
+                                         k.Email.Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
             var danhSachNhanVien = await _context.NhanViens
                 .Include(n => n.VaiTro) // Nạp thông tin vai trò để hiển thị tên quyền
                 .OrderByDescending(n => n.NhanVienId)

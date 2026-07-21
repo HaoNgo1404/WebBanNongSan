@@ -164,14 +164,32 @@ namespace WebWeb.Controllers
 
                 var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
                 
+                // string geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={apiKey}";
                 string geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={apiKey}";
                 
                 var response = await client.PostAsync(geminiUrl, content);
 
+                // ==========================================================================
+                // ĐÃ SỬA: CHẶN LỖI QUÁ TẢI (503 / 429) HOẶC CÁC LỖI KHÁC TỪ GOOGLE API
+                // ==========================================================================
                 if (!response.IsSuccessStatusCode)
                 {
-                    var errorDetail = await response.Content.ReadAsStringAsync();
-                    return StatusCode((int)response.StatusCode, new { response = $"Lỗi từ Google API (Mã {response.StatusCode}): {errorDetail}" });
+                    var statusCodeString = response.StatusCode.ToString();
+                    
+                    // Nếu gặp lỗi quá tải tạm thời (503 Service Unavailable) hoặc vượt giới hạn lượt gọi (429 Too Many Requests)
+                    if (statusCodeString.Contains("ServiceUnavailable") || (int)response.StatusCode == 503 || (int)response.StatusCode == 429)
+                    {
+                        return Ok(new { 
+                            response = "Dạ hiện tại hệ thống AI của em đang nhận được lượng câu hỏi quá lớn từ khách hàng nên bị quá tải nhẹ ạ. Thật xin lỗi Anh/Chị, Anh/Chị có thể gửi lại câu hỏi sau vài giây giúp Green Fresh em được không ạ? 🌱🌸", 
+                            source = "gemini_api_overloaded" 
+                        });
+                    }
+
+                    // Đối với các lỗi kỹ thuật khác từ API
+                    return Ok(new { 
+                        response = "Dạ, hệ thống kết nối trí tuệ nhân tạo của em đang gặp chút trục trặc nhỏ. Anh/Chị vui lòng thử lại sau giây lát nha!", 
+                        source = "gemini_api_error" 
+                    });
                 }
 
                 var responseString = await response.Content.ReadAsStringAsync();
@@ -202,7 +220,8 @@ namespace WebWeb.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { response = "Lỗi kết nối chatbot: " + ex.Message });
+                // Trả về câu thông báo lịch sự ở Frontend luôn thay vì ném lỗi thô crash giao diện
+                return Ok(new { response = "Dạ kết nối của hệ thống chatbot đang bị gián đoạn đôi chút, Anh/Chị gửi lại câu hỏi để em thử xử lý lại nhé! 🍃", error = ex.Message });
             }
         }
 
@@ -212,7 +231,6 @@ namespace WebWeb.Controllers
             if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(target)) return 0.0;
             if (source == target) return 1.0;
 
-            // 1. Phân tích cấp độ từ (Tránh trùng lặp giả do độ dài chuỗi ngắn gần bằng nhau)
             var sourceWords = source.Split(new[] { ' ', ',', '.', '?', '!' }, StringSplitOptions.RemoveEmptyEntries);
             var targetWords = target.Split(new[] { ' ', ',', '.', '?', '!' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -221,10 +239,8 @@ namespace WebWeb.Controllers
             
             double jaccardSimilarity = (double)intersect / union;
 
-            // Nếu các từ khóa chính dùng để hỏi khác nhau hoàn toàn (dưới 40% số từ trùng nhau), loại luôn không so khớp
             if (jaccardSimilarity < 0.4) return 0.0;
 
-            // 2. Nếu vượt qua bộ lọc từ khóa, tiến hành tính khoảng cách Levenshtein chi tiết
             int sourceLength = source.Length;
             int targetLength = target.Length;
 
@@ -247,7 +263,6 @@ namespace WebWeb.Controllers
             int maxLength = Math.Max(sourceLength, targetLength);
             double levenshteinSimilarity = 1.0 - ((double)distance[sourceLength, targetLength] / maxLength);
 
-            // Trả về trung bình trọng số (Ưu tiên độ tương đồng từ khóa Jaccard)
             return (jaccardSimilarity * 0.4) + (levenshteinSimilarity * 0.6);
         }
     }

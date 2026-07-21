@@ -1,6 +1,8 @@
+@model IEnumerable<WebWeb.Models.KhuyenMai>
+
 @{
     ViewData["Title"] = "Ưu Đãi & Khuyến Mãi Nổi Bật";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Thay thế theo Layout chuẩn của bạn
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-5">
@@ -9,76 +11,103 @@
         <p class="text-muted fs-5">Săn ngay mã giảm giá và tham gia các chương trình khuyến mãi nông sản sạch cực hot tuần này!</p>
     </div>
 
+    <!-- DANH SÁCH MÃ GIẢM GIÁ DỮ LIỆU THẬT -->
     <div class="row g-4">
-        
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden coupon-card">
-                <div class="coupon-left bg-success text-white text-center p-4 d-flex flex-column justify-content-center align-items-center">
-                    <h3 class="fw-bold m-0">20K</h3>
-                    <small class="opacity-75">GIẢM THẲNG</small>
-                </div>
-                <div class="card-body p-4 d-flex flex-column justify-content-between">
-                    <div>
-                        <h5 class="card-title fw-bold text-dark mb-1">Ưu đãi bạn mới</h5>
-                        <p class="card-text text-muted small mb-3">Áp dụng cho khách hàng đặt đơn nông sản lẻ đầu tiên trên hệ thống.</p>
-                    </div>
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-dashed mb-2">
-                            <span class="fw-mono text-success fw-bold text-uppercase" id="code-newbie">NONGSANNEW</span>
-                            <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="copyToClipboard('NONGSANNEW', this)">Chép mã</button>
-                        </div>
-                        <small class="text-muted d-block"><i class="bi bi-clock me-1"></i>Hạn dùng: 31/12/2026</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                // LOGIC XỬ LÝ THEO ĐÚNG TÊN THUỘC TÍNH MODEL KHUYENMAI
+                string bgClass = "bg-success";
+                string btnClass = "btn-outline-success";
+                string textCodeClass = "text-success";
+                string discountText = "";
+                string subDiscountText = "GIẢM GIÁ";
 
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden coupon-card">
-                <div class="coupon-left bg-warning text-dark text-center p-4 d-flex flex-column justify-content-center align-items-center">
-                    <h3 class="fw-bold m-0">FREE</h3>
-                    <small class="fw-semibold opacity-75">SHIP</small>
-                </div>
-                <div class="card-body p-4 d-flex flex-column justify-content-between">
-                    <div>
-                        <h5 class="card-title fw-bold text-dark mb-1">Freeship cuối tuần</h5>
-                        <p class="card-text text-muted small mb-3">Miễn phí vận chuyển tối đa 25.000đ cho mọi hóa đơn đặt vào T7 và Chủ Nhật.</p>
-                    </div>
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-dashed mb-2">
-                            <span class="fw-mono text-warning fw-bold text-uppercase" id="code-ship">WEEKENDSHIP</span>
-                            <button class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" onclick="copyToClipboard('WEEKENDSHIP', this)">Chép mã</button>
-                        </div>
-                        <small class="text-muted d-block"><i class="bi bi-clock me-1"></i>Hạn dùng: Hàng tuần</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+                // Giả định: LoaiGiamGia == 1 là giảm %, LoaiGiamGia == 2 là giảm số tiền trực tiếp
+                if (item.LoaiGiamGia == 1)
+                {
+                    discountText = $"{item.MucGiam:0}%";
+                    if (item.MucGiam >= 20)
+                    {
+                        bgClass = "bg-danger text-white";
+                        btnClass = "btn-outline-danger";
+                        textCodeClass = "text-danger";
+                    }
+                    else
+                    {
+                        bgClass = "bg-success text-white";
+                        btnClass = "btn-outline-success";
+                        textCodeClass = "text-success";
+                    }
+                }
+                else
+                {
+                    // Nếu là giảm số tiền cố định (Ví dụ 20000 -> 20K)
+                    if (item.MucGiam >= 1000)
+                    {
+                        discountText = $"{(item.MucGiam / 1000):0}K";
+                    }
+                    else
+                    {
+                        discountText = $"{item.MucGiam:N0}đ";
+                    }
+                    subDiscountText = "GIẢM THẲNG";
+                    bgClass = "bg-warning text-dark";
+                    btnClass = "btn-outline-warning text-dark";
+                    textCodeClass = "text-warning";
+                }
 
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden coupon-card">
-                <div class="coupon-left bg-danger text-white text-center p-4 d-flex flex-column justify-content-center align-items-center">
-                    <h3 class="fw-bold m-0">10%</h3>
-                    <small class="opacity-75">GIẢM GIÁ</small>
-                </div>
-                <div class="card-body p-4 d-flex flex-column justify-content-between">
-                    <div>
-                        <h5 class="card-title fw-bold text-dark mb-1">Đặc quyền VIP Gold</h5>
-                        <p class="card-text text-muted small mb-3">Mã giảm giá đặc biệt tri ân tài khoản thành viên tích lũy đạt hạng Vàng trở lên.</p>
-                    </div>
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-dashed mb-2">
-                            <span class="fw-mono text-danger fw-bold text-uppercase" id="code-vip">VIPGOLD10</span>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="copyToClipboard('VIPGOLD10', this)">Chép mã</button>
-                        </div>
-                        <small class="text-muted d-block"><i class="bi bi-clock me-1"></i>Hạn dùng: 30/09/2026</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+                string voucherCode = string.IsNullOrEmpty(item.VoucherCode) ? "NOCODE" : item.VoucherCode;
 
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden coupon-card">
+                        <!-- PHẦN RÃNH XÉ BÊN TRÁI -->
+                        <div class="coupon-left @bgClass text-center p-4 d-flex flex-column justify-content-center align-items-center">
+                            <h3 class="fw-bold m-0">@discountText</h3>
+                            <small class="fw-semibold opacity-75">@subDiscountText</small>
+                        </div>
+
+                        <!-- PHẦN THÔNG TIN BÊN PHẢI -->
+                        <div class="card-body p-4 d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="card-title fw-bold text-dark mb-1">@item.TenChuongTrinh</h5>
+                                <p class="card-text text-muted small mb-2">
+                                    Áp dụng cho đơn hàng tối thiểu từ <strong class="text-dark">@item.GiaTriDonToiThieu.ToString("N0")đ</strong>.
+                                </p>
+                                @if (item.LoaiGiamGia == 1 && item.SoTienGiamToiDa > 0)
+                                {
+                                    <p class="card-text text-muted small mb-3">
+                                        Giảm tối đa: <span class="text-danger fw-semibold">@item.SoTienGiamToiDa.ToString("N0")đ</span>
+                                    </p>
+                                }
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-dashed mb-2">
+                                    <span class="fw-mono @textCodeClass fw-bold text-uppercase" id="code-@item.KhuyenMaiId">@voucherCode</span>
+                                    <button class="btn btn-sm @btnClass rounded-pill px-3" onclick="copyToClipboard('@voucherCode', this)">Chép mã</button>
+                                </div>
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-clock me-1"></i>Hạn dùng: @item.NgayKetThuc.ToString("dd/MM/yyyy")
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- TRẠNG THÁI KHI CHƯA CÓ DỮ LIỆU KHUYẾN MÃI TRONG DB -->
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-ticket-perforated fs-1 text-muted opacity-50 d-block mb-3"></i>
+                <h5 class="fw-bold text-secondary">Hiện tại chưa có mã giảm giá mới!</h5>
+                <p class="text-muted small">Hệ thống sẽ liên tục cập nhật các chương trình ưu đãi hấp dẫn. Bạn vui lòng quay lại sau nhé!</p>
+            </div>
+        }
     </div>
 
+    <!-- BANNER SỰ KIỆN NỔI BẬT DƯỚI CÙNG -->
     <div class="mt-5 p-4 p-md-5 rounded-3 bg-success-subtle text-success position-relative shadow-sm overflow-hidden">
         <div class="row align-items-center">
             <div class="col-md-8">
@@ -93,64 +122,66 @@
     </div>
 </div>
 
-<script>
-    function copyToClipboard(text, buttonElement) {
-        navigator.clipboard.writeText(text).then(function() {
-            // Thay đổi chữ trên nút bấm để báo thành công
-            var originalText = buttonElement.innerHTML;
-            buttonElement.innerHTML = "<i class='bi bi-check2'></i> Đã chép";
-            buttonElement.classList.remove('btn-outline-success', 'btn-outline-warning', 'btn-outline-danger');
-            buttonElement.classList.add('btn-dark', 'text-white');
-            
-            // Phục hồi lại nút sau 2 giây
-            setTimeout(function() {
-                buttonElement.innerHTML = originalText;
-                buttonElement.classList.remove('btn-dark', 'text-white');
-                if(text === 'NONGSANNEW') buttonElement.classList.add('btn-outline-success');
-                if(text === 'WEEKENDSHIP') buttonElement.classList.add('btn-outline-warning');
-                if(text === 'VIPGOLD10') buttonElement.classList.add('btn-outline-danger');
-            }, 2000);
-        }).catch(function(err) {
-            console.error('Không thể sao chép mã: ', err);
-        });
-    }
-</script>
+@section Scripts {
+    <script>
+        function copyToClipboard(text, buttonElement) {
+            if (text === 'NOCODE') return;
 
-<style>
-    .coupon-card {
-        display: flex;
-        flex-direction: row;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .coupon-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-    }
-    /* Phần rãnh xé bên trái của Voucher */
-    .coupon-left {
-        width: 100px;
-        position: relative;
-        border-right: 2px dashed #ffffff;
-    }
-    /* Tạo hiệu ứng rãnh bán nguyệt ở mép vé */
-    .coupon-left::before, .coupon-left::after {
-        content: "";
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        background-color: #f8f9fa; /* Trùng với màu nền nền web */
-        border-radius: 50%;
-        right: -9px;
-    }
-    .coupon-left::before { top: -8px; }
-    .coupon-left::after { bottom: -8px; }
-    
-    .fw-mono {
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 1.1rem;
-        letter-spacing: 1px;
-    }
-    .border-dashed {
-        border-style: dashed !important;
-    }
-</style>
+            navigator.clipboard.writeText(text).then(function() {
+                var originalText = buttonElement.innerHTML;
+                buttonElement.innerHTML = "<i class='bi bi-check2'></i> Đã chép";
+                
+                // Lưu class cũ
+                var originalClasses = buttonElement.className;
+                buttonElement.className = "btn btn-sm btn-dark text-white rounded-pill px-3";
+                
+                setTimeout(function() {
+                    buttonElement.innerHTML = originalText;
+                    buttonElement.className = originalClasses;
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Không thể sao chép mã: ', err);
+            });
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .coupon-card {
+            display: flex;
+            flex-direction: row;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .coupon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+        .coupon-left {
+            width: 100px;
+            min-width: 100px;
+            position: relative;
+            border-right: 2px dashed #ffffff;
+        }
+        .coupon-left::before, .coupon-left::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #f8f9fa;
+            border-radius: 50%;
+            right: -9px;
+        }
+        .coupon-left::before { top: -8px; }
+        .coupon-left::after { bottom: -8px; }
+        
+        .fw-mono {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        .border-dashed {
+            border-style: dashed !important;
+        }
+    </style>
+}

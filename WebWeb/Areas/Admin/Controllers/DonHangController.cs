@@ -17,8 +17,18 @@ namespace WebWeb.Areas.Admin.Controllers
         }
 
         // 1. DANH SÁCH ĐƠN HÀNG LẺ
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm)
         {
+            var query = _context.DonHangLes.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(n => n.DonHangLeId.ToString().Contains(searchTerm) ||
+                                         n.KhachHang.HoTen.Contains(searchTerm) ||
+                                         n.NameCusNonAccount.Contains(searchTerm) ||
+                                         n.NgayDat.ToString("dd/MM/yyyy").Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
             var danhSachDonHang = await _context.DonHangLes
                 .Include(d => d.ChiTietDonHangLes)
                 .Include(d => d.KhachHang)
@@ -141,8 +151,17 @@ namespace WebWeb.Areas.Admin.Controllers
         }
 
         // 3. DANH SÁCH ĐƠN HÀNG ĐỊNH KỲ
-        public async Task<IActionResult> IndexDinhKy()
+        public async Task<IActionResult> IndexDinhKy(string searchTerm)
         {
+            var query = _context.GoiDangKyDinhKies.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(n => n.GoiId.ToString().Contains(searchTerm) ||
+                                         n.KhachHang.HoTen.Contains(searchTerm) ||
+                                         n.NgayBatDau.ToString("dd/MM/yyyy").Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
             var danhSachGoi = await _context.GoiDangKyDinhKies
                 .Include(g => g.KhachHang)
                 .Include(g => g.DiaChi)

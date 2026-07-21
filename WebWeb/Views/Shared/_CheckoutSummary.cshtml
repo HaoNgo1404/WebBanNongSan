@@ -41,6 +41,30 @@
         <div class="d-flex justify-content-between mt-3 pt-2 border-top">
             <span class="fw-bold text-secondary">Tổng tiền:</span>
             <span class="h5 text-danger fw-bold checkout-summary-total">@tongTienTamTinh.ToString("N0") đ</span>
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                // Lấy thông tin điểm tích lũy được truyền từ Controller qua ViewBag
+                int diemHienCo = ViewBag.DiemTichLuy ?? 0;
+                <div class="card p-3 mb-3 border-success-subtle bg-success-subtle bg-opacity-10 rounded-3">
+                    <div class="form-check d-flex align-items-center gap-2">
+                        <input class="form-check-input border-success" type="checkbox" id="chkUsePoints" name="usePoints" value="true">
+                        <label class="form-check-label fw-semibold text-success-emphasis" for="chkUsePoints">
+                            Sử dụng điểm tích lũy giảm giá
+                        </label>
+                    </div>
+                    <div id="pointsInputArea" class="mt-2" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between text-muted small mb-2">
+                            <span>Bạn đang có: <strong class="text-success" id="maxPoints">@diemHienCo</strong> điểm</span>
+                            <span>(1 điểm = 1 đồng)</span>
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <input type="number" id="inputDiemDung" name="diemDung" class="form-control" value="0" min="0" max="@diemHienCo">
+                            <button class="btn btn-success" type="button" id="btnApplyPoints">Áp dụng</button>
+                        </div>
+                        <small class="text-danger d-block mt-1" id="pointsError"></small>
+                    </div>
+                </div>
+            }
         </div>
     }
     else

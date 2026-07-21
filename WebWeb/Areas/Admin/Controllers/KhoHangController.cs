@@ -25,8 +25,16 @@ namespace WebWeb.Areas.Admin.Controllers
         // MỤC 1: DANH SÁCH TỒN KHO GỘP THEO TỪNG NÔNG SẢN
         // ==========================================
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm)
         {
+            var query = _context.LoHangs.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(n => n.PhieuNhapId.ToString().Contains(searchTerm) ||
+                                         n.NongSan.TenNongSan.Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
             // Lấy tất cả lô hàng để tiến hành gộp nhóm theo Nông sản ở bộ nhớ (In-Memory)
             var allLoHangs = await _context.LoHangs
                 .Include(l => l.NongSan)
@@ -76,8 +84,18 @@ namespace WebWeb.Areas.Admin.Controllers
         // MỤC 2: NHẬT KÝ CHI TIẾT CÁC LÔ HÀNG ĐÃ NHẬP
         // ==========================================
         [HttpGet]
-        public async Task<IActionResult> LoHangList()
+        public async Task<IActionResult> LoHangList(string searchTerm)
         {
+            var query = _context.LoHangs.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(n => n.LoHangId.ToString().Contains(searchTerm) ||
+                                         n.NongSan.TenNongSan.Contains(searchTerm) ||
+                                         n.NongSan.NhaVuon.TenNhaVuon.Contains(searchTerm) ||
+                                         n.PhieuNhapKho.NgayLapPhieu.ToString("dd/MM/yyyy").Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
             var listLoHang = await _context.LoHangs
                 .Include(l => l.NongSan)
                 .Include(l => l.PhieuNhapKho)
@@ -351,8 +369,18 @@ namespace WebWeb.Areas.Admin.Controllers
 
         // 4.1. Lấy danh sách lịch sử các báo cáo hao hụt
         [HttpGet]
-        public async Task<IActionResult> DepletionList()
+        public async Task<IActionResult> DepletionList(string searchTerm)
         {
+            var query = _context.BaoCaoHaoHuts.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(n => n.BaoCaoId.ToString().Contains(searchTerm) ||
+                                         n.NgayLap.ToString("dd/MM/yyyy").Contains(searchTerm) ||
+                                         n.NhanVien.HoTen.Contains(searchTerm));
+                ViewBag.SearchTerm = searchTerm;
+            }
+
             var listBaoCao = await _context.BaoCaoHaoHuts
                 .Include(b => b.NhanVien)
                 .Include(b => b.ChiTietBaoCaoHaoHuts)

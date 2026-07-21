@@ -173,12 +173,7 @@ body.admin-body {
     color: var(--admin-text);
 }
 
-.admin-shell {
-    display: flex;
-    overflow-x: hidden; /* Chặn tràn khung khi dịch chuyển */
-    position: relative;
-    min-height: 100vh;
-}
+
 
 /* ==========================================================
    CẤU HÌNH GỐC CHO SIDEBAR VÀ MAIN KHI ĐANG MỞ
@@ -201,16 +196,55 @@ body.admin-body {
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 
+.admin-shell {
+    display: flex;
+    overflow: hidden; /* Chặn tràn khung khi dịch chuyển */
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
+    min-height: 100vh;
+}
+
 .admin-main {
     margin-left: var(--sidebar-width); /* Khoảng trống mặc định bằng chiều rộng sidebar */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;       /* Cực kỳ quan trọng: Cho phép flex item co lại nhỏ hơn kích thước nội dung */
+    max-width: 100%;    /* Giới hạn không cho phép phình rộng vượt quá màn hình */
     background: var(--admin-bg);
     
     /* Hiệu ứng co giãn width mượt mà */
-    transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
-                width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    transition: all var(--transition);
+}
+
+/* Vùng chứa nội dung RenderBody */
+.admin-body-container {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto; /* Tự động hiện thanh cuộn ngang khi nội dung con (ví dụ: Table công nợ, biểu đồ) vượt quá kích thước hiển thị */
+    padding-bottom: 15px; /* Khoảng cách đệm tránh thanh scrollbar đè sát vào nội dung */
+}
+
+/* Tùy biến thanh scrollbar của admin-body-container cho đẹp mắt, không bị thô cứng */
+.admin-body-container::-webkit-scrollbar {
+    height: 6px; /* Độ dày thanh cuộn ngang */
+    width: 6px;  /* Độ dày thanh cuộn dọc */
+}
+
+.admin-body-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.admin-body-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.admin-body-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 

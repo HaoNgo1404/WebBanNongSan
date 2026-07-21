@@ -8,11 +8,33 @@
             foreach (var item in Model)
             {
                 <li class="py-2 px-2 border-bottom item-suggest">
-                    <a class="text-decoration-none text-dark d-flex align-items-center justify-content-between" 
-                       asp-controller="Product" asp-action="Detail" asp-route-id="@item.NongSanId">
-                        <span class="fw-medium text-success">@item.TenNongSan</span>
-                        <small class="text-muted">@item.GiaBanNiemYet.ToString("#,##0")đ</small>
-                    </a>
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <!-- Tên sản phẩm & Giá (Thẻ <a> bao lấy khối thông tin) -->
+                        <a class="text-decoration-none text-dark d-flex align-items-center justify-content-between flex-grow-1" 
+                           asp-controller="Product" asp-action="Detail" asp-route-id="@item.NongSanId">
+                            
+                            <!-- Khối chứa Ảnh + Tên -->
+                            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                <img src="@Url.Content("~/images/" + item.HinhAnh)" 
+                                     alt="@item.TenNongSan" 
+                                     class="rounded border"
+                                     style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;" />
+                                
+                                <span class="fw-medium text-success text-truncate">@item.TenNongSan</span>
+                            </div>
+
+                            <small class="text-muted ms-2 text-nowrap">@item.GiaBanNiemYet.ToString("#,##0")đ</small>
+                        </a>
+                        
+                        <!-- NÚT GIỎ HÀNG: Dùng onclick chặn lan truyền (stopPropagation) & gọi hàm AJAX -->
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-success rounded-2 btn-add-to-cart p-0 d-grid" 
+                                style="width: 32px; height: 32px; flex-shrink: 0; min-width: 32px; place-items: center; line-height: 0;"
+                                onclick="event.preventDefault(); event.stopPropagation(); quickAddToCart(@item.NongSanId);"
+                                title="Thêm vào giỏ hàng">
+                            <i class="bi bi-cart-plus text-success fs-6"></i>
+                        </button>
+                    </div>
                 </li>
             }
         }

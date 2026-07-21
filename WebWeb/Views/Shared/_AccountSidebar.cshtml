@@ -15,7 +15,8 @@
         <li><a class="@(currentAction == "RewardPoints" ? "active" : "")" asp-controller="Notification" asp-action="RewardPoints"><i class="bi bi-gem"></i> Điểm Tích Lũy</a></li>
         <li><a class="@(currentAction == "Addresses" ? "active" : "")" asp-controller="Account" asp-action="Addresses"><i class="bi bi-geo-alt"></i> Địa chỉ</a></li>
         <li><a class="@(currentAction == "Orders" ? "active" : "")" asp-controller="Order" asp-action="OrderHistory"><i class="bi bi-bag"></i> Đơn hàng</a></li>
-        <li><a class="@(currentAction == "GoiDinhKy" ? "active" : "")" asp-controller="Order" asp-action="LichSuGoiDinhKy"><i class="bi bi-bag"></i> Gói định kỳ</a></li>
+        <li><a class="@(currentAction == "GoiDinhKy" ? "active" : "")" asp-controller="Order" asp-action="LichSuGoiDinhKy"><i class="bi bi-box"></i> Gói định kỳ</a></li>
+        <li><a class="@(currentAction == "SupportHistory" ? "active" : "")" asp-controller="Account" asp-action="SupportHistory"><i class="bi bi-headset"></i> Lịch sử khiếu nại</a></li>
         <li><a class="@(currentAction == "Wishlist" ? "active" : "")" asp-controller="Wishlist" asp-action="Index"><i class="bi bi-heart"></i> Yêu thích</a></li>
         <li><a class="@(currentAction == "ChangePassword" ? "active" : "")" asp-controller="Account" asp-action="ChangePassword"><i class="bi bi-shield-lock"></i> Đổi mật khẩu</a></li>
         <li><a class="@(currentAction == "Logout" ? "active" : "")" asp-controller="Account" asp-action="Logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>

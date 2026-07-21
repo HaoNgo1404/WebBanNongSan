@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/WebWeb.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <header class="site-header sticky-top">
@@ -98,22 +99,39 @@
                         </li>
                         <li class="nav-item">
                             <div class="dropdown me-3">
-                                <a class="nav-item position-relative dropdown" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <!-- NÚT CHUÔNG THÔNG BÁO -->
+                                <a class="nav-link position-relative p-2" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-bell fs-5 text-dark"></i>
-                                    <span class="position-absolute top-2 start-75 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                                    <!-- Chấm đỏ báo thông báo mới (ẩn/hiện tự động bằng JS) -->
+                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="display: none;"></span>
                                 </a>
-                                
-                                <div class="dropdown-menu dropdown-menu-end shadow-sm p-0 border-0 rounded-3" aria-labelledby="notificationDropdown" style="width: 360px; max-height: 450px; overflow-y: auto;">
-                                    <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center rounded-top-3">
-                                        <h6 class="fw-bold text-success m-0"><i class="bi bi-bell-fill me-1"></i> Thông báo mới nhất</h6>
-                                        <a href="/Notification/TrackingOrder" class="small text-decoration-none text-muted">Xem tất cả</a>
-                                    </div>
+
+                                <!-- DROPDOWN KHUNG THÔNG BÁO -->
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-0 border-0 rounded-4 overflow-hidden" aria-labelledby="notificationDropdown" style="width: 360px;">
                                     
-                                    <div class="list-group list-group-flush" id="notiDropdownContainer">
+                                    <!-- 1. HEADER THÔNG BÁO -->
+                                    <div class="p-3 bg-success text-white d-flex justify-content-between align-items-center">
+                                        <h6 class="fw-bold m-0"><i class="bi bi-bell-fill me-2"></i>Thông báo của bạn</h6>
+                                        <a href="/Notification/TrackingOrder" class="small text-white text-decoration-none opacity-75 hover-opacity-100">
+                                            Xem tất cả <i class="bi bi-chevron-right style="font-size: 0.75rem;"></i>
+                                        </a>
+                                    </div>
+
+                                    <!-- 2. DANH SÁCH THÔNG BÁO (CUỘN MƯỢT MÀ) -->
+                                    <div class="list-group list-group-flush" id="notiDropdownContainer" style="max-height: 360px; overflow-y: auto;">
                                         <div class="p-4 text-center text-muted small" id="notiEmptyText">
-                                            <i class="bi bi-chat-left-dots fs-3 d-block mb-2 opacity-50"></i> Đang tải thông báo...
+                                            <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+                                            Đang tải thông báo...
                                         </div>
                                     </div>
+
+                                    <!-- 3. FOOTER LỐI TẮT ƯU ĐÃI -->
+                                    <div class="p-2.5 bg-light text-center border-top">
+                                        <a href="/Notification/Offers" class="text-success fw-semibold small text-decoration-none d-block py-1">
+                                            <i class="bi bi-gift-fill me-1 text-danger"></i> Săn voucher & ưu đãi mới nhất &rarr;
+                                        </a>
+                                    </div>
+
                                 </div>
                             </div>
                         </li>
@@ -264,139 +282,18 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/cart.js" asp-append-version="true"></script>
     <script src="~/js/order.js" asp-append-version="true"></script>
+    <script>
+        window.appNotifications = {
+            newUserWelcome: '@Html.Raw(TempData["NewUserWelcome"])',
+            loginSuccessMessage: '@Html.Raw(TempData["LoginSuccessMessage"])',
+            orderSuccessMessage: '@Html.Raw(TempData["OrderSuccessMessage"])',
+            sendOTPSuccessMessage: '@Html.Raw(TempData["SendOTPSuccessMessage"])',
+            resetPasswordSuccessMessage: '@Html.Raw(TempData["ResetPasswordSuccessMessage"])'
+        };
+    </script>
     <script src="~/js/notification.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-    @if (TempData["NewUserWelcome"] != null)
-    {
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                Swal.fire({
-                    title: '🎉 QUÀ RA MẮT THÀNH VIÊN MỚI! 🎉',
-                    html: `@Html.Raw(TempData["NewUserWelcome"])`,
-                    icon: 'success',
-                    confirmButtonText: 'Tuyệt vời, mua sắm ngay!',
-                    confirmButtonColor: '#198754', // Màu xanh thương hiệu
-                    allowOutsideClick: true
-                });
-            });
-        </script>
-    }
-    else if (TempData["SuccessMessage"] != null)
-    {
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                Swal.fire({
-                    title: 'CHÀO MỪNG TRỞ LẠI!',
-                    html: `@Html.Raw(TempData["SuccessMessage"])`,
-                    icon: 'success',
-                    confirmButtonText: 'Bắt đầu mua sắm ngay!',
-                    confirmButtonColor: '#198754', // Màu xanh thương hiệu
-                    allowOutsideClick: true
-                });
-            });
-        </script>
-    }
-
-<style>
-    /* Nút bong bóng chat nổi tròn tròn ở góc dưới bên phải */
-    #chatbot-bubble {
-        position: fixed;
-        bottom: 25px;
-        right: 25px;
-        width: 60px;
-        height: 60px;
-        background-color: #198754; /* Màu xanh lá cây thương hiệu */
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-        z-index: 9999;
-        transition: all 0.3s ease;
-    }
-    #chatbot-bubble:hover {
-        transform: scale(1.1);
-        background-color: #157347;
-    }
-    /* Hộp thoại chat ẩn/hiện */
-    #chatbot-box {
-        position: fixed;
-        bottom: 95px;
-        right: 25px;
-        width: 350px;
-        height: 480px;
-        background-color: white;
-        border-radius: 12px;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
-        display: none; /* Mặc định ẩn */
-        flex-direction: column;
-        z-index: 9999;
-        overflow: hidden;
-        border: 1px solid #e1e1e1;
-    }
-    /* Header hộp chat */
-    .chat-header {
-        background-color: #198754;
-        color: white;
-        padding: 12px 15px;
-        font-weight: bold;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    /* Khung chứa các dòng tin nhắn */
-    .chat-messages {
-        flex: 1;
-        padding: 15px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        background-color: #f8f9fa;
-    }
-    /* Bong bóng tin nhắn */
-    .message {
-        max-width: 80%;
-        padding: 8px 12px;
-        border-radius: 15px;
-        font-size: 14px;
-        line-height: 1.4;
-    }
-    .message.user {
-        background-color: #d1e7dd;
-        color: #0f5132;
-        align-self: flex-end;
-        border-bottom-right-radius: 2px;
-    }
-    .message.bot {
-        background-color: white;
-        color: #212529;
-        align-self: flex-start;
-        border-bottom-left-radius: 2px;
-        border: 1px solid #dee2e6;
-    }
-    /* Form gõ tin nhắn */
-    .chat-input-area {
-        padding: 10px;
-        border-top: 1px solid #dee2e6;
-        display: flex;
-        gap: 8px;
-        background: white;
-    }
-    .chat-input-area input {
-        flex: 1;
-        border: 1px solid #ced4da;
-        border-radius: 20px;
-        padding: 6px 15px;
-        font-size: 14px;
-        outline: none;
-    }
-</style>
 
 <div id="chatbot-bubble">
     <i class="bi bi-chat-dots-fill"></i>
@@ -405,7 +302,12 @@
 <div id="chatbot-box" class="flex-column">
     <div class="chat-header">
         <span class="d-flex align-items-center"><i class="bi bi-robot me-2"></i> Trợ lý ảo Green Fresh</span>
-        <button type="button" class="btn-close btn-close-white" style="font-size: 12px;" id="close-chat"></button>
+        <div class="d-flex align-items-center gap-1">
+            <button type="button" class="btn-expand-chat" id="expand-chat" title="Phóng to">
+                <i class="bi bi-arrows-fullscreen" id="expand-icon"></i>
+            </button>
+            <button type="button" class="btn-close btn-close-white" style="font-size: 12px;" id="close-chat"></button>
+        </div>
     </div>
     <div class="chat-messages" id="chat-messages-container">
         @* <div class="message bot">
@@ -414,7 +316,7 @@
     </div>
     <div class="chat-input-area">
         <input type="text" id="user-chat-input" placeholder="Nhập câu hỏi của bạn..." autocomplete="off">
-        <button class="btn btn-success btn-sm rounded-circle px-2" id="send-chat-btn">
+        <button class="btn btn-success btn-sm rounded-circle px-3" id="send-chat-btn">
             <i class="bi bi-send-fill"></i>
         </button>
     </div>
@@ -428,6 +330,10 @@
         const sendBtn = document.getElementById('send-chat-btn');
         const inputField = document.getElementById('user-chat-input');
         const messagesContainer = document.getElementById('chat-messages-container');
+
+        // CÁC BIẾN MỚI CHO TÍNH NĂNG PHÓNG TO
+        const expandBtn = document.getElementById('expand-chat');
+        const expandIcon = document.getElementById('expand-icon');
 
         // Biến kiểm tra xem câu chào mừng đã chạy chưa
         let isWelcomeTyped = false; 
@@ -454,6 +360,29 @@
         closeBtn.addEventListener('click', () => {
             box.style.display = 'none';
         });
+
+        // ==========================================================================
+        // LOGIC NÂNG CẤP: XỬ LÝ PHÓNG TO / THU NHỎ
+        // ==========================================================================
+        if (expandBtn) {
+            expandBtn.addEventListener('click', () => {
+                box.classList.toggle('expanded');
+                
+                // Thay đổi Icon và Tooltip tương ứng với trạng thái
+                if (box.classList.contains('expanded')) {
+                    expandIcon.className = "bi bi-fullscreen-exit";
+                    expandBtn.setAttribute('title', 'Thu nhỏ');
+                } else {
+                    expandIcon.className = "bi bi-arrows-fullscreen";
+                    expandBtn.setAttribute('title', 'Phóng to');
+                }
+
+                // Cuộn xuống dòng tin nhắn cuối cùng sau khi giao diện thay đổi kích thước
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 250);
+            });
+        }
 
         // 3. Hàm gửi tin nhắn
         function sendMessage() {
@@ -509,7 +438,7 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight; // Tự động cuộn xuống dưới cùng
         }
 
-        // Hiển thị tin nhắn của Bot từng ký tự một (Typing Effect)
+        @* // Hiển thị tin nhắn của Bot từng ký tự một (Typing Effect)
         function appendMessageWithTypingEffect(text, sender) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender);
@@ -537,6 +466,44 @@
             }
 
             typeCharacter();
+        } *@
+        // Hiển thị tin nhắn của Bot từng dòng một (Line-by-line Effect)
+        function appendMessageWithTypingEffect(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender);
+            messagesContainer.appendChild(msgDiv);
+
+            // 1. Tách chuỗi tin nhắn thành mảng các dòng dựa trên ký tự xuống dòng '\n'
+            const lines = text.split('\n');
+            let lineIndex = 0;
+            const lineDelay = 250; // Khoảng thời gian trễ giữa các dòng (250ms)
+
+            function showNextLine() {
+                if (lineIndex < lines.length) {
+                    // Lấy nội dung dòng hiện tại
+                    const currentLine = lines[lineIndex];
+
+                    // Nếu không phải dòng đầu tiên, chèn thẻ <br> để xuống dòng trước khi thêm nội dung mới
+                    if (lineIndex > 0) {
+                        msgDiv.innerHTML += '<br>';
+                    }
+
+                    // Thêm toàn bộ nội dung của dòng hiện tại vào giao diện
+                    msgDiv.innerHTML += currentLine;
+
+                    // Tăng chỉ số dòng
+                    lineIndex++;
+
+                    // Tự động cuộn mượt khung chat xuống dưới cùng sau khi dòng mới xuất hiện
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                    // Gọi đệ quy hiển thị dòng tiếp theo sau khoảng thời gian delay
+                    setTimeout(showNextLine, lineDelay);
+                }
+            }
+
+            // Bắt đầu chạy hiển thị dòng đầu tiên
+            showNextLine();
         }
 
         // Hàm tạo hiệu ứng "AI đang suy nghĩ"

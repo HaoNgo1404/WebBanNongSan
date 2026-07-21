@@ -25,9 +25,58 @@ $(document).ready(function () {
             }
         });
     });
+
+    // 3. Hiển thị các thông báo SweetAlert2 từ TempData
+    if (window.appNotifications) {
+        if (window.appNotifications.newUserWelcome) {
+            Swal.fire({
+                title: '🎉 QUÀ RA MẮT THÀNH VIÊN MỚI! 🎉',
+                html: window.appNotifications.newUserWelcome,
+                icon: 'success',
+                confirmButtonText: 'Tuyệt vời, mua sắm ngay!',
+                confirmButtonColor: '#198754',
+                allowOutsideClick: true
+            });
+        } else if (window.appNotifications.loginSuccessMessage) {
+            Swal.fire({
+                title: 'CHÀO MỪNG TRỞ LẠI!',
+                html: window.appNotifications.loginSuccessMessage,
+                icon: 'success',
+                confirmButtonText: 'Bắt đầu mua sắm ngay!',
+                confirmButtonColor: '#198754',
+                allowOutsideClick: true
+            });
+        } else if (window.appNotifications.orderSuccessMessage) {
+            Swal.fire({
+                title: 'SỬ DỤNG ĐIỂM THÀNH CÔNG!',
+                html: window.appNotifications.orderSuccessMessage,
+                icon: 'success',
+                confirmButtonColor: '#198754',
+                allowOutsideClick: true
+            });
+        } else if (window.appNotifications.sendOTPSuccessMessage) {
+            Swal.fire({
+                title: 'ĐÃ GỬI MÃ OTP!',
+                html: window.appNotifications.sendOTPSuccessMessage,
+                icon: 'info',
+                confirmButtonText: 'Hiểu rồi',
+                confirmButtonColor: '#198754',
+                allowOutsideClick: true
+            });
+        } else if (window.appNotifications.resetPasswordSuccessMessage) {
+            Swal.fire({
+                title: 'ĐỔI MẬT KHẨU THÀNH CÔNG!',
+                html: window.appNotifications.resetPasswordSuccessMessage,
+                icon: 'success',
+                confirmButtonText: 'Đăng nhập ngay',
+                confirmButtonColor: '#198754',
+                allowOutsideClick: true
+            });
+        }
+    }
 });
 
-// Hàm lấy dữ liệu thật đổ vào danh sách chuông thông báo thả xuống
+// Hàm nạp thông báo thả xuống đa dạng loại
 function loadNotificationsToDropdown() {
     $.ajax({
         url: '/Notification/GetNotificationsJson',
@@ -36,41 +85,28 @@ function loadNotificationsToDropdown() {
             if (res.success && res.data && res.data.length > 0) {
                 var notiHtml = '';
                 
-                res.data.forEach(function (donHang) {
-                    var bieuTuong = 'bi-box-seam';
-                    var mauSac = 'text-info';
-                    var tieuDe = 'Trạng thái đơn hàng #' + donHang.orderId;
-                    var noiDung = 'Nhấn để xem lộ trình xử lý nông sản của đơn hàng này.';
-
-                    if (donHang.trangThai === "ChoDuyet") {
-                        bieuTuong = 'bi-file-earmark-text'; mauSac = 'text-info';
-                        tieuDe = 'Đơn hàng #' + donHang.orderId + ' đang chờ duyệt';
-                        noiDung = 'Hệ thống đã tiếp nhận đơn hàng của bạn và đang chờ xác nhận.';
-                    } else if (donHang.trangThai === "ChoXuLy") {
-                        bieuTuong = 'bi-box-seam-fill'; mauSac = 'text-primary';
-                        tieuDe = 'Đơn hàng #' + donHang.orderId + ' đã được duyệt';
-                        noiDung = 'Nhà vườn đang tiến hành thu hoạch nông sản tươi và đóng gói.';
-                    } else if (donHang.trangThai === "DangGiao") {
-                        bieuTuong = 'bi-truck'; mauSac = 'text-warning';
-                        tieuDe = 'Đơn hàng #' + donHang.orderId + ' đang được giao';
-                        noiDung = 'Đơn hàng nông sản đã được bàn giao cho shipper. Vui lòng chú ý máy.';
-                    } else if (donHang.trangThai === "HoanThanh") {
-                        bieuTuong = 'bi-check-circle-fill'; mauSac = 'text-success';
-                        tieuDe = 'Đơn hàng #' + donHang.orderId + ' giao thành công 🎉';
-                        noiDung = 'Cảm ơn bạn đã tin tưởng ủng hộ nông sản sạch GreenFresh.';
-                    } else if (donHang.trangThai === "DaHuy") {
-                        bieuTuong = 'bi-x-circle'; mauSac = 'text-secondary';
-                        tieuDe = 'Đơn hàng #' + donHang.orderId + ' đã hủy';
-                        noiDung = 'Đơn hàng nông sản này đã bị hủy bỏ trên hệ thống.';
-                    }
+                res.data.forEach(function (item) {
+                    var triggerClass = item.isPopup ? 'noti-item-trigger' : '';
+                    var targetUrl = item.isPopup ? '#' : item.url;
 
                     notiHtml += `
-                        <a href="#" class="list-group-item list-group-item-action p-3 noti-item-trigger border-bottom" data-order-id="${donHang.orderId}">
+                        <a href="${targetUrl}" 
+                           class="list-group-item list-group-item-action p-3 ${triggerClass} border-bottom" 
+                           data-order-id="${item.id}">
                             <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                                <strong class="${mauSac} small fw-bold"><i class="bi ${bieuTuong} me-1"></i> ${tieuDe}</strong>
-                                <small class="text-muted" style="font-size:0.75rem;">${donHang.ngayDat}</small>
+                                <strong class="small fw-bold text-dark">
+                                    <i class="bi ${item.icon} me-1"></i> ${item.title}
+                                </strong>
+                                <small class="text-muted" style="font-size:0.72rem;">${item.time}</small>
                             </div>
-                            <p class="mb-0 text-muted text-truncate" style="font-size:0.8rem; max-width:320px;">${noiDung}</p>
+                            <p class="mb-1 text-muted text-truncate" style="font-size:0.8rem; max-width:300px;">
+                                ${item.content}
+                            </p>
+                            <div>
+                                <span class="badge ${item.badgeClass} style="font-size:0.65rem;">
+                                    ${getCategoryName(item.type)}
+                                </span>
+                            </div>
                         </a>
                     `;
                 });
@@ -80,7 +116,7 @@ function loadNotificationsToDropdown() {
             } else {
                 $('#notiDropdownContainer').html(`
                     <div class="p-4 text-center text-muted small">
-                        <i class="bi bi-chat-left-dots fs-3 d-block mb-2 opacity-50"></i> Bạn chưa có thông báo tiến độ nào!
+                        <i class="bi bi-chat-left-dots fs-3 d-block mb-2 opacity-50"></i> Không có thông báo mới nào!
                     </div>
                 `);
                 $('.bi-bell').siblings('.rounded-circle').hide();
@@ -90,4 +126,15 @@ function loadNotificationsToDropdown() {
             $('#notiDropdownContainer').html('<div class="p-3 text-center text-danger small">Không thể nạp dữ liệu thông báo!</div>');
         }
     });
+}
+
+// Helper lấy nhãn hiển thị cho loại thông báo
+function getCategoryName(type) {
+    switch (type) {
+        case 'order': return 'Đơn hàng';
+        case 'promo': return 'Ưu đãi';
+        case 'support': return 'Khiếu nại/CSKH';
+        case 'reward': return 'Tích điểm';
+        default: return 'Hệ thống';
+    }
 }

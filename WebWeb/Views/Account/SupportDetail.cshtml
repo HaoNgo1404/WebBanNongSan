@@ -1,0 +1,102 @@
+@model WebWeb.Models.KhieuNai
+
+@{
+    ViewData["Title"] = "Chi tiết yêu cầu hỗ trợ #" + Model.KhieuNaiId;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0 text-success fw-bold">Chi tiết yêu cầu hỗ trợ #@Model.KhieuNaiId</h3>
+        <a href="@Url.Action("SupportHistory", "Account")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Quay lại lịch sử
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Thông tin khiếu nại -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-light fw-bold">Nội dung phản hồi từ bạn</div>
+                <div class="card-body">
+                    <p class="text-muted mb-2">Ngày gửi: <strong>@Model.NgayGui.ToString("dd/MM/yyyy HH:mm")</strong></p>
+                    <p class="card-text">@Model.NoiDung</p>
+                    
+                    @if (!string.IsNullOrEmpty(Model.HinhAnhMinhChung))
+                    {
+                        <div class="mt-3">
+                            <h6 class="fw-bold">Hình ảnh minh chứng:</h6>
+                            <img src="@Model.HinhAnhMinhChung" alt="Hình ảnh minh chứng" class="img-thumbnail" style="max-height: 250px;" />
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Kết quả xử lý từ CSKH -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info text-white fw-bold">Phương án xử lý từ bộ phận CSKH</div>
+                <div class="card-body">
+                    @if (Model.TrangThai == 1) // Giả định status 2 là Đã xử lý
+                    {
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill me-2"></i> Yêu cầu này đã được xử lý hoàn tất.
+                        </div>
+                        <p class="card-text"><strong>Phương án giải quyết:</strong></p>
+                        <p class="bg-light p-3 rounded">@(string.IsNullOrEmpty(Model.PhuongAnXuLy) ? "Đã được ghi nhận và xử lý." : Model.PhuongAnXuLy)</p>
+                        
+                        @if (Model.SoTienHoan > 0)
+                        {
+                            <p class="text-danger fw-bold">Số tiền hoàn trả: @Model.SoTienHoan.ToString("N0") VNĐ</p>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning mb-0">
+                            <i class="bi bi-hourglass-split me-2"></i> Yêu cầu của bạn đang tiếp nhận và chờ xử lý từ bộ phận CSKH.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin liên quan -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light fw-bold">Thông tin tham chiếu</div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            Trạng thái:
+                            @if (Model.TrangThai == 1)
+                            {
+                                <span class="badge bg-success">Đã xử lý</span>
+                            }
+                            else if (Model.TrangThai == 0)
+                            {
+                                <span class="badge bg-warning text-dark">Đang xử lý</span>
+                            }
+                            @* else
+                            {
+                                <span class="badge bg-secondary">Mới tiếp nhận</span>
+                            } *@
+                        </li>
+                        @if (Model.DonHangLeId.HasValue)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                Đơn hàng liên quan:
+                                <a href="/Order/Detail/@Model.DonHangLeId" class="fw-bold">#@Model.DonHangLeId</a>
+                            </li>
+                        }
+                        @if (Model.NhanVien != null)
+                        {
+                            <li class="list-group-item px-0">
+                                <small class="text-muted d-block">Nhân viên phụ trách:</small>
+                                <strong>@Model.NhanVien.HoTen</strong>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,140 @@
+@model IEnumerable<WebWeb.Models.KhieuNai>
+@{
+    ViewData["Title"] = "Lịch sử khiếu nại & Hỗ trợ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="account-dashboard">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <partial name="_AccountSidebar" />
+        </div>
+        <div class="col-lg-9">
+            <div class="dashboard-content card p-4 shadow-sm border-0 rounded-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-headset text-success"></i> Lịch sử khiếu nại & Hỗ trợ CSKH
+                        </h2>
+                        <p class="text-muted small mb-0">Theo dõi tiến độ xử lý các phản hồi và yêu cầu hỗ trợ của bạn</p>
+                    </div>
+                    <a asp-action="Index" asp-controller="Home" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="bi bi-arrow-left"></i> Quay lại trang cá nhân
+                    </a>
+                </div>
+
+                @if (!Model.Any())
+                {
+                    <!-- Trạng thái trống khi chưa có khiếu nại nào -->
+                    <div class="card border-0 shadow-sm rounded-3 text-center py-5">
+                        <div class="card-body">
+                            <i class="bi bi-shield-check display-4 text-success opacity-50 d-block mb-3"></i>
+                            <h5 class="fw-bold text-dark">Bạn chưa gửi yêu cầu khiếu nại nào!</h5>
+                            <p class="text-muted small mb-4">Các sản phẩm hoặc đơn hàng có vấn đề sẽ được ghi nhận xử lý tại đây.</p>
+                            <a asp-controller="Order" asp-action="OrderHistory" class="btn btn-success rounded-pill px-4">
+                                Xem lịch sử đơn hàng
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Danh sách thẻ khiếu nại -->
+                    <div class="row g-4">
+                        @foreach (var item in Model)
+                        {
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                                        <div>
+                                            <span class="fw-bold text-dark">Mã khiếu nại: #KN-@item.KhieuNaiId</span>
+                                            <span class="text-muted mx-2">|</span>
+                                            <span class="small text-muted">Đơn hàng liên quan: 
+                                                <a asp-controller="Order" asp-action="OrderHistoryDetail" asp-route-id="@item.DonHangLeId" class="fw-bold text-success text-decoration-none">
+                                                    #@item.DonHangLeId
+                                                </a>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            @* Trạng thái khiếu nại: 0 - Chờ tiếp nhận, 1 - Đang xử lý, 2 - Hoàn tất / Đã giải quyết, 3 - Từ chối *@
+                                            @* @if (item.TrangThai == 0)
+                                            {
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Chờ tiếp nhận</span>
+                                            }
+                                            else *@
+                                            @if (item.TrangThai == 0) 
+                                            {
+                                                <span class="badge bg-info text-dark"><i class="bi bi-gear-wide-connected me-1"></i>Đang xử lý</span>
+                                            }
+                                            else if (item.TrangThai == 1)
+                                            {
+                                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Đã giải quyết</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Từ chối / Khép dossier</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="card-body p-4">
+                                        <div class="row g-3">
+                                            <!-- Nội dung khiếu nại từ người dùng -->
+                                            <div class="col-md-7 border-end-md">
+                                                <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-chat-left-text me-1"></i> Nội dung phản hồi của bạn:</h6>
+                                                <p class="text-dark bg-light p-3 rounded-3 small mb-3">@item.NoiDung</p>
+                                                
+                                                <div class="d-flex align-items-center justify-content-between text-muted small">
+                                                    <span><i class="bi bi-calendar3 me-1"></i> Ngày gửi: @item.NgayGui.ToString("dd/MM/yyyy HH:mm")</span>
+                                                    
+                                                    @if (!string.IsNullOrEmpty(item.HinhAnhMinhChung))
+                                                    {
+                                                        <a href="~/uploads/khieunai/@item.HinhAnhMinhChung" target="_blank" class="text-primary text-decoration-none fw-semibold">
+                                                            <i class="bi bi-image me-1"></i> Xem ảnh minh chứng
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <!-- Phương án phản hồi / Xử lý từ Ban Quản Trị -->
+                                            <div class="col-md-5">
+                                                <h6 class="fw-bold text-success mb-2"><i class="bi bi-shield-lock me-1"></i> Phản hồi từ GreenFresh:</h6>
+                                                @if (!string.IsNullOrEmpty(item.PhuongAnXuLy))
+                                                {
+                                                    <div class="alert alert-success border-0 bg-success-subtle text-success-emphasis p-3 rounded-3 small mb-2">
+                                                        @item.PhuongAnXuLy
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="p-3 bg-light rounded-3 text-muted small fst-italic mb-2">
+                                                        Bộ phận CSKH đang ghi nhận và làm việc với đối tác giao hàng/nhà vườn. Chúng tôi sẽ phản hồi trong vòng 24h.
+                                                    </div>
+                                                }
+
+                                                @if (item.SoTienHoan > 0)
+                                                {
+                                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                                        <span class="small fw-bold text-secondary">Số tiền hoàn trả/bồi thường:</span>
+                                                        <span class="fw-bold text-danger fs-5">@string.Format("{0:N0}", item.SoTienHoan) đ</span>
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <!-- Nút Xem chi tiết khiếu nại -->
+                                            <div class="text-end mt-3 pt-2 border-top">
+                                                <a asp-controller="Account" asp-action="SupportDetail" asp-route-id="@item.KhieuNaiId" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                    <i class="bi bi-eye me-1"></i> Xem chi tiết
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

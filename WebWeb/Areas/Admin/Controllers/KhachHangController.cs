@@ -23,10 +23,9 @@ namespace WebWeb.Areas.Admin.Controllers
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                searchTerm = searchTerm.Trim().ToLower();
-                query = query.Where(k => k.HoTen.ToLower().Contains(searchTerm) || 
+                query = query.Where(k => k.HoTen.Contains(searchTerm) || 
                                          k.SoDienThoai.Contains(searchTerm) || 
-                                         k.Email.ToLower().Contains(searchTerm));
+                                         k.Email.Contains(searchTerm));
                 ViewBag.SearchTerm = searchTerm;
             }
 

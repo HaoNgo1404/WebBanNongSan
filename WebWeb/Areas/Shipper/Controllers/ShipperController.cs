@@ -192,7 +192,7 @@ namespace WebWeb.Controllers
                     {
                         // Giả sử mỗi đợt giao hoàn thành của gói định kỳ được thưởng điểm cố định (ví dụ: 5 điểm)
                         // Hoặc tính dựa trên giá trị gói tổng tùy Hào thiết kế:
-                        int diemThuong = (int)(dotGiao.Goi.TongTienGoi / 100000); 
+                        int diemThuong = (int)(dotGiao.Goi.TongTienGoi / 10000); 
                         if (diemThuong > 0)
                         {
                             khachHang.DiemTichLuy += diemThuong;
