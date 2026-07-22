@@ -201,11 +201,14 @@
         var defaultLat = 10.762622;
         var defaultLng = 106.660172;
         
+        // Khởi tạo đối tượng map
         var map = L.map('map-selection').setView([defaultLat, defaultLng], 13);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
+        // SỬA LỖI 1: Sửa mapInstance thành map
+        L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '&copy; Google Maps'
         }).addTo(map);
 
         var marker = L.marker([defaultLat, defaultLng]).addTo(map);
@@ -219,22 +222,58 @@
             if(document.getElementById("ViDoNonAccount")) document.getElementById("ViDoNonAccount").value = lat;
             if(document.getElementById("KinhDoNonAccount")) document.getElementById("KinhDoNonAccount").value = lng;
 
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`)
+            // SỬA LỖI 2: Dùng thuật toán bóc tách 4 cấp địa chỉ chuẩn
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=vi`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.display_name) {
-                    let fullAddress = data.display_name;
+                    // Tách chuỗi địa chỉ thành mảng
+                    let rawParts = data.display_name.split(',').map(item => item.trim());
 
-                    // XỬ LÝ CHÍ MẠNG: Loại bỏ dãy 5 chữ số (Mã bưu chính) và các dấu phẩy thừa kèm theo
-                    // Regex này tìm cụm 5 chữ số liên tiếp đứng tách biệt (\b\d{5}\b)
-                    fullAddress = fullAddress.replace(/,?\s*\b\d{5}\b/g, '');
-                    
-                    // Làm sạch lại các khoảng trắng hoặc dấu phẩy bị lặp lại nếu có sau khi xóa số
-                    fullAddress = fullAddress.replace(/,\s*,/g, ',').trim();
+                    // Lọc bỏ Mã bưu chính & Quốc gia Việt Nam
+                    let filteredParts = rawParts.filter(part => {
+                        let isZipCode = /^\d{5,6}$/.test(part);
+                        let isCountry = /^Việt Nam$/i.test(part);
+                        return !isZipCode && !isCountry;
+                    });
+
+                    let province = "", district = "", ward = "", street = "";
+
+                    // Bóc tách từ phải sang trái (Right-to-Left)
+                    if (filteredParts.length > 0) province = filteredParts.pop();
+
+                    if (filteredParts.length > 0) {
+                        let nextPart = filteredParts[filteredParts.length - 1];
+                        if (/^(Quận|Huyện|Thị xã|Thành phố)\b/i.test(nextPart) || filteredParts.length <= 2) {
+                            district = filteredParts.pop();
+                        }
+                    }
+
+                    if (filteredParts.length > 0) {
+                        let nextPart = filteredParts[filteredParts.length - 1];
+                        if (/^(Phường|Xã|Thị trấn)\b/i.test(nextPart) || filteredParts.length <= 2) {
+                            ward = filteredParts.pop();
+                        }
+                    }
+
+                    if (filteredParts.length > 0) street = filteredParts.join(', ');
+
+                    // Ghép lại thành chuỗi chuẩn 4 cấp
+                    let finalParts = [];
+                    if (street) finalParts.push(street);
+                    if (ward) finalParts.push(ward);
+                    if (district) finalParts.push(district);
+                    if (province) finalParts.push(province);
+
+                    let resultAddress = finalParts.join(', ');
+
+                    if (!resultAddress) {
+                        resultAddress = data.display_name.replace(/,?\s*\b\d{5,6}\b/g, '').replace(/,\s*Việt Nam$/i, '').trim();
+                    }
 
                     var addressField = document.getElementById("AddressNonAccount");
                     if (addressField) {
-                        addressField.value = fullAddress;
+                        addressField.value = resultAddress;
                     }
                 }
             })
@@ -245,5 +284,4 @@
             map.invalidateSize(true);
         }, 400);
     }
-
 </script>

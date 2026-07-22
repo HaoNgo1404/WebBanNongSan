@@ -175,8 +175,10 @@
                 mapInstance = L.map('map-selection').setView([10.762622, 106.660172], 13);
 
                 // Nạp giao diện bản đồ từ OpenStreetMap vệ tinh mở
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
+                L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                    attribution: '&copy; Google Maps'
                 }).addTo(mapInstance);
 
                 // Tạo dấu Marker cho phép người dùng bấm giữ và kéo đi bất cứ đâu (draggable: true)
@@ -201,7 +203,6 @@
             }, 400);
         }
 
-        // Hàm gọi API ngầm dịch ngược Tọa độ (Vĩ độ, Kinh độ) thành Chuỗi chữ Địa chỉ tiếng Việt
         function getAddressFromCoords(lat, lng) {
             var apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=vi`;
 
@@ -209,20 +210,67 @@
             .then(res => res.json())
             .then(data => {
                 if (data && data.display_name) {
-                    let fullAddress = data.display_name;
+                    // 1. Tách chuỗi địa chỉ thành mảng dựa trên dấu phẩy
+                    let rawParts = data.display_name.split(',').map(item => item.trim());
 
-                    // BỔ SUNG: Dùng Regex tự động xóa mã bưu chính (6 chữ số liên tiếp) và các dấu phẩy dư thừa xung quanh
-                    // Biểu thức này tìm cụm số có độ dài từ 5 đến 6 chữ số
-                    fullAddress = fullAddress.replace(/,?\s*\b\d{5,6}\b/g, '');
+                    // 2. Loại bỏ các phần thừa (Mã bưu chính, Quốc gia Việt Nam)
+                    let filteredParts = rawParts.filter(part => {
+                        let isZipCode = /^\d{5,6}$/.test(part);
+                        let isCountry = /^Việt Nam$/i.test(part);
+                        return !isZipCode && !isCountry;
+                    });
 
-                    // Làm sạch lại chuỗi nếu vô tình để lại dấu phẩy ở cuối do vừa xóa số
-                    fullAddress = fullAddress.replace(/,\s*$/, '').trim();
+                    // 3. Khởi tạo cấu trúc 4 cấp chuẩn
+                    let province = ""; // Tỉnh / Thành phố
+                    let district = ""; // Quận / Huyện / Thị xã
+                    let ward = "";     // Phường / Xã / Thị trấn
+                    let street = "";   // Số nhà + Tên đường
 
-                    // Đổ chuỗi địa chỉ đã được làm sạch vào ô nhập liệu
-                    document.getElementById('DiaChiGiao').value = fullAddress;
+                    // Lấy từ dưới lên (Right-to-Left)
+                    if (filteredParts.length > 0) {
+                        province = filteredParts.pop(); // Phần cuối cùng luôn là Tỉnh/Thành phố
+                    }
+
+                    if (filteredParts.length > 0) {
+                        let nextPart = filteredParts[filteredParts.length - 1];
+                        // Kiểm tra nếu phần tiếp theo là Quận/Huyện hoặc Thành phố thuộc tỉnh (như Thủ Đức)
+                        if (/^(Quận|Huyện|Thị xã|Thành phố)\b/i.test(nextPart) || filteredParts.length <= 2) {
+                            district = filteredParts.pop();
+                        }
+                    }
+
+                    if (filteredParts.length > 0) {
+                        let nextPart = filteredParts[filteredParts.length - 1];
+                        // Kiểm tra nếu là Phường/Xã/Thị trấn
+                        if (/^(Phường|Xã|Thị trấn)\b/i.test(nextPart) || filteredParts.length <= 2) {
+                            ward = filteredParts.pop();
+                        }
+                    }
+
+                    // Toàn bộ các phần còn lại ở đầu sẽ là Số nhà / Tên đường / Tên tòa nhà
+                    if (filteredParts.length > 0) {
+                        street = filteredParts.join(', ');
+                    }
+
+                    // 4. Ghép lại thành chuỗi địa chỉ 4 cấp hoàn chỉnh
+                    let finalParts = [];
+                    if (street) finalParts.push(street);
+                    if (ward) finalParts.push(ward);
+                    if (district) finalParts.push(district);
+                    if (province) finalParts.push(province);
+
+                    let resultAddress = finalParts.join(', ');
+
+                    // Nếu lọc xong bị lỗi thì giữ lại chuỗi gốc sạch
+                    if (!resultAddress) {
+                        resultAddress = data.display_name.replace(/,?\s*\b\d{5,6}\b/g, '').replace(/,\s*Việt Nam$/i, '').trim();
+                    }
+
+                    // Đổ kết quả vào ô Textarea
+                    document.getElementById('DiaChiGiao').value = resultAddress;
                 }
             })
-            .catch(err => console.error("Không thể lấy thông tin địa chỉ từ tọa độ:", err));
+            .catch(err => console.error("Lỗi lấy địa chỉ từ Nominatim:", err));
         }
 
         // CẬP NHẬT: Sửa lại hàm openAddressModal cũ của bạn để kích hoạt bản đồ mượt mà
