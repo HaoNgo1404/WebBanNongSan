@@ -87,7 +87,7 @@
                         <div class="d-grid gap-2">
                             <form asp-action="CapNhatTrangThai" method="post">
                                 <input type="hidden" name="id" value="@Model.DotGiaoId" />
-                                <input type="hidden" name="trangThaiMoi" value="3" />
+                                <input type="hidden" name="trangThaiMoi" value="@WebWeb.Models.OrderStatuses.HoanThanh" />
                                 <input type="hidden" name="type" value="dinhky" />
                                 <button type="submit" class="btn btn-success btn-lg w-100 fw-bold py-2.5 shadow-sm" onclick="return confirm('Xác nhận đợt giao này thành công?');">
                                     <i class="bi bi-check-circle-fill"></i> Giao thành công
@@ -96,7 +96,7 @@
 
                             <form asp-action="CapNhatTrangThai" method="post">
                                 <input type="hidden" name="id" value="@Model.DotGiaoId" />
-                                <input type="hidden" name="trangThaiMoi" value="4" />
+                                <input type="hidden" name="trangThaiMoi" value="@WebWeb.Models.OrderStatuses.DaHuy" />
                                 <input type="hidden" name="type" value="dinhky" />
                                 <button type="submit" class="btn btn-outline-danger w-100 fw-bold py-2" onclick="return confirm('Xác nhận báo đợt giao thất bại?');">
                                     <i class="bi bi-x-circle-fill"></i> Hủy (Không nhận hàng)

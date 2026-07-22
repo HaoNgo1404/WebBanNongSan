@@ -33,8 +33,11 @@ namespace WebWeb.Controllers
 
             // Lấy các đợt giao định kỳ đang chờ giao (Hào kiểm tra lại tên bảng DotGiaoDinhKies hoặc DotGiaoDinhKy nhé)
             var danhSachDotGiao = await _context.DotGiaoDinhKies
-                .Include(dg => dg.Goi) // Để lấy thông tin địa chỉ/sđt gói tổng nếu cần
-                .Where(dg => dg.TrangThaiGiao == OrderStatuses.HoatDong)
+                .Include(dg => dg.Goi)
+                    .ThenInclude(g => g.KhachHang)
+                .Include(dg => dg.Goi)
+                    .ThenInclude(g => g.DiaChi)
+                .Where(dg => dg.TrangThaiGiao == OrderStatuses.ChoXuLy)
                 .OrderBy(dg => dg.NgayGiaoThucTe)
                 .ToListAsync();
 
@@ -66,6 +69,9 @@ namespace WebWeb.Controllers
             // Lấy đợt giao định kỳ đang đi giao của shipper này
             var dotGiaoDangGiao = await _context.DotGiaoDinhKies
                 .Include(dg => dg.Goi)
+                    .ThenInclude(g => g.KhachHang)
+                .Include(dg => dg.Goi)
+                    .ThenInclude(g => g.DiaChi)
                 .Where(dg => dg.NhanVienId == shipperId && dg.TrangThaiGiao == OrderStatuses.DangGiao)
                 .OrderBy(dg => dg.NgayGiaoThucTe)
                 .ToListAsync();
@@ -101,7 +107,9 @@ namespace WebWeb.Controllers
         {
             var dotGiao = await _context.DotGiaoDinhKies
                 .Include(dg => dg.Goi)
-                .ThenInclude(g => g.KhachHang)
+                    .ThenInclude(g => g.KhachHang)
+                .Include(dg => dg.Goi)
+                    .ThenInclude(g => g.DiaChi)
                 .FirstOrDefaultAsync(dg => dg.DotGiaoId == id);
 
             if (dotGiao == null) return NotFound();
@@ -232,7 +240,7 @@ namespace WebWeb.Controllers
                     var khachHang = await _context.KhachHangs.FindAsync(donHang.KhachHangId);
                     if (khachHang != null)
                     {
-                        int diemDuocCong = (int)(donHang.TongTienTamTinh / 100000);
+                        int diemDuocCong = (int)(donHang.TongTienTamTinh / 10000);
                         if (diemDuocCong > 0)
                         {
                             khachHang.DiemTichLuy += diemDuocCong;
@@ -270,7 +278,9 @@ namespace WebWeb.Controllers
             // Lấy danh sách lịch sử đợt định kỳ (Hoàn thành hoặc Đã hủy) của shipper này
             var lichSuDinhKy = await _context.DotGiaoDinhKies
                 .Include(dg => dg.Goi)
-                .ThenInclude(g => g.KhachHang)
+                    .ThenInclude(g => g.KhachHang)
+                .Include(dg => dg.Goi)
+                    .ThenInclude(g => g.DiaChi)
                 .Where(dg => dg.NhanVienId == shipperId && 
                     (dg.TrangThaiGiao == OrderStatuses.HoanThanh || dg.TrangThaiGiao == OrderStatuses.DaHuy))
                 .OrderByDescending(dg => dg.NgayGiaoThucTe)

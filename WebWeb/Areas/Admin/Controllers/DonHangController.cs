@@ -199,7 +199,7 @@ namespace WebWeb.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Không tìm thấy đợt giao hàng này!" });
             }
 
-            if (dotGiao.TrangThaiGiao != OrderStatuses.ChoXuLy)
+            if (dotGiao.TrangThaiGiao == OrderStatuses.ChoXuLy || dotGiao.TrangThaiGiao == OrderStatuses.DaHuy)
             {
                 return Json(new { success = false, message = "Đợt giao này đã được xử lý hoặc đã hủy từ trước!" });
             }
@@ -269,14 +269,14 @@ namespace WebWeb.Areas.Admin.Controllers
                     // 4. Cập nhật thông tin đợt giao định kỳ
                     // Ghi nhận trọng lượng thực tế khi thủ kho cân, nếu để trống tự động lấy tổng lý thuyết
                     dotGiao.TrongLuongThucTeDot = trongLuongThucTe ?? tongTrongLuongLyThuyet;
-                    dotGiao.TrangThaiGiao = OrderStatuses.DangGiao;
+                    dotGiao.TrangThaiGiao = OrderStatuses.ChoXuLy;
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     return Json(new { 
                         success = true, 
-                        message = $"Duyệt đợt giao thành công! Hàng đã được khấu trừ tự động chính xác theo các lô hàng và chuyển sang trạng thái '{OrderStatuses.DangGiao}'." 
+                        message = $"Duyệt đợt giao thành công! Hàng đã được khấu trừ tự động chính xác theo các lô hàng và chuyển sang trạng thái '{OrderStatuses.ChoXuLy}'." 
                     });
                 }
                 catch (Exception ex)

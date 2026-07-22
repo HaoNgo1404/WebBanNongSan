@@ -86,7 +86,7 @@
                     <tr>
                         <th>STT</th>
                         <th>Mã Đợt</th>
-                        <th>Ngày Giao Thực Tế</th>
+                        <th>Ngày Giao</th>
                         <th>Trọng Lượng </th>
                         <th>Nhân Viên Phụ Trách</th>
                         <th>Trạng Thái </th>
@@ -103,7 +103,7 @@
                             <td>@dot.NgayGiaoThucTe.ToString("dd/MM/yyyy")</td>
                             
                             <td>
-                                @if (dot.TrangThaiGiao == OrderStatuses.ChoXuLy)
+                                @if (dot.TrangThaiGiao == OrderStatuses.ChoDuyet)
                                 {
                                     <div class="input-group input-group-sm justify-content-center" style="max-width: 140px; margin: 0 auto;">
                                         <input type="number" 
@@ -142,7 +142,7 @@
                                 }
                             </td>
                             <td>
-                                @if (dot.TrangThaiGiao == OrderStatuses.ChoXuLy && Model.TrangThaiGoi == OrderStatuses.HoatDong)
+                                @if (dot.TrangThaiGiao == OrderStatuses.ChoDuyet && Model.TrangThaiGoi == OrderStatuses.HoatDong)
                                 {
                                     <button type="button" 
                                             class="btn btn-sm btn-success btn-duyet-dot" 

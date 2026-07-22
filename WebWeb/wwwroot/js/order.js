@@ -14,58 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ========================================================
-// LOGIC KHỞI TẠO BẢN ĐỒ CHO KHÁCH VÃNG LAI
-var mapContainer = document.getElementById('map-selection');
-if (mapContainer) {
-    var defaultLat = 10.762622;
-    var defaultLng = 106.660172;
-    
-    var map = L.map('map-selection').setView([defaultLat, defaultLng], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    var marker = L.marker([defaultLat, defaultLng]).addTo(map);
-
-    map.on('click', function(e) {
-        var lat = e.latlng.lat;
-        var lng = e.latlng.lng;
-
-        marker.setLatLng([lat, lng]);
-
-        if(document.getElementById("ViDoNonAccount")) document.getElementById("ViDoNonAccount").value = lat;
-        if(document.getElementById("KinhDoNonAccount")) document.getElementById("KinhDoNonAccount").value = lng;
-
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.display_name) {
-                let fullAddress = data.display_name;
-
-                // XỬ LÝ CHÍ MẠNG: Loại bỏ dãy 5 chữ số (Mã bưu chính) và các dấu phẩy thừa kèm theo
-                // Regex này tìm cụm 5 chữ số liên tiếp đứng tách biệt (\b\d{5}\b)
-                fullAddress = fullAddress.replace(/,?\s*\b\d{5}\b/g, '');
-                
-                // Làm sạch lại các khoảng trắng hoặc dấu phẩy bị lặp lại nếu có sau khi xóa số
-                fullAddress = fullAddress.replace(/,\s*,/g, ',').trim();
-
-                var addressField = document.getElementById("AddressNonAccount");
-                if (addressField) {
-                    addressField.value = fullAddress;
-                }
-            }
-        })
-        .catch(err => console.error("Lỗi bản đồ:", err));
-    });
-
-    setTimeout(function () {
-        map.invalidateSize(true);
-    }, 400);
-}
-
 $('#BtnApplyVoucher').click(function () {
     var code = $('#VoucherCodeInput').val().trim();
 

@@ -14,13 +14,22 @@
                 
                 <h5 class="text-success mb-3">Cấu hình lịch trình giao gói định kỳ</h5>
                 <div class="mb-3">
-                    <label class="form-label">Sổ địa chỉ nhận hàng</label>
+                    <label for="SelectDiaChiId" class="form-label fw-bold">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>Sổ địa chỉ nhận hàng
+                    </label>
+                    
+                    <!-- 1. Sử dụng asp-for="DiaChiId" kết hợp với ViewBag.DanhSachDiaChi -->
                     <select asp-for="DiaChiId" 
                             id="SelectDiaChiId"
                             asp-items="@(ViewBag.DanhSachDiaChi as SelectList)" 
-                            class="form-select">
-                        <option value="">-- Chọn địa chỉ từ sổ địa chỉ --</option>
+                            class="form-select border-success-subtle shadow-sm">
+                        <!-- Bỏ option trống nếu muốn tự chọn ngay địa chỉ mặc định, hoặc giữ option hướng dẫn nhưng không đè value mặc định -->
+                        @if (Model.DiaChiId == 0)
+                        {
+                            <option value="" selected disabled>-- Chọn địa chỉ từ sổ địa chỉ --</option>
+                        }
                     </select>
+                    <span asp-validation-for="DiaChiId" class="text-danger small"></span>
                 </div>
 
                 <div class="row">
@@ -99,38 +108,56 @@
 </div>
 
 <script>
-    const listDiaChi = @Html.Raw(ViewBag.DiaChiJson ?? "[]");
-    const selectElement = document.getElementById("SelectDiaChiId");
+    document.addEventListener("DOMContentLoaded", function () {
+        // 1. Ép kiểu an toàn dữ liệu JSON từ ViewBag
+        const listDiaChi = @Html.Raw(ViewBag.DiaChiJson ?? "[]");
+        const selectElement = document.getElementById("SelectDiaChiId");
 
-    function autoFillAddress(selectedId) {
-        const diaChiDuocChon = listDiaChi.find(d => d.DiaChiId === selectedId);
+        // Hàm điền dữ liệu an toàn (có kiểm tra sự tồn tại của element trước khi gán)
+        function autoFillAddress(selectedId) {
+            if (!selectedId) {
+                clearAddressInputs();
+                return;
+            }
 
-        if (diaChiDuocChon) {
-            document.getElementById("NameCusNonAccount").value = diaChiDuocChon.TenNguoiNhan;
-            document.getElementById("PhoneNonAccount").value = diaChiDuocChon.SoDienThoaiNhan;
-            document.getElementById("AddressNonAccount").value = diaChiDuocChon.DiaChiGiao;
-        } else {
-            document.getElementById("NameCusNonAccount").value = "";
-            document.getElementById("PhoneNonAccount").value = "";
-            document.getElementById("AddressNonAccount").value = "";
+            // Dùng == (2 dấu bằng) để so sánh linh hoạt giữa kiểu Chuỗi và Số (String & Number)
+            const diaChiDuocChon = listDiaChi.find(d => d.DiaChiId == selectedId);
+
+            if (diaChiDuocChon) {
+                setInputValue("NameCusNonAccount", diaChiDuocChon.TenNguoiNhan);
+                setInputValue("PhoneNonAccount", diaChiDuocChon.SoDienThoaiNhan);
+                setInputValue("AddressNonAccount", diaChiDuocChon.DiaChiGiao);
+            } else {
+                clearAddressInputs();
+            }
         }
-    }
 
-    // Tự động chạy ngay khi trang load xong để kiểm tra xem có option nào đang được chọn sẵn không
-    document.addEventListener("DOMContentLoaded", function() {
-        const initialId = parseInt(selectElement.value);
-        if (initialId) {
-            autoFillAddress(initialId);
+        // Helper gán giá trị tránh lỗi Null Element
+        function setInputValue(elementId, value) {
+            const el = document.getElementById(elementId);
+            if (el) el.value = value || "";
+        }
+
+        // Helper xóa trắng dữ liệu
+        function clearAddressInputs() {
+            setInputValue("NameCusNonAccount", "");
+            setInputValue("PhoneNonAccount", "");
+            setInputValue("AddressNonAccount", "");
+        }
+
+        // 2. Bắt sự kiện và chạy tự động khi tải xong trang
+        if (selectElement) {
+            // Chạy ngay lần đầu khi nạp trang (nếu đã có địa chỉ mặc định)
+            if (selectElement.value) {
+                autoFillAddress(selectElement.value);
+            }
+
+            // Lắng nghe sự kiện người dùng thay đổi dropdown
+            selectElement.addEventListener("change", function () {
+                autoFillAddress(this.value);
+            });
         }
     });
-
-    // Chạy khi người dùng click đổi địa chỉ khác
-    if(selectElement) {
-        selectElement.addEventListener("change", function () {
-            const selectedId = parseInt(this.value);
-            autoFillAddress(selectedId);
-        });
-    }
 
     // SCRIPT TÍNH CHI PHÍ TRỌN GÓI THEO CẤU HÌNH LỊCH TRÌNH
     document.addEventListener("DOMContentLoaded", function () {

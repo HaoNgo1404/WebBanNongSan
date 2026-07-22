@@ -398,6 +398,27 @@ namespace WebWeb.Controllers
                 return View("CheckoutDinhKy", model);
             }
 
+            int selectedDiaChiId = model.DiaChiId;
+
+            // Tìm trong Sổ địa chỉ của khách hàng
+            var diaChiChon = await _context.SoDiaChis
+                .FirstOrDefaultAsync(d => d.DiaChiId == selectedDiaChiId && d.KhachHangId == currentUserId.Value);
+
+            // Nếu ID gửi lên không tìm thấy (hoặc = 0), tự động lấy Địa chỉ mặc định của khách
+            if (diaChiChon == null)
+            {
+                diaChiChon = await _context.SoDiaChis
+                    .Where(d => d.KhachHangId == currentUserId.Value)
+                    .OrderByDescending(d => d.IsDefault)
+                    .FirstOrDefaultAsync();
+
+                if (diaChiChon == null)
+                {
+                    ModelState.AddModelError("", "Vui lòng thêm địa chỉ nhận hàng trong sổ địa chỉ trước khi đăng ký gói!");
+                    return View("CheckoutDinhKy", model);
+                }
+            }
+
             // ĐỌC LẠI GIỎ HÀNG TỪ SESSION GIỐNG KHỐI GET ĐỂ ĐẢM BẢO DỮ LIỆU ĐÚNG GỐC CỦA HÀO
             var sessionData = HttpContext.Session.GetString("UserCart");
             var cartItems = sessionData == null ? new List<GioHang>() : JsonSerializer.Deserialize<List<GioHang>>(sessionData);
@@ -456,7 +477,7 @@ namespace WebWeb.Controllers
             var goiDinhKy = new GoiDangKyDinhKy
             {
                 KhachHangId = currentUserId.Value,
-                DiaChiId = model.DiaChiId,
+                DiaChiId = diaChiChon.DiaChiId,
                 KhuyenMaiId = null,
                 NgayBatDau = ngayGiaoDuKien, // Lấy ngày đợt giao đầu tiên để chuẩn lịch trình
                 NgayKetThuc = ngayGiaoDuKien.AddMonths(soThang),
@@ -820,10 +841,8 @@ namespace WebWeb.Controllers
                     GoiId = goiRegist.GoiId,
                     NgayGiaoThucTe = ngayGiaoChay,
                     TrongLuongThucTeDot = 0m,
-                    TrangThaiGiao = OrderStatuses.ChoXuLy, // "Chờ xử lý"
+                    TrangThaiGiao = OrderStatuses.ChoDuyet, // "Chờ duyệt"
                     
-                    // Nếu DB của Hào có thêm các trường ghi chú đợt có thể gán tại đây
-                    // Ghi Chu = $"Đợt giao thứ {soThuTuDot} thuộc gói định kỳ #{goiRegist.GoiId}"
                 };
 
                 danhSachDotGiao.Add(dotGiao);
