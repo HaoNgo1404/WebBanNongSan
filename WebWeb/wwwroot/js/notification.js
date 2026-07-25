@@ -82,12 +82,14 @@ function loadNotificationsToDropdown() {
         url: '/Notification/GetNotificationsJson',
         type: 'GET',
         success: function (res) {
-            if (res.success && res.data && res.data.length > 0) {
+            if (res && res.success && res.data && res.data.length > 0) {
                 var notiHtml = '';
                 
                 res.data.forEach(function (item) {
                     var triggerClass = item.isPopup ? 'noti-item-trigger' : '';
-                    var targetUrl = item.isPopup ? '#' : item.url;
+                    var targetUrl = item.isPopup ? '#' : (item.url || '#');
+                    var badgeClass = item.badgeClass || 'bg-secondary';
+                    var iconClass = item.icon || 'bi-bell';
 
                     notiHtml += `
                         <a href="${targetUrl}" 
@@ -95,15 +97,15 @@ function loadNotificationsToDropdown() {
                            data-order-id="${item.id}">
                             <div class="d-flex w-100 justify-content-between align-items-center mb-1">
                                 <strong class="small fw-bold text-dark">
-                                    <i class="bi ${item.icon} me-1"></i> ${item.title}
+                                    <i class="bi ${iconClass} me-1"></i> ${item.title || ''}
                                 </strong>
-                                <small class="text-muted" style="font-size:0.72rem;">${item.time}</small>
+                                <small class="text-muted" style="font-size:0.72rem;">${item.time || ''}</small>
                             </div>
                             <p class="mb-1 text-muted text-truncate" style="font-size:0.8rem; max-width:300px;">
-                                ${item.content}
+                                ${item.content || ''}
                             </p>
                             <div>
-                                <span class="badge ${item.badgeClass} style="font-size:0.65rem;">
+                                <span class="badge ${badgeClass}" style="font-size:0.65rem;">
                                     ${getCategoryName(item.type)}
                                 </span>
                             </div>

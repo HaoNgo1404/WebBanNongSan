@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using WebWeb.Models;
+using WebWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<WebWeb.Services.KhuyenMaiService>();
+
+builder.Services.AddScoped<KhuyenMaiService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient<AISentimentService>();
+builder.Services.AddScoped<AISentimentService>();
+builder.Services.AddHttpClient<AISearchService>();
+builder.Services.AddScoped<AISearchService>();
+
 builder.Services.AddHttpClient();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

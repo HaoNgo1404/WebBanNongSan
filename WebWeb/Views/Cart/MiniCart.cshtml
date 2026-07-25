@@ -1,6 +1,7 @@
 @model IEnumerable<WebWeb.Models.GioHang>
 @{
     Layout = null;
+    // SỬA: Tính tổng tiền MiniCart dựa trên ThanhTien (đã ăn theo GiaThucTe)
     var tongTienMini = Model.Sum(item => item.ThanhTien);
 }
 
@@ -26,7 +27,19 @@
                     <img src="@Url.Content("~/images/" + item.HinhAnh)" alt="@item.TenNongSan" class="rounded object-fit-cover" style="width: 50px; height: 50px;" />
                     <div class="flex-grow-1 overflow-hidden">
                         <h6 class="mb-0 text-dark text-truncate small fw-semibold">@item.TenNongSan</h6>
-                        <small class="text-muted d-block">@item.SoLuong x @item.Gia.ToString("N0")₫</small>
+                        
+                        <!-- SỬA: Hiển thị giá thực tế và gạch ngang giá gốc nếu có khuyến mãi -->
+                        <small class="text-muted d-block">
+                            @item.SoLuong x 
+                            @if (item.GiaThucTe < item.Gia && item.GiaThucTe > 0)
+                            {
+                                <span class="text-danger fw-bold">@item.GiaThucTe.ToString("N0")₫</span>
+                            }
+                            else
+                            {
+                                <span class="fw-semibold">@item.Gia.ToString("N0")₫</span>
+                            }
+                        </small>
                     </div>
                     <a asp-controller="Cart" asp-action="Remove" asp-route-id="@item.NongSanId" class="text-danger small p-1" title="Xóa">
                         <i class="bi bi-x-circle"></i>

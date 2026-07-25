@@ -1,0 +1,243 @@
+@model WebWeb.Models.DonHangLe
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.DonHangLeId;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Xử lý lấy thông tin người nhận (Ưu tiên Sổ địa chỉ -> Khách vãng lai)
+    string tenNguoiNhan = Model.DiaChi?.TenNguoiNhan ?? Model.NameCusNonAccount ?? "Khách hàng vãng lai";
+    string sdtNhan = Model.DiaChi?.SoDienThoaiNhan ?? Model.PhoneNonAccount ?? "Chưa cập nhật";
+    string diaChiGiao = Model.DiaChi?.DiaChiGiao ?? Model.AddressNonAccount ?? "Chưa có thông tin địa chỉ";
+
+    // Tính toán các bước tiến trình cho Timeline đơn hàng
+    var step = 1;
+    if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.ChoXuLy) { step = 2; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.DangGiao) { step = 3; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.HoanThanh) { step = 4; }
+    else if (Model.TrangThaiDonHang == WebWeb.Models.OrderStatuses.DaHuy) { step = -1; }
+}
+
+<div class="container mt-5 mb-5">
+    <!-- NÚT ĐIỀU HƯỚNG QUAY LẠI -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a asp-action="GuestTracking" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại tra cứu đơn hàng
+            </a>
+        </div>
+        <div>
+            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-semibold">
+                <i class="bi bi-person-badge me-1"></i> Khách vãng lai
+            </span>
+        </div>
+    </div>
+
+    <!-- KHỐI TRACKING TIMELINE TIẾN ĐỘ -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4 bg-white">
+        <div class="card-body p-4">
+            @if (step == -1)
+            {
+                <div class="text-center py-2 text-danger fw-bold">
+                    <i class="bi bi-x-circle-fill me-2 fs-5"></i> Đơn hàng này đã bị hủy bỏ.
+                </div>
+            }
+            else
+            {
+                <div class="tracking-timeline d-flex justify-content-between position-relative">
+                    <div class="text-center tracking-step @(step >= 1 ? "active" : "")">
+                        <div class="step-icon-wrap shadow-sm mx-auto mb-2">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                        </div>
+                        <span class="step-title fw-semibold d-block">Chờ duyệt</span>
+                    </div>
+
+                    <div class="text-center tracking-step @(step >= 2 ? "active" : "")">
+                        <div class="step-icon-wrap shadow-sm mx-auto mb-2">
+                            <i class="bi bi-box-seam-fill"></i>
+                        </div>
+                        <span class="step-title fw-semibold d-block">Đang chuẩn bị</span>
+                    </div>
+
+                    <div class="text-center tracking-step @(step >= 3 ? "active" : "")">
+                        <div class="step-icon-wrap shadow-sm mx-auto mb-2">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <span class="step-title fw-semibold d-block">Đang giao</span>
+                    </div>
+
+                    <div class="text-center tracking-step @(step >= 4 ? "active" : "")">
+                        <div class="step-icon-wrap shadow-sm mx-auto mb-2">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <span class="step-title fw-semibold d-block">Hoàn thành</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- NỘI DUNG CHI TIẾT ĐƠN HÀNG (DẠNG 2 CỘT) -->
+    <div class="row g-4">
+        <!-- CỘT TRÁI: DANH SÁCH NÔNG SẢN ĐÃ ĐẶT -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 p-4 rounded-3 bg-white">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                    <i class="bi bi-box-seam text-success me-1"></i> Danh sách nông sản đã đặt
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle">
+                        <thead>
+                            <tr class="table-light text-muted small">
+                                <th>Nông sản</th>
+                                <th class="text-center">Số lượng đặt</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.ChiTietDonHangLes != null && Model.ChiTietDonHangLes.Any())
+                            {
+                                foreach (var ct in Model.ChiTietDonHangLes)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">@(ct.NongSan?.TenNongSan ?? "Sản phẩm nông sản")</div>
+                                            <small class="text-muted">Mã: #@ct.NongSanId</small>
+                                        </td>
+                                        <td class="text-center fw-semibold">@ct.SoLuongDat</td>
+                                        <td class="text-end">@string.Format("{0:N0}", ct.DonGiaThoiDiem) đ</td>
+                                        <td class="text-end fw-bold text-dark">@string.Format("{0:N0}", ct.SoLuongDat * ct.DonGiaThoiDiem) đ</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">Chưa tìm thấy chi tiết danh mục sản phẩm.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <hr class="text-muted" />
+                
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="text-secondary fw-semibold">Tổng số tiền thanh toán:</span>
+                    <h4 class="fw-bold text-danger mb-0">@string.Format("{0:N0}", Model.TongTienThucTe) đ</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: THÔNG TIN GIAO NHẬN & TRẠNG THÁI -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 p-4 rounded-3 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> Thông tin giao nhận hàng
+                </h5>
+                <p class="mb-2">
+                    <strong>Người nhận:</strong> @tenNguoiNhan (@sdtNhan)
+                </p>
+                <p class="mb-2">
+                    <strong>Địa chỉ giao:</strong> @diaChiGiao
+                </p>
+                <p class="mb-2">
+                    <strong>Khung giờ giao hàng:</strong> 
+                    <span class="badge bg-light text-dark border">@Model.KhungGioGiaoHang</span>
+                </p>
+                <p class="mb-2">
+                    <strong>Phương thức thanh toán:</strong> 
+                    <span class="text-uppercase fw-semibold text-secondary">@Model.PhuongThucThanhToan</span>
+                </p>
+                <p class="mb-0">
+                    <strong>Trạng thái thanh toán:</strong> 
+                    <span class="badge @(Model.TrangThaiThanhToan == WebWeb.Models.OrderStatuses.DaThanhToan ? "bg-success" : "bg-warning text-dark")">
+                        @(string.IsNullOrEmpty(Model.TrangThaiThanhToan) ? WebWeb.Models.OrderStatuses.ChuaThanhToan : Model.TrangThaiThanhToan)
+                    </span>
+                </p>
+            </div>
+
+            <div class="card shadow-sm border-0 p-4 rounded-3 bg-white">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                    <i class="bi bi-info-circle-fill text-primary me-1"></i> Tiến độ đơn hàng lẻ
+                </h5>
+                <div class="p-3 bg-light rounded-3 mb-3">
+                    <p class="mb-1">
+                        Trạng thái hiện tại: 
+                        <span id="detailStatusText" class="fw-bold text-success">@Model.TrangThaiDonHang</span>
+                    </p>
+                    <small class="text-muted">Hệ thống đang điều phối và xử lý đơn.</small>
+                </div>
+
+                <!-- 🟢 BỔ SUNG: NÚT HỦY ĐƠN HÀNG DÀNH CHO KHÁCH VÃNG LAI -->
+                @if (Model.TrangThaiDonHang != WebWeb.Models.OrderStatuses.HoanThanh && Model.TrangThaiDonHang != WebWeb.Models.OrderStatuses.DaHuy)
+                {
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-danger w-100 fw-bold py-2 rounded-3" onclick="confirmCancelGuestOrder(@Model.DonHangLeId, '@sdtNhan')">
+                            <i class="bi bi-x-circle me-1"></i> Yêu cầu hủy đơn hàng này
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tracking-timeline { padding: 10px 0; }
+    .tracking-timeline::before {
+        content: ""; position: absolute; top: 32px; left: 8%; width: 84%; height: 4px; background-color: #e9ecef; z-index: 1;
+    }
+    .tracking-step { z-index: 2; flex: 1; }
+    .step-icon-wrap {
+        width: 40px; height: 40px; line-height: 38px; border-radius: 50%; background-color: #ffffff; color: #adb5bd; font-size: 1.1rem; border: 2px solid #e9ecef; transition: all 0.3s ease;
+    }
+    .tracking-step .step-title { font-size: 0.8rem; color: #6c757d; }
+    .tracking-step.active .step-icon-wrap { background-color: #198754; color: #ffffff; border-color: #198754; }
+    .tracking-step.active .step-title { color: #198754; font-weight: bold; }
+</style>
+
+<!-- 🟢 BỔ SUNG: JAVASCRIPT XỬ LÝ HỦY ĐƠN VÃNG LAI -->
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmCancelGuestOrder(orderId, phoneNumber) {
+            Swal.fire({
+                title: 'Xác nhận hủy đơn hàng?',
+                text: "Bạn có chắc chắn muốn hủy đơn hàng #" + orderId + " không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đồng ý hủy',
+                cancelButtonText: 'Bỏ qua'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Order/HuyDonHangLe',
+                        type: 'POST',
+                        data: { 
+                            id: orderId,
+                            phoneGuest: phoneNumber
+                        },
+                        success: function (res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    title: 'Đã hủy!',
+                                    text: res.message,
+                                    icon: 'success'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Thất bại', res.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ, vui lòng thử lại!', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

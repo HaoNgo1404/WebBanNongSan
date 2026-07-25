@@ -19,11 +19,13 @@ namespace WebWeb.Controllers
     {
         private readonly ECommerceDBContext _context;
         private readonly KhuyenMaiService _khuyenMaiService;
+        private readonly IEmailService _emailService;
 
-        public OrderController(ECommerceDBContext context, KhuyenMaiService khuyenMaiService)
+        public OrderController(ECommerceDBContext context, KhuyenMaiService khuyenMaiService, IEmailService emailService)
         {
             _context = context;
             _khuyenMaiService = khuyenMaiService;
+            _emailService = emailService;
         }
 
         // Helper lấy ID khách hàng từ Cookie Claims
@@ -55,7 +57,7 @@ namespace WebWeb.Controllers
         {
             var model = new CheckoutViewModel();
             
-            // Đọc giỏ hàng từ Session (Giữ nguyên code cũ của bạn)
+            // Đọc giỏ hàng từ Session
             var sessionData = HttpContext.Session.GetString("UserCart");
             var cartItems = sessionData == null ? new List<GioHang>() : JsonSerializer.Deserialize<List<GioHang>>(sessionData);
 
@@ -67,11 +69,16 @@ namespace WebWeb.Controllers
 
             foreach (var item in cartItems)
             {
+                // Lấy thông tin nông sản trong DB để lấy chính xác Đơn Giá Niêm Yết gốc
+                var product = await _context.NongSans.FindAsync(item.NongSanId);
+                decimal giaGoc = product != null ? product.GiaBanNiemYet : item.Gia;
+
                 model.Items.Add(new CartItemViewModel
                 {
                     NongSanId = item.NongSanId,
                     SoLuongDat = item.SoLuong, 
-                    DonGiaThoiDiem = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, item.Gia)
+                    // Tính giá thực tế từ GIÁ GỐC NIÊM YẾT
+                    DonGiaThoiDiem = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, giaGoc)
                 });
             }
 
@@ -139,13 +146,21 @@ namespace WebWeb.Controllers
                 }
             }
 
+            // =========================================================================
+            // 💥 BỔ SUNG: GÁN PHÍ VẬN CHUYỂN VÀO MODEL CHO _CheckoutSummary CÓ DỮ LIỆU
+            // =========================================================================
+            model.PhiVanChuyen = 30000; 
+            
+            // Nếu trong Controller có dùng ViewBag.PhiVanChuyen thì gán luôn cho đồng bộ:
+            ViewBag.PhiVanChuyen = model.PhiVanChuyen;
+
             return View(model);
         }
 
         // ==========================================
         // TRANG CHECKOUT 2: ĐĂNG KÝ GÓI ĐỊNH KỲ (UC02) - GET
         // ==========================================
-        public IActionResult CheckoutDinhKy()
+        public async Task<IActionResult> CheckoutDinhKy()
         {
             // ĐỌC COOKIE: Kiểm tra đăng nhập (Bắt buộc đối với gói định kỳ)
             int? currentUserId = GetCurrentKhachHangId();
@@ -172,11 +187,16 @@ namespace WebWeb.Controllers
 
             foreach (var item in cartItems)
             {
+                // Lấy chính xác Đơn Giá Niêm Yết gốc
+                var product = await _context.NongSans.FindAsync(item.NongSanId);
+                decimal giaGoc = product != null ? product.GiaBanNiemYet : item.Gia;
+
                 model.Items.Add(new CartItemViewModel
                 {
                     NongSanId = item.NongSanId,
                     SoLuongDat = item.SoLuong, 
-                    DonGiaThoiDiem = item.Gia
+                    // Tính giá thực tế từ GIÁ GỐC NIÊM YẾT
+                    DonGiaThoiDiem = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, giaGoc)
                 });
             }
 
@@ -205,14 +225,15 @@ namespace WebWeb.Controllers
                 IsDefault = d.IsDefault ? 1 : 0
             }));
 
-            ViewBag.TongTienMotDot = cartItems.Sum(i => i.SoLuong * i.Gia);
+            // TÍNH TỔNG TIỀN 1 ĐỢT THEO GIÁ ĐÃ GIẢM KHUYẾN MÃI THỰC TẾ
+            ViewBag.TongTienMotDot = model.Items.Sum(i => i.SoLuongDat * i.DonGiaThoiDiem);
 
             // Trả về View dành riêng cho Gói định kỳ
             return View(model);
         }
 
         // =================================================================
-        // UC01: ĐẶT ĐƠN HÀNG LẺ TRỰC TUYẾN - POST (Có tích hợp điểm tích lũy)
+        // UC01: ĐẶT ĐƠN HÀNG LẺ TRỰC TUYẾN - POST (Có tích hợp điểm tích lũy & Gửi Mail xác nhận)
         // =================================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -234,42 +255,53 @@ namespace WebWeb.Controllers
             {
                 try
                 {
-                    int? customerId = GetCurrentKhachHangId(); // Null nếu là khách vãng lai
-                    decimal phiShip = await TinhToanTienShipThucTe(cart.Sum(item => item.SoLuong * item.Gia)); // Gọi hàm lấy cấu hình động ở trên
-                    decimal tongTienHang = cart.Sum(item => item.SoLuong * item.Gia) + phiShip;
+                    int? customerId = GetCurrentKhachHangId();
 
-                    // --- LOGIC XỬ LÝ ĐIỂM TÍCH LŨY (Đã ràng buộc không vượt quá giá trị đơn hàng) ---
+                    // 1. TÍNH TỔNG TIỀN HÀNG THEO GIÁ ĐÃ GIẢM KHUYẾN MÃI THỰC TẾ
+                    decimal tongTienHangDaGiam = 0;
+                    foreach (var item in cart)
+                    {
+                        var product = await _context.NongSans.FindAsync(item.NongSanId);
+                        decimal giaGoc = product != null ? product.GiaBanNiemYet : item.Gia;
+                        
+                        // Tính giá thực tế của từng sản phẩm tại thời điểm đặt
+                        decimal giaThucTe = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, giaGoc);
+                        tongTienHangDaGiam += item.SoLuong * giaThucTe;
+                    }
+
+                    // 2. Tính tiền ship dựa trên Tổng tiền đã giảm
+                    decimal phiShip = await TinhToanTienShipThucTe(tongTienHangDaGiam); 
+                    decimal tongTienDonHang = tongTienHangDaGiam + phiShip;
+
+                    // --- LOGIC XỬ LÝ ĐIỂM TÍCH LŨY ---
                     decimal soTienGiamByDiem = 0;
                     if (customerId.HasValue && diemDungForm > 0)
                     {
                         var khachHang = await _context.KhachHangs.FindAsync(customerId.Value);
                         if (khachHang != null)
                         {
-                            // Điểm tối đa được phép dùng = Giá trị nhỏ hơn giữa (Điểm đang có) và (Tổng tiền đơn hàng)
-                            int diemHợpLeToiDa = Math.Min(khachHang.DiemTichLuy, (int)tongTienHang);
+                            int diemHopLeToiDa = Math.Min(khachHang.DiemTichLuy, (int)tongTienDonHang);
 
-                            // Nếu số điểm form gửi lên hợp lệ (không vượt quá số điểm thực tế của họ)
                             if (diemDungForm <= khachHang.DiemTichLuy)
                             {
-                                // Khống chế số điểm sử dụng thực tế không vượt quá giá trị đơn hàng
-                                int diemThucTeSuDung = Math.Min(diemDungForm, diemHợpLeToiDa);
-                                
+                                int diemThucTeSuDung = Math.Min(diemDungForm, diemHopLeToiDa);
                                 soTienGiamByDiem = diemThucTeSuDung;
 
-                                // Trừ số điểm thực tế sử dụng dưới Database
                                 khachHang.DiemTichLuy -= diemThucTeSuDung;
                                 _context.KhachHangs.Update(khachHang);
                             }
                             else
                             {
-                                // Phát hiện gian lận gửi điểm giả lập lớn hơn số điểm họ có thực tế
                                 ModelState.AddModelError("", "Số điểm tích lũy sử dụng không hợp lệ.");
                                 return View("CheckoutDonLe", model);
                             }
                         }
                     }
 
-                    // Khởi tạo đối tượng đơn hàng mới với số tiền đã trừ điểm
+                    // Số tiền cuối cùng KH phải trả
+                    decimal tongTienCuoiCung = tongTienDonHang - soTienGiamByDiem;
+
+                    // Khởi tạo đối tượng đơn hàng
                     var donHang = new DonHangLe
                     {
                         KhachHangId = customerId,
@@ -278,15 +310,18 @@ namespace WebWeb.Controllers
                         PhuongThucThanhToan = model.PhuongThucThanhToan,
                         TrangThaiDonHang = OrderStatuses.ChoDuyet,
                         
-                        // Khấu trừ điểm trực tiếp vào hóa đơn
-                        TongTienTamTinh = tongTienHang - soTienGiamByDiem,
-                        TongTienThucTe = tongTienHang - soTienGiamByDiem, 
-                        TienChenhLech = soTienGiamByDiem // Lưu số tiền đã giảm bằng điểm vào đây để thống kê đối soát
+                        // Gán chuẩn số tiền đã giảm sâu nhất
+                        TongTienTamTinh = tongTienDonHang, 
+                        TongTienThucTe = tongTienCuoiCung, // 👈 ĐÂY LÀ SỐ TIỀN THANH TOÁN CHUẨN
+                        TienChenhLech = soTienGiamByDiem
                     };
 
                     // 2. XỬ LÝ ĐỊA CHỈ: GÁN THẲNG VÀO 3 CỘT TEXT CỦA ĐƠN HÀNG LẺ
                     if (customerId != null)
                     {
+                        // 🟢 Lấy thông tin tài khoản Khách hàng trực tiếp từ DB để đảm bảo lấy đúng Email
+                        var currentCustomer = await _context.KhachHangs.FindAsync(customerId.Value);
+                        string? userEmail = currentCustomer?.Email ?? model.EmailNonAccount;
                         // LUỒNG 1: KHÁCH ĐÃ ĐĂNG NHẬP (Đọc từ sổ địa chỉ)
                         var diaChiSodoch = await _context.SoDiaChis.FindAsync(model.DiaChiId);
                         if (diaChiSodoch != null)
@@ -295,6 +330,7 @@ namespace WebWeb.Controllers
                             donHang.NameCusNonAccount = diaChiSodoch.TenNguoiNhan;
                             donHang.PhoneNonAccount = diaChiSodoch.SoDienThoaiNhan;
                             donHang.AddressNonAccount = diaChiSodoch.DiaChiGiao;
+                            donHang.EmailNonAccount = userEmail;
                         }
                         else
                         {
@@ -302,6 +338,7 @@ namespace WebWeb.Controllers
                             donHang.NameCusNonAccount = model.NameCusNonAccount;
                             donHang.PhoneNonAccount = model.PhoneNonAccount;
                             donHang.AddressNonAccount = model.AddressNonAccount;
+                            donHang.EmailNonAccount = userEmail;
                         }
                     }
                     else
@@ -312,6 +349,7 @@ namespace WebWeb.Controllers
                         donHang.NameCusNonAccount = model.NameCusNonAccount;
                         donHang.PhoneNonAccount = model.PhoneNonAccount;
                         donHang.AddressNonAccount = model.AddressNonAccount;
+                        donHang.EmailNonAccount = model.EmailNonAccount;
                     }
 
                     if(KhuyenMaiId.HasValue && KhuyenMaiId.Value > 1)
@@ -334,13 +372,21 @@ namespace WebWeb.Controllers
                     foreach (var item in cart)
                     {
                         var product = await _context.NongSans.FindAsync(item.NongSanId);
+                        
+                        // An toàn: Nếu product bị xóa/null trong DB thì lấy tạm item.Gia từ Session làm phương án dự phòng
+                        decimal giaGocNiemYet = product != null ? product.GiaBanNiemYet : item.Gia;
+
+                        // Tính đơn giá thực tế đã áp dụng khuyến mãi từ GIÁ NIÊM YẾT GỐC
+                        decimal donGiaThucTe = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, giaGocNiemYet);
+
                         var chiTiet = new ChiTietDonHangLe
                         {
                             DonHangLeId = donHang.DonHangLeId,
                             NongSanId = item.NongSanId,
                             SoLuongDat = item.SoLuong,
-                            DonGiaThoiDiem = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, product.GiaBanNiemYet)
+                            DonGiaThoiDiem = donGiaThucTe
                         };
+
                         _context.ChiTietDonHangLes.Add(chiTiet);
                     }
 
@@ -349,6 +395,55 @@ namespace WebWeb.Controllers
 
                     // Lưu ID đơn hàng vừa tạo vào TempData hoặc Session để trang kết quả đọc được an toàn
                     int newOrderId = donHang.DonHangLeId;
+
+                    // =================================================================
+                    // 💡 BỔ SUNG: LOGIC GỬI EMAIL XÁC NHẬN CHO KHÁCH VÃNG LAI
+                    // =================================================================
+                    if (!customerId.HasValue && !string.IsNullOrEmpty(model.EmailNonAccount))
+                    {
+                        try
+                        {
+                            // Mã hóa Token tra cứu an toàn: {Mã_Đơn}_{SĐT}_Key
+                            string rawData = $"{donHang.DonHangLeId}_{donHang.PhoneNonAccount}_GuestSecretKey";
+                            string token = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(rawData));
+
+                            // Sinh URL dẫn thẳng tới Action GuestTrackingDetail
+                            string trackingUrl = Url.Action("GuestTrackingDetail", "Notification", 
+                                new { orderId = donHang.DonHangLeId, token = token }, Request.Scheme);
+
+                            string emailBody = $@"
+                                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;'>
+                                    <h2 style='color: #198754;'>Cảm ơn bạn đã đặt hàng tại Green Fresh!</h2>
+                                    <p>Xin chào <strong>{donHang.NameCusNonAccount}</strong>,</p>
+                                    <p>Đơn hàng <strong>#{donHang.DonHangLeId}</strong> của bạn đã được tiếp nhận thành công vào lúc {donHang.NgayDat:dd/MM/yyyy HH:mm}.</p>
+                                    
+                                    <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                                        <tr style='background-color: #f8f9fa;'>
+                                            <td style='padding: 10px; border: 1px solid #dee2e6;'><strong>Tổng tiền thanh toán:</strong></td>
+                                            <td style='padding: 10px; border: 1px solid #dee2e6; color: #dc3545; font-weight: bold;'>{donHang.TongTienThucTe:#,##0} VNĐ</td>
+                                        </tr>
+                                        <tr>
+                                            <td style='padding: 10px; border: 1px solid #dee2e6;'><strong>Địa chỉ giao:</strong></td>
+                                            <td style='padding: 10px; border: 1px solid #dee2e6;'>{donHang.AddressNonAccount}</td>
+                                        </tr>
+                                    </table>
+
+                                    <p>Bạn có thể bấm vào nút bên dưới để xem trực tiếp tiến độ đơn hàng mà không cần đăng nhập:</p>
+                                    <p style='text-align: center; margin: 25px 0;'>
+                                        <a href='{trackingUrl}' style='background-color: #198754; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;'>Tra Cứu Tiến Độ Đơn Hàng</a>
+                                    </p>
+                                    <p style='color: #6c757d; font-size: 13px;'>Hoặc bạn có thể truy cập website và tra cứu bằng Mã đơn <strong>#{donHang.DonHangLeId}</strong> và Số điện thoại <strong>{donHang.PhoneNonAccount}</strong>.</p>
+                                </div>";
+
+                            // Chạy ngầm Task gửi mail để không làm nghẽn/chậm luồng phản hồi UI của người dùng
+                            _ = Task.Run(() => _emailService.SendEmailAsync(model.EmailNonAccount, $"[Green Fresh] Xác nhận đơn hàng #{donHang.DonHangLeId}", emailBody));
+                        }
+                        catch 
+                        { 
+                            // Nuốt lỗi gửi mail nếu có sự cố mạng SMTP để tránh làm hỏng luồng Đặt hàng thành công
+                        }
+                    }
+                    // =================================================================
 
                     // 5. XÓA SẠCH GIỎ HÀNG KHỎI SESSION
                     HttpContext.Session.Remove("UserCart");
@@ -433,11 +528,17 @@ namespace WebWeb.Controllers
             model.Items = new List<CartItemViewModel>();
             foreach (var item in cartItems)
             {
+                var product = await _context.NongSans.FindAsync(item.NongSanId);
+                decimal giaGoc = product != null ? product.GiaBanNiemYet : item.Gia;
+
+                // ✅ TÍNH GIÁ BÁN THỰC TẾ SAU GIẢM GIÁ/KHUYẾN MÃI
+                decimal giaThucTe = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, giaGoc);
+
                 model.Items.Add(new CartItemViewModel
                 {
                     NongSanId = item.NongSanId,
                     SoLuongDat = item.SoLuong, 
-                    DonGiaThoiDiem = item.Gia
+                    DonGiaThoiDiem = giaThucTe // 👈 Đã tính theo giá giảm
                 });
             }
 
@@ -554,7 +655,7 @@ namespace WebWeb.Controllers
         // =================================================================
         // LỊCH SỬ ĐƠN HÀNG LẺ CỦA KHÁCH HÀNG (TRANG USER)
         // =================================================================
-        public async Task<IActionResult> OrderHistory()
+        public async Task<IActionResult> OrderHistory(string? searchTerm, string? trangThai, string? thoiGian)
         {
             // 1. Kiểm tra người dùng đăng nhập chưa
             int? currentUserId = GetCurrentKhachHangId();
@@ -564,9 +665,50 @@ namespace WebWeb.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // 2. Lấy danh sách đơn hàng lẻ của người dùng này, sắp xếp đơn mới nhất lên đầu
-            var danhSachDonHang = await _context.DonHangLes
+            // 2. Khởi tạo Query lấy danh sách đơn hàng của đúng Khách hàng này
+            var query = _context.DonHangLes
                 .Where(d => d.KhachHangId == currentUserId)
+                .AsQueryable();
+
+            // 3. Lọc theo từ khóa (Mã đơn hàng)
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                string term = searchTerm.Trim().ToLower();
+                query = query.Where(n => n.DonHangLeId.ToString().Contains(term));
+            }
+
+            // 4. Lọc theo Trạng thái đơn hàng
+            if (!string.IsNullOrEmpty(trangThai) && trangThai != "TatCa")
+            {
+                query = query.Where(n => n.TrangThaiDonHang == trangThai);
+            }
+
+            // 5. Lọc theo Mốc thời gian
+            if (!string.IsNullOrEmpty(thoiGian))
+            {
+                DateTime now = DateTime.Now;
+                switch (thoiGian)
+                {
+                    case "7ngay":
+                        query = query.Where(n => n.NgayDat >= now.AddDays(-7));
+                        break;
+                    case "30ngay":
+                        query = query.Where(n => n.NgayDat >= now.AddDays(-30));
+                        break;
+                    case "thangNay":
+                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                        query = query.Where(n => n.NgayDat >= startOfMonth);
+                        break;
+                }
+            }
+
+            // Giữ lại các giá trị lọc ra ViewBag để hiển thị trên View
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.TrangThaiHienTai = trangThai ?? "TatCa";
+            ViewBag.ThoiGianHienTai = thoiGian ?? "TatCa";
+
+            // 6. Lấy danh sách sắp xếp đơn mới nhất lên đầu
+            var danhSachDonHang = await query
                 .OrderByDescending(d => d.NgayDat)
                 .ToListAsync();
 
@@ -602,68 +744,148 @@ namespace WebWeb.Controllers
         // UC02: KHÁCH HÀNG TỰ HỦY ĐƠN HÀNG LẺ QUA AJAX
         // =================================================================
         [HttpPost]
-        public async Task<IActionResult> HuyDonHangLe(int id)
+        public async Task<IActionResult> HuyDonHangLe(int id, string? phoneGuest)
         {
-            // Kiểm tra phiên đăng nhập của tài khoản thành viên
             int? currentUserId = GetCurrentKhachHangId();
-            if (currentUserId == null)
+            DonHangLe? donHang = null;
+
+            // Chuẩn hóa SĐT đầu vào từ client
+            string cleanPhone = string.IsNullOrEmpty(phoneGuest) 
+                ? "" 
+                : phoneGuest.Trim().Replace(" ", "").Replace(".", "");
+
+            if (!string.IsNullOrEmpty(cleanPhone) && cleanPhone.StartsWith("+84"))
             {
-                return Json(new { success = false, message = "Phiên đăng nhập của bạn đã hết hạn, vui lòng đăng nhập lại!" });
+                cleanPhone = "0" + cleanPhone.Substring(3);
+            }
+            // 1. XÁC THỰC QUYỀN HỦY ĐƠN
+            if (currentUserId.HasValue)
+            {
+                // 🟢 TH 1: Khách hàng đã đăng nhập -> Kiểm tra theo ID tài khoản
+                donHang = await _context.DonHangLes
+                    .Include(d => d.ChiTietDonHangLes)
+                    .FirstOrDefaultAsync(d => d.DonHangLeId == id && d.KhachHangId == currentUserId.Value);
+            }
+            // 🟢 TH 2: Tra cứu vãng lai (Nếu không tìm thấy theo Account hoặc chưa đăng nhập)
+            if (donHang == null && !string.IsNullOrEmpty(cleanPhone))
+            {
+                // Lấy đơn hàng theo ID trước, sau đó đối chiếu SĐT linh hoạt
+                var candidateOrder = await _context.DonHangLes
+                    .Include(d => d.ChiTietDonHangLes)
+                    .Include(d => d.DiaChi) // Include thêm bảng Địa chỉ để check SoDienThoaiNhan
+                    .FirstOrDefaultAsync(d => d.DonHangLeId == id);
+
+                if (candidateOrder != null)
+                {
+                    // Lấy tất cả các trường SĐT có thể có trong đơn hàng
+                    string phone1 = candidateOrder.PhoneNonAccount?.Trim().Replace(" ", "").Replace(".", "") ?? "";
+                    string phone2 = candidateOrder.DiaChi?.SoDienThoaiNhan?.Trim().Replace(" ", "").Replace(".", "") ?? "";
+                    
+                    if (phone1.StartsWith("+84")) phone1 = "0" + phone1.Substring(3);
+                    if (phone2.StartsWith("+84")) phone2 = "0" + phone2.Substring(3);
+
+                    // Kiểm tra khớp ít nhất 1 trong các SĐT
+                    if (cleanPhone == phone1 || cleanPhone == phone2 || cleanPhone.EndsWith(phone1) || cleanPhone.EndsWith(phone2))
+                    {
+                        donHang = candidateOrder;
+                    }
+                }
             }
 
-            // Tìm đơn hàng lẻ thuộc về chính khách hàng đó và đang ở trạng thái "Chờ xử lý"
-            var donHang = await _context.DonHangLes
-                .FirstOrDefaultAsync(d => d.DonHangLeId == id && d.KhachHangId == currentUserId.Value);
-
+            // Trả về lỗi chi tiết nếu vẫn không khớp
             if (donHang == null)
             {
-                return Json(new { success = false, message = "Không tìm thấy đơn hàng hợp lệ của bạn!" });
+                return Json(new { success = false, message = "Không tìm thấy đơn hàng hợp lệ hoặc thông tin xác thực không đúng!" });
             }
 
-            // Chỉ cho phép hủy khi đơn hàng đang ở trạng thái "Chờ xử lý"
-            if (donHang.TrangThaiDonHang != OrderStatuses.ChoDuyet)
+            // Cho phép hủy toàn bộ trạng thái ngoại trừ HoanThanh và DaHuy
+            if (donHang.TrangThaiDonHang == OrderStatuses.HoanThanh || donHang.TrangThaiDonHang == OrderStatuses.DaHuy)
             {
-                return Json(new { success = false, message = $"Không thể hủy đơn hàng này vì đơn đang ở trạng thái: {donHang.TrangThaiDonHang}!" });
+                return Json(new { success = false, message = $"Không thể hủy đơn hàng này vì đơn đã ở trạng thái: {donHang.TrangThaiDonHang}!" });
             }
 
-            string refundMessage = "";
-
-            // =================================================================
-            // LOGIC HOÀN TIỀN KHI ĐƠN ĐÃ THANH TOÁN (SỬ DỤNG EF CORE THUẦN)
-            // =================================================================
-            if(donHang.TrangThaiThanhToan == OrderStatuses.DaThanhToan)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                // Tìm giao dịch thanh toán liên quan đến đơn hàng này
-                var giaoDich = await _context.GiaoDichThanhToans
-                    .FirstOrDefaultAsync(g => g.DonHangLeId == id);
-
-                if (giaoDich != null)
+                try
                 {
-                    giaoDich.TrangThai = 2; // Cập nhật trạng thái giao dịch
-                    _context.GiaoDichThanhToans.Update(giaoDich);
-                    await _context.SaveChangesAsync();
-                }
-                refundMessage = $" Hệ thống đã hoàn trả số tiền {donHang.TongTienTamTinh.ToString("#,##0")} VNĐ của giao dịch gốc.";
-            }
-            try
-            {
-                // Cập nhật trạng thái hủy
-                donHang.TrangThaiDonHang = OrderStatuses.DaHuy;
-                await _context.SaveChangesAsync();
+                    // =========================================================
+                    // FIX LOGIC 1: HOÀN TỒN KHO VỀ BẢNG LOHANG
+                    // =========================================================
+                    foreach (var item in donHang.ChiTietDonHangLes)
+                    {
+                        // Tìm lô hàng còn hạn sử dụng mới nhất của nông sản này để cộng trả lại kho
+                        var loHangTarget = await _context.LoHangs
+                            .Where(l => l.NongSanId == item.NongSanId && l.HanSuDung >= DateTime.Now)
+                            .OrderByDescending(l => l.NgayNhapKho) // Lấy lô mới nhất
+                            .FirstOrDefaultAsync();
 
-                return Json(new { success = true, message = $"Hủy đơn hàng #{id} thành công!{refundMessage}" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Lỗi hệ thống khi cập nhật hủy đơn: " + ex.Message });
+                        // Nếu không tìm thấy lô còn hạn, lấy lô gần nhất bất kỳ của nông sản đó
+                        if (loHangTarget == null)
+                        {
+                            loHangTarget = await _context.LoHangs
+                                .Where(l => l.NongSanId == item.NongSanId)
+                                .OrderByDescending(l => l.NgayNhapKho)
+                                .FirstOrDefaultAsync();
+                        }
+
+                        if (loHangTarget != null)
+                        {
+                            loHangTarget.SoLuongTon += item.SoLuongDat; 
+                            _context.LoHangs.Update(loHangTarget);
+                        }
+                    }
+
+                    // =========================================================
+                    // FIX LOGIC 2: HOÀN LẠI ĐIỂM TÍCH LŨY (Nếu đơn có dùng điểm)
+                    // =========================================================
+                    if (donHang.TienChenhLech > 0 && donHang.KhachHangId.HasValue)
+                    {
+                        var khachHang = await _context.KhachHangs.FindAsync(donHang.KhachHangId.Value);
+                        if (khachHang != null)
+                        {
+                            khachHang.DiemTichLuy += (int)donHang.TienChenhLech;
+                            _context.KhachHangs.Update(khachHang);
+                        }
+                    }
+
+                    // =========================================================
+                    // FIX LOGIC 3: HOÀN TIỀN NẾU ĐÃ THANH TOÁN TRỰC TUYẾN
+                    // =========================================================
+                    string refundMessage = "";
+                    if (donHang.TrangThaiThanhToan == OrderStatuses.DaThanhToan || donHang.PhuongThucThanhToan == "VNPAY" || donHang.PhuongThucThanhToan == "MOMO")
+                    {
+                        var giaoDich = await _context.GiaoDichThanhToans
+                            .FirstOrDefaultAsync(g => g.DonHangLeId == id);
+
+                        if (giaoDich != null)
+                        {
+                            giaoDich.TrangThai = 2; // Đã hoàn tiền
+                            _context.GiaoDichThanhToans.Update(giaoDich);
+                        }
+                        refundMessage = $" Hệ thống đã hoàn trả số tiền {donHang.TongTienThucTe:#,##0} VNĐ vào tài khoản thanh toán của bạn.";
+                    }
+
+                    // Cập nhật trạng thái đơn thành Đã hủy
+                    donHang.TrangThaiDonHang = OrderStatuses.DaHuy;
+                    _context.DonHangLes.Update(donHang);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return Json(new { success = true, message = $"Hủy đơn hàng #{id} thành công!{refundMessage}" });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return Json(new { success = false, message = "Lỗi hệ thống khi hủy đơn: " + ex.Message });
+                }
             }
         }
 
         // =================================================================
-        // 1. HIỂN THỊ DANH SÁCH GÓI ĐỊNH KỲ CỦA CUSTOMER
+        // 1. HIỂN THỊ DANH SÁCH GÓI ĐỊNH KỲ CỦA CUSTOMER (CÓ BỘ LỌC)
         // =================================================================
-        //[Authorize("Customer")]
-        public async Task<IActionResult> LichSuGoiDinhKy()
+        public async Task<IActionResult> LichSuGoiDinhKy(string? searchTerm, string? trangThai, string? thoiGian)
         {
             int? currentUserId = GetCurrentKhachHangId();
             if (currentUserId == null)
@@ -672,15 +894,95 @@ namespace WebWeb.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Nạp đầy đủ bảng DiaChi và danh sách GiaoDichThanhToans liên quan
-            var danhSachGoi = await _context.GoiDangKyDinhKies
+            var query = _context.GoiDangKyDinhKies
                 .Include(g => g.DiaChi)
-                .Include(g => g.GiaoDichThanhToans) // Load danh sách giao dịch chứa cột GoiId
+                .Include(g => g.GiaoDichThanhToans)
                 .Where(g => g.KhachHangId == currentUserId.Value)
-                .OrderByDescending(g => g.NgayBatDau) // Dùng NgayBatDau thay cho NgayDangKy
+                .AsQueryable();
+
+            // 1. Lọc theo từ khóa (Mã gói)
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                string term = searchTerm.Trim().ToLower();
+                query = query.Where(g => g.GoiId.ToString().Contains(term));
+            }
+
+            // 2. Lọc theo Trạng thái gói
+            if (!string.IsNullOrEmpty(trangThai) && trangThai != "TatCa")
+            {
+                query = query.Where(g => g.TrangThaiGoi == trangThai);
+            }
+
+            // 3. Lọc theo Mốc thời gian bắt đầu gói
+            if (!string.IsNullOrEmpty(thoiGian))
+            {
+                DateTime now = DateTime.Now;
+                switch (thoiGian)
+                {
+                    case "7ngay":
+                        query = query.Where(g => g.NgayBatDau >= now.AddDays(-7));
+                        break;
+                    case "30ngay":
+                        query = query.Where(g => g.NgayBatDau >= now.AddDays(-30));
+                        break;
+                    case "thangNay":
+                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                        query = query.Where(g => g.NgayBatDau >= startOfMonth);
+                        break;
+                }
+            }
+
+            // Giữ lại giá trị lọc ra ViewBag
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.TrangThaiHienTai = trangThai ?? "TatCa";
+            ViewBag.ThoiGianHienTai = thoiGian ?? "TatCa";
+
+            var danhSachGoi = await query
+                .OrderByDescending(g => g.NgayBatDau)
                 .ToListAsync();
 
             return View(danhSachGoi);
+        }
+
+        // =================================================================
+        // 2. API LẤY CHI TIẾT CÁC ĐỢT GIAO VÀ SẢN PHẨM CỦA GÓI ĐỊNH KỲ (AJAX)
+        // =================================================================
+        [HttpGet]
+        public async Task<IActionResult> GetChiTietGoiDinhKy(int id)
+        {
+            int? currentUserId = GetCurrentKhachHangId();
+            if (currentUserId == null)
+            {
+                return Json(new { success = false, message = "Chưa đăng nhập!" });
+            }
+
+            var goiDinhKy = await _context.GoiDangKyDinhKies
+                .Include(g => g.DotGiaoDinhKies)
+                .Include(g => g.ChiTietGoiDinhKies)
+                    .ThenInclude(ct => ct.NongSan)
+                .FirstOrDefaultAsync(g => g.GoiId == id && g.KhachHangId == currentUserId.Value);
+
+            if (goiDinhKy == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy gói định kỳ!" });
+            }
+
+            // Tạo danh sách tên các nông sản kèm số lượng mỗi đợt
+            string danhsachSanPham = string.Join(", ", goiDinhKy.ChiTietGoiDinhKies
+                .Select(c => $"{c.NongSan?.TenNongSan ?? "Nông sản"} (x{c.SoLuongMoiDot:#,##0.##})"));
+
+            var resultData = goiDinhKy.DotGiaoDinhKies
+                .OrderBy(d => d.NgayGiaoThucTe)
+                .Select((d, index) => new
+                {
+                    dotSo = index + 1,
+                    ngayGiao = d.NgayGiaoThucTe.ToString("dd/MM/yyyy"),
+                    ghiChu = string.IsNullOrEmpty(danhsachSanPham) ? "Theo danh mục gói" : danhsachSanPham,
+                    trangThai = d.TrangThaiGiao
+                })
+                .ToList();
+
+            return Json(new { success = true, data = resultData });
         }
 
         // =================================================================
@@ -689,9 +991,9 @@ namespace WebWeb.Controllers
         [HttpPost]
         public async Task<IActionResult> HuyGoiDinhKy(int id)
         {
-            // 1. Tìm gói đăng ký kèm theo danh sách các đợt giao hàng định kỳ
             var goiDangKy = await _context.GoiDangKyDinhKies
                 .Include(g => g.DotGiaoDinhKies)
+                .Include(g => g.ChiTietGoiDinhKies)
                 .FirstOrDefaultAsync(g => g.GoiId == id);
 
             if (goiDangKy == null)
@@ -699,7 +1001,6 @@ namespace WebWeb.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin gói đăng ký định kỳ này!" });
             }
 
-            // 2. Kiểm tra điều kiện trạng thái gói (Chỉ cho hủy gói khi đang hoạt động)
             if (goiDangKy.TrangThaiGoi == OrderStatuses.DaHuy)
             {
                 return Json(new { success = false, message = "Gói đăng ký định kỳ này đã được hủy từ trước!" });
@@ -709,68 +1010,90 @@ namespace WebWeb.Controllers
                 return Json(new { success = false, message = "Gói đăng ký đã hoàn thành toàn bộ lịch trình, không thể hủy!" });
             }
 
-            // 3. TIẾN HÀNH TÍNH TOÁN TIỀN HOÀN TRẢ ĐỒNG BỘ
             decimal soTienHoanTra = 0;
-
-            // Đếm tổng số đợt giao hàng ban đầu của gói
             int tongSoDotBanDau = goiDangKy.DotGiaoDinhKies.Count;
 
             if (tongSoDotBanDau > 0)
             {
-                // Tính giá trị kinh tế trung bình của 1 đợt giao hàng dựa trên số tiền khách đã trả trước
                 decimal giaTriMotDotGiao = goiDangKy.TongTienGoi / tongSoDotBanDau;
 
-                // Các đợt được coi là "ĐÃ DÙNG/KHÔNG THỂ HOÀN TIỀN": Đã giao, Đang giao, Đang chuẩn bị hàng.
-                // Chỉ những đợt ở trạng thái "Chờ xử lý" (hoặc chưa khởi tạo lịch) mới được tính hoàn tiền.
-                int soDotChuaGiao = goiDangKy.DotGiaoDinhKies
-                    .Count(d => d.TrangThaiGiao == OrderStatuses.ChoXuLy);
+                var dsDotChuaGiao = goiDangKy.DotGiaoDinhKies
+                    .Where(d => d.TrangThaiGiao == OrderStatuses.ChoDuyet || d.TrangThaiGiao == OrderStatuses.ChoXuLy)
+                    .ToList();
+
+                int soDotChuaGiao = dsDotChuaGiao.Count;
 
                 if (soDotChuaGiao > 0)
                 {
-                    // Số tiền dư lý thuyết của các đợt chưa giao
                     decimal tienDuConLai = soDotChuaGiao * giaTriMotDotGiao;
-
-                    // Áp dụng phí phạt hủy ngang hợp đồng (Ví dụ: phạt 10% tiền dư để bù chi phí vận hành, giữ lại 90%)
-                    decimal tiLePhatHuyGoi = 0.10m; 
+                    decimal tiLePhatHuyGoi = 0.10m; // Phạt 10%
                     decimal phiPhat = tienDuConLai * tiLePhatHuyGoi;
 
                     soTienHoanTra = tienDuConLai - phiPhat;
-                    
-                    // Đảm bảo số tiền hoàn không âm và không vượt quá tổng số tiền gói ban đầu
                     if (soTienHoanTra < 0) soTienHoanTra = 0;
                     if (soTienHoanTra > goiDangKy.TongTienGoi) soTienHoanTra = goiDangKy.TongTienGoi;
                 }
             }
 
-            // 4. CẬP NHẬT TRẠNG THÁI CÁC ĐỐI TƯỢNG VÀO CƠ SỞ DỮ LIỆU
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    // Cập nhật trạng thái gói chính thành Đã hủy
-                    goiDangKy.TrangThaiGoi = OrderStatuses.DaHuy;
+                    // HOÀN TỒN KHO CÁC ĐỢT GIAO CHƯA XỬ LÝ VỀ BẢNG LOHANG
+                    var dsDotCanHuy = goiDangKy.DotGiaoDinhKies
+                        .Where(d => d.TrangThaiGiao == OrderStatuses.ChoDuyet || d.TrangThaiGiao == OrderStatuses.ChoXuLy)
+                        .ToList();
 
-                    // Hủy toàn bộ những đợt giao hàng "Chờ xử lý" (chưa giao) thuộc gói này
-                    var dsDotChuaGiao = goiDangKy.DotGiaoDinhKies
-                        .Where(d => d.TrangThaiGiao == OrderStatuses.ChoXuLy);
-                    foreach (var dot in dsDotChuaGiao)
+                    foreach (var dot in dsDotCanHuy)
                     {
+                        foreach (var item in goiDangKy.ChiTietGoiDinhKies)
+                        {
+                            var loHangTarget = await _context.LoHangs
+                                .Where(l => l.NongSanId == item.NongSanId && l.HanSuDung >= DateTime.Now)
+                                .OrderByDescending(l => l.NgayNhapKho)
+                                .FirstOrDefaultAsync();
+
+                            if (loHangTarget == null)
+                            {
+                                loHangTarget = await _context.LoHangs
+                                    .Where(l => l.NongSanId == item.NongSanId)
+                                    .OrderByDescending(l => l.NgayNhapKho)
+                                    .FirstOrDefaultAsync();
+                            }
+
+                            if (loHangTarget != null)
+                            {
+                                loHangTarget.SoLuongTon += item.SoLuongMoiDot; // Điều chỉnh lại đúng tên cột số lượng của bảng LoHang
+                                _context.LoHangs.Update(loHangTarget);
+                            }
+                        }
                         dot.TrangThaiGiao = OrderStatuses.DaHuy;
+                    }
+
+                    // Đánh dấu gói chính thành Đã hủy
+                    goiDangKy.TrangThaiGoi = OrderStatuses.DaHuy;
+                    _context.GoiDangKyDinhKies.Update(goiDangKy);
+
+                    // Cập nhật giao dịch
+                    var giaoDich = await _context.GiaoDichThanhToans.FirstOrDefaultAsync(g => g.GoiDangKyId == id);
+                    if (giaoDich != null)
+                    {
+                        giaoDich.TrangThai = 2; // Đã hoàn tiền
+                        _context.GiaoDichThanhToans.Update(giaoDich);
                     }
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    // 5. TRẢ VỀ KẾT QUẢ CHO AJAX Ở GIAO DIỆN
                     return Json(new { 
                         success = true, 
-                        message = $"Hủy gói thành công! Số tiền hoàn trả lại qua ví/thẻ của bạn là: {soTienHoanTra.ToString("N0")} VNĐ (Đã trừ phí hủy gói nếu có)." 
+                        message = $"Hủy gói thành công! Số tiền hoàn trả lại vào ví/thẻ của bạn là: {soTienHoanTra:N0} VNĐ (Đã trừ 10% phí hủy gói)." 
                     });
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    return Json(new { success = false, message = "Đã xảy ra lỗi hệ thống trong quá trình hủy gói và tính toán hoàn tiền!" });
+                    return Json(new { success = false, message = "Đã xảy ra lỗi hệ thống trong quá trình hủy gói: " + ex.Message });
                 }
             }
         }

@@ -19,7 +19,11 @@ public class HomeController : Controller
     public async Task<IActionResult> Index()
     {
         var products = await _context.NongSans
+            .Include(n => n.LoHangs)
+            .Include(n => n.DanhGiaSanPhams)
             .Include(n => n.DanhMuc)
+            .Include(n => n.NhaVuon)
+            .Where(n => n.LoHangs.Sum(l => l.SoLuongTon) > 0 || n.DanhGiaSanPhams.Any(d => d.SoSao >= 4))
             .ToListAsync();
 
         return View(products);

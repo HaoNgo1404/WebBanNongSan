@@ -7,7 +7,19 @@
         <div class="product-card-image">
             <img src="@Url.Content("~/images/" + Model.HinhAnh)" style="width:100%; height:200px; object-fit:cover;" class="rounded-top"
                  alt="@Model.TenNongSan" />
-            <span class="product-badge">Sạch & tươi</span>
+            <!-- HIỂN THỊ BADGE HẾT HÀNG HOẶC HOT -->
+            @if (Model.SoLuongTon <= 0)
+            {
+                <span class="badge bg-danger position-absolute top-0 start-0 m-2 px-3 py-2 rounded-pill fs-6 shadow-sm">
+                    <i class="bi bi-x-circle me-1"></i> Hết hàng
+                </span>
+            }
+            else if (Model.IsHot)
+            {
+                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2 px-2 py-1 rounded-pill small fw-bold shadow-sm">
+                    🔥 HOT
+                </span>
+            }
             <button class="product-fav-btn" type="button" aria-label="Yêu thích" onclick="event.preventDefault(); event.stopPropagation();">
                 <i class="bi bi-heart"></i>
             </button>
@@ -15,7 +27,7 @@
         <div class="product-card-body">
             <div class="product-meta">
                 <span class="text-muted small">@(Model.DanhMuc?.TenDanhMuc ?? "Nông sản")</span>
-                <span class="text-muted small"><i class="bi bi-star-fill text-warning"></i> 4.8</span>
+                <span class="text-muted small"><i class="bi bi-star-fill text-warning">@Model.DiemDanhGiaTrungBinh.ToString("0.0")</i></span>
             </div>
             <h5 class="product-card-title">@Model.TenNongSan</h5>
             <p class="product-card-text">@Model.DonViTinh</p>
@@ -35,17 +47,31 @@
                             <span class="fw-bold text-success">@Model.GiaBanNiemYet.ToString("N0") VNĐ </span>
                         }
                     </div>
-                    <div class="text-muted small">Từ @(string.IsNullOrWhiteSpace(Model.NhaVuon?.TenNhaVuon) ? "Fresh Farm" : Model.NhaVuon.TenNhaVuon)</div>
+                    <div class="text-muted small">Từ @(string.IsNullOrWhiteSpace(Model.NhaVuon?.TenNhaVuon) ? "Green Fresh" : Model.NhaVuon.TenNhaVuon)</div>
                 </div>
 
-                <!-- NÚT GIỎ HÀNG: Đã bỏ thẻ <form> con, dùng onclick chặn nhảy sang trang Detail và gọi hàm quickAddToCart -->
-                <button type="button" 
-                        class="btn btn-outline-success btn-sm rounded-3 btn-add-to-cart p-0 d-flex align-items-center justify-content-center" 
-                        style="width: 36px; height: 36px;"
-                        onclick="event.preventDefault(); event.stopPropagation(); quickAddToCart(@Model.NongSanId);" 
-                        title="Thêm vào giỏ hàng">
-                    <i class="bi bi-cart-plus fs-5"></i>
-                </button>
+                <!-- NÚT GIỎ HÀNG: Đã bỏ thẻ <form> con, dùng onclick chặn nhảy sang trang Detail và gọi hàm quickAddToCart, Khóa nếu hết hàng -->
+                @if (Model.SoLuongTon > 0)
+                {
+                    <button type="button" 
+                            class="btn btn-outline-success btn-sm rounded-3 btn-add-to-cart p-0 d-flex align-items-center justify-content-center" 
+                            style="width: 36px; height: 36px;"
+                            onclick="event.preventDefault(); event.stopPropagation(); quickAddToCart(@Model.NongSanId);" 
+                            title="Thêm vào giỏ hàng">
+                        <i class="bi bi-cart-plus fs-5"></i>
+                    </button>
+                }
+                else
+                {
+                    <button type="button" 
+                            class="btn btn-secondary btn-sm rounded-3 p-0 d-flex align-items-center justify-content-center opacity-50" 
+                            style="width: 36px; height: 36px;" 
+                            disabled 
+                            onclick="event.preventDefault(); event.stopPropagation();"
+                            title="Sản phẩm tạm thời hết hàng">
+                        <i class="bi bi-slash-circle fs-5"></i>
+                    </button>
+                }
             </div>
         </div>
     </div>

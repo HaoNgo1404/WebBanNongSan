@@ -17,23 +17,55 @@ namespace WebWeb.Areas.Admin.Controllers
         }
 
         // 1. DANH SÁCH ĐƠN HÀNG LẺ
-        public async Task<IActionResult> Index(string searchTerm)
+        public async Task<IActionResult> Index(string? searchTerm, string? trangThai, string? thoiGian)
         {
-            var query = _context.DonHangLes.AsQueryable();
+            var query = _context.DonHangLes
+                .Include(d => d.ChiTietDonHangLes).ThenInclude(ct => ct.NongSan)
+                .Include(d => d.KhachHang)
+                .AsQueryable();
 
+            // 1. Lọc theo từ khóa (Mã đơn, Tên KH, SĐT)
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                query = query.Where(n => n.DonHangLeId.ToString().Contains(searchTerm) ||
-                                         n.KhachHang.HoTen.Contains(searchTerm) ||
-                                         n.NameCusNonAccount.Contains(searchTerm) ||
-                                         n.NgayDat.ToString("dd/MM/yyyy").Contains(searchTerm));
-                ViewBag.SearchTerm = searchTerm;
+                string term = searchTerm.Trim().ToLower();
+                query = query.Where(n => n.DonHangLeId.ToString().Contains(term) ||
+                                        (n.KhachHang != null && n.KhachHang.HoTen.ToLower().Contains(term)) ||
+                                        (n.KhachHang != null && n.KhachHang.SoDienThoai.Contains(term)) ||
+                                        (n.NameCusNonAccount != null && n.NameCusNonAccount.ToLower().Contains(term)) ||
+                                        (n.PhoneNonAccount != null && n.PhoneNonAccount.Contains(term)));
             }
-            var danhSachDonHang = await _context.DonHangLes
-                .Include(d => d.ChiTietDonHangLes)
-                .Include(d => d.KhachHang)
-                .OrderByDescending(d => d.NgayDat)
-                .ToListAsync();
+
+            // 2. Lọc theo Trạng Thái Đơn Hang
+            if (!string.IsNullOrEmpty(trangThai) && trangThai != "TatCa")
+            {
+                query = query.Where(n => n.TrangThaiDonHang == trangThai);
+            }
+
+            // 3. Lọc theo Mốc Thời Gian Đặt Hang
+            if (!string.IsNullOrEmpty(thoiGian))
+            {
+                DateTime now = DateTime.Now;
+                switch (thoiGian)
+                {
+                    case "7ngay":
+                        query = query.Where(n => n.NgayDat >= now.AddDays(-7));
+                        break;
+                    case "30ngay":
+                        query = query.Where(n => n.NgayDat >= now.AddDays(-30));
+                        break;
+                    case "thangNay":
+                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                        query = query.Where(n => n.NgayDat >= startOfMonth);
+                        break;
+                }
+            }
+
+            // Lưu lại giá trị bộ lọc ra ViewBag để giữ trạng thái trên giao diện
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.TrangThaiHienTai = trangThai ?? "TatCa";
+            ViewBag.ThoiGianHienTai = thoiGian ?? "TatCa";
+
+            var danhSachDonHang = await query.OrderByDescending(d => d.NgayDat).ToListAsync();
             return View(danhSachDonHang);
         }
 
@@ -151,21 +183,52 @@ namespace WebWeb.Areas.Admin.Controllers
         }
 
         // 3. DANH SÁCH ĐƠN HÀNG ĐỊNH KỲ
-        public async Task<IActionResult> IndexDinhKy(string searchTerm)
+        public async Task<IActionResult> IndexDinhKy(string? searchTerm, string? trangThai, string? thoiGian)
         {
-            var query = _context.GoiDangKyDinhKies.AsQueryable();
-
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                query = query.Where(n => n.GoiId.ToString().Contains(searchTerm) ||
-                                         n.KhachHang.HoTen.Contains(searchTerm) ||
-                                         n.NgayBatDau.ToString("dd/MM/yyyy").Contains(searchTerm));
-                ViewBag.SearchTerm = searchTerm;
-            }
-            var danhSachGoi = await _context.GoiDangKyDinhKies
+            var query = _context.GoiDangKyDinhKies
                 .Include(g => g.KhachHang)
                 .Include(g => g.DiaChi)
-                .ToListAsync();
+                .AsQueryable();
+
+            // 1. Lọc theo từ khóa
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                string term = searchTerm.Trim().ToLower();
+                query = query.Where(n => n.GoiId.ToString().Contains(term) ||
+                                        (n.KhachHang != null && n.KhachHang.HoTen.ToLower().Contains(term)) ||
+                                        (n.KhachHang != null && n.KhachHang.SoDienThoai.Contains(term)));
+            }
+
+            // 2. Lọc theo Trạng Thái Gói
+            if (!string.IsNullOrEmpty(trangThai) && trangThai != "TatCa")
+            {
+                query = query.Where(n => n.TrangThaiGoi == trangThai);
+            }
+
+            // 3. Lọc theo Mốc Thời Gian Đăng Ký
+            if (!string.IsNullOrEmpty(thoiGian))
+            {
+                DateTime now = DateTime.Now;
+                switch (thoiGian)
+                {
+                    case "7ngay":
+                        query = query.Where(n => n.NgayBatDau >= now.AddDays(-7));
+                        break;
+                    case "30ngay":
+                        query = query.Where(n => n.NgayBatDau >= now.AddDays(-30));
+                        break;
+                    case "thangNay":
+                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                        query = query.Where(n => n.NgayBatDau >= startOfMonth);
+                        break;
+                }
+            }
+
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.TrangThaiHienTai = trangThai ?? "TatCa";
+            ViewBag.ThoiGianHienTai = thoiGian ?? "TatCa";
+
+            var danhSachGoi = await query.OrderByDescending(g => g.NgayBatDau).ToListAsync();
             return View(danhSachGoi);
         }
 

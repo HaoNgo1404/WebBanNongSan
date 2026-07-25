@@ -51,7 +51,24 @@
                                 <h5 class="fw-semibold mb-1">@item.TenNongSan</h5>
                                 <p class="text-muted small mb-0">Đơn vị: @item.DonViTinh</p>
                                 <div class="price-row mt-1">
-                                    <span class="price text-success fw-bold">@item.Gia.ToString("N0") VNĐ</span>
+                                    @if (item.GiaThucTe < item.Gia && item.GiaThucTe > 0)
+                                    {
+                                        <!-- Giá đã giảm -->
+                                        <span class="price text-danger fw-bold me-2">
+                                            @item.GiaThucTe.ToString("N0") VNĐ
+                                        </span>
+                                        <!-- Giá gốc bị gạch ngang -->
+                                        <span class="text-muted text-decoration-line-through small">
+                                            @item.Gia.ToString("N0") VNĐ
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <!-- Giá bình thường -->
+                                        <span class="price text-success fw-bold">
+                                            @item.Gia.ToString("N0") VNĐ
+                                        </span>
+                                    }
                                 </div>
                             </div>
                             

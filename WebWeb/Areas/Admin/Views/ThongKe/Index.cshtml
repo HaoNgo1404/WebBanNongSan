@@ -11,15 +11,16 @@
         </div>
     </div>
 
+    <!-- Bộ lọc ngày -->
     <div class="admin-panel p-3 mb-4">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-4">
                 <label class="form-label fw-semibold">Từ ngày</label>
-                <input type="date" name="tuNgay" class="form-control" value="@ViewBag.TuNgay" />
+                <input type="date" id="tuNgayInput" name="tuNgay" class="form-control" value="@ViewBag.TuNgay" />
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-semibold">Đến ngày</label>
-                <input type="date" name="denNgay" class="form-control" value="@ViewBag.DenNgay" />
+                <input type="date" id="denNgayInput" name="denNgay" class="form-control" value="@ViewBag.DenNgay" />
             </div>
             <div class="col-md-4">
                 <button type="submit" class="btn btn-success w-100 admin-btn"><i class="bi bi-filter"></i> Lọc dữ liệu</button>
@@ -27,6 +28,7 @@
         </form>
     </div>
 
+    <!-- Thống kê Card tổng quan -->
     <div class="row g-4 mb-4">
         <div class="col-md-4">
             <div class="p-4 bg-light border rounded shadow-sm text-center">
@@ -46,20 +48,15 @@
         </div>
         <div class="col-md-4">
             <div class="p-4 bg-light border rounded shadow-sm text-center">
-                <div class="text-warning mb-2" style="font-size: 2rem;">
-                    <i class="bi bi-bag-check-fill"></i>
-                </div>
+                <div class="text-warning mb-2" style="font-size: 2rem;"><i class="bi bi-bag-check-fill"></i></div>
                 <h5 class="text-muted fw-semibold">Tỷ lệ hoàn thành</h5>
-                
-                <h3 class="fw-bold text-warning">
-                    @(ViewBag.TyLeHoanThanh ?? 0)%
-                </h3>
-                
+                <h3 class="fw-bold text-warning">@(ViewBag.TyLeHoanThanh ?? 0)%</h3>
                 <small class="text-muted">Dữ liệu tính từ hóa đơn thành công</small>
             </div>
         </div>
     </div>
 
+    <!-- Bảng Top Nông Sản Bán Chạy -->
     <div class="admin-panel p-4">
         <h4 class="fw-bold mb-3 text-dark"><i class="bi bi-graph-up-arrow text-success"></i> Top 5 nông sản bán chạy nhất</h4>
         <div class="table-responsive">
@@ -67,9 +64,11 @@
                 <table class="admin-table table align-middle">
                     <thead>
                         <tr class="bg-success text-white">
-                            <th style="width: 10%;">Thứ hạng</th>
+                            <th style="width: 8%;">Thứ hạng</th>
                             <th>Tên Nông Sản</th>
-                            <th class="text-end">Số lượng bán ra</th>
+                            <th class="text-end">Số lượng bán</th>
+                            <th class="text-end">Tổng tiền do nông sản này mang lại</th>
+                            <th class="text-center" style="width: 15%;">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -81,10 +80,19 @@
                         {
                             foreach (var item in topProducts)
                             {
-                                <tr>
+                                <tr style="cursor: pointer;" class="product-row" data-id="@item.NongSanId" data-name="@item.TenNongSan">
                                     <td><span class="badge bg-secondary text-white">#@index</span></td>
-                                    <td class="fw-semibold text-dark">@item.TenNongSan</td>
-                                    <td class="text-end text-success fw-bold">@item.SoLuongBan.ToString("#,##0")</td>
+                                    <td class="fw-semibold text-primary">
+                                        <i class="bi bi-box-seam me-1"></i> @item.TenNongSan
+                                    </td>
+                                    <td class="text-end text-dark fw-bold">@item.SoLuongBan.ToString("#,##0")</td>
+                                    <!-- Cột Tổng Tiền mới -->
+                                    <td class="text-end text-success fw-bold">@item.TongTien.ToString("#,##0") đ</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary view-orders-btn">
+                                            <i class="bi bi-list-task"></i> Xem đơn hàng
+                                        </button>
+                                    </td>
                                 </tr>
                                 index++;
                             }
@@ -92,7 +100,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="3" class="text-center text-muted">Không có dữ liệu trong khoảng thời gian này.</td>
+                                <td colspan="5" class="text-center text-muted">Không có dữ liệu trong khoảng thời gian này.</td>
                             </tr>
                         }
                     </tbody>
@@ -101,3 +109,92 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL HIỂN THỊ DANH SÁCH ĐƠN HÀNG KHI CLICK VÀO SẢN PHẨM -->
+<div class="modal fade" id="ordersModal" tabindex="-1" aria-labelledby="ordersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="ordersModalLabel"><i class="bi bi-bag-check me-2"></i> Danh sách đơn hàng chứa: <span id="modalProductName" class="text-warning"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th class="text-end">SL Mua</th>
+                                <th class="text-end">Thành tiền</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalOrdersBody">
+                            <!-- Nội dung Ajax render tại đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Khi ấn vào dòng sản phẩm hoặc nút Xem đơn hàng
+            $('.product-row').click(function (e) {
+                var nongSanId = $(this).data('id');
+                var tenNongSan = $(this).data('name');
+                var tuNgay = $('#tuNgayInput').val();
+                var denNgay = $('#denNgayInput').val();
+
+                $('#modalProductName').text(tenNongSan);
+                $('#modalOrdersBody').html('<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-success" role="status"></div><p class="mt-2 text-muted mb-0">Đang tải dữ liệu đơn hàng...</p></td></tr>');
+                
+                var ordersModal = new bootstrap.Modal(document.getElementById('ordersModal'));
+                ordersModal.show();
+
+                // Call AJAX lấy danh sách đơn hàng
+                $.ajax({
+                    url: '/Admin/ThongKe/GetDonHangByNongSan',
+                    type: 'GET',
+                    data: {
+                        nongSanId: nongSanId,
+                        tuNgay: tuNgay,
+                        denNgay: denNgay
+                    },
+                    success: function (response) {
+                        var html = '';
+                        if (response && response.length > 0) {
+                            $.each(response, function (i, item) {
+                                html += '<tr>';
+                                html += '<td class="fw-bold text-dark">' + item.maDonHang + '</td>';
+                                html += '<td>' + item.tenKhachHang + '</td>';
+                                html += '<td class="text-muted">' + item.ngayDat + '</td>';
+                                html += '<td class="text-end fw-bold">' + item.soLuongMua.toLocaleString('vi-VN') + '</td>';
+                                html += '<td class="text-end text-success fw-bold">' + item.thanhTienItem.toLocaleString('vi-VN') + ' đ</td>';
+                                // NÚT XEM CHI TIẾT ĐƠN HÀNG
+                                html += '<td class="text-center">';
+                                html += '<a href="/Admin/DonHang/Details/' + item.donHangLeId + '" class="btn btn-sm btn-info text-white"><i class="bi bi-eye"></i> Chi tiết</a>';
+                                html += '</td>';
+                                html += '</tr>';
+                            });
+                        } else {
+                            html = '<tr><td colspan="6" class="text-center text-muted py-4">Không tìm thấy đơn hàng nào chứa sản phẩm này.</td></tr>';
+                        }
+                        $('#modalOrdersBody').html(html);
+                    },
+                    error: function () {
+                        $('#modalOrdersBody').html('<tr><td colspan="6" class="text-center text-danger py-4">Đã có lỗi xảy ra khi lấy danh sách đơn hàng!</td></tr>');
+                    }
+                });
+            });
+        });
+    </script>
+}

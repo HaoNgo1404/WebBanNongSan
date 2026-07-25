@@ -26,7 +26,12 @@ namespace WebWeb.Controllers
         #region CUSTOMER LOGIN & REGISTER
         
         [HttpGet]
-        public IActionResult Login() => View();
+        public IActionResult Login()
+        {
+            // Giữ lại TempData để không bị xóa khi tải lại trang Login
+            TempData.Keep("IsNewUserRegistered");
+            return View();
+        }
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -52,18 +57,29 @@ namespace WebWeb.Controllers
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-                // Đọc giá trị ra một biến và xóa ngay lập tức khỏi TempData để lượt sau không bị dính
+                // 1. Kiểm tra cờ đánh dấu người mới đăng ký vừa xong
                 var isNewUser = TempData["IsNewUserRegistered"]?.ToString();
 
-                if (isNewUser == "YES")
+                // 2. Tính số ngày tài khoản đã hoạt động
+                int soNgayDaDangKy = (DateTime.Now.Date - customer.NgayDangKy.Date).Days;
+
+                if (isNewUser == "YES" && soNgayDaDangKy <= 15)
                 {
-                    // Bắn thông báo tặng mã BANMOI50 cho người vừa mới đăng ký xong
                     TempData["NewUserWelcome"] = $"Chào mừng {customer.HoTen} gia nhập Fresh Farm! Món quà ra mắt dành riêng cho bạn là mã giảm giá 50.000đ: <strong class='text-danger fs-4'>BANMOI50</strong> (Áp dụng cho đơn hàng từ 100k). Hãy nhanh tay mua sắm nhé!";
+                    // 🟢 GIỮ LẠI TempData NÀY CHO REQUEST SAU KHI REDIRECT
+                    TempData.Keep("NewUserWelcome"); 
+                }
+                else if (soNgayDaDangKy > 20)
+                {
+                    // Case 2: Tài khoản đã tạo hơn 20 ngày
+                    TempData["LoginSuccessMessage"] = $"Chào mừng bạn quay trở lại, {customer.HoTen}! Bạn đã đồng hành cùng Fresh Farm được {soNgayDaDangKy} ngày. Hãy kiểm tra các ưu đãi dành riêng cho thành viên thân thiết nhé!";
+                    TempData.Keep("LoginSuccessMessage");
                 }
                 else
                 {
-                    // Tài khoản cũ đăng nhập hoàn toàn bình thường, không bao giờ hiện popup quà thành viên mới nữa
                     TempData["LoginSuccessMessage"] = $"Chào mừng bạn quay trở lại, {customer.HoTen}!";
+                    // 🟢 GIỮ LẠI TempData NÀY CHO REQUEST SAU KHI REDIRECT
+                    TempData.Keep("LoginSuccessMessage"); 
                 }
 
                 // Đọc danh sách yêu thích tạm thời từ Session trước khi đăng nhập
@@ -73,21 +89,30 @@ namespace WebWeb.Controllers
                     var productIds = JsonSerializer.Deserialize<List<int>>(sessionData);
                     if (productIds != null && productIds.Any())
                     {
-                        foreach (var productId in productIds)
-                        {
-                            // Kiểm tra xem sản phẩm này đã được lưu trong DB của khách hàng này chưa
-                            var exists = _context.YeuThiches.Any(yt => yt.KhachHangId == customer.KhachHangId && yt.NongSanId == productId);
-                            if (!exists)
+                        // Lấy toàn bộ ID nông sản đã được lưu trong DB của user này 1 lần duy nhất
+                        var existingProductIds = await _context.YeuThiches
+                            .Where(yt => yt.KhachHangId == customer.KhachHangId && productIds.Contains(yt.NongSanId))
+                            .Select(yt => yt.NongSanId)
+                            .ToListAsync();
+
+                        // Lọc ra các ID chưa tồn tại trong DB
+                        var newWishlists = productIds
+                            .Except(existingProductIds)
+                            .Select(productId => new YeuThich
                             {
-                                _context.YeuThiches.Add(new YeuThich {
-                                    KhachHangId = customer.KhachHangId,
-                                    NongSanId = productId,
-                                    NgayThem = DateTime.Now
-                                });
-                            }
+                                KhachHangId = customer.KhachHangId,
+                                NongSanId = productId,
+                                NgayThem = DateTime.Now
+                            })
+                            .ToList();
+
+                        if (newWishlists.Any())
+                        {
+                            await _context.YeuThiches.AddRangeAsync(newWishlists);
+                            await _context.SaveChangesAsync();
                         }
-                        _context.SaveChanges();
-                        // Đồng bộ xong thì xóa sạch Session yêu thích tạm đi
+
+                        // Đồng bộ xong thì xóa Session
                         HttpContext.Session.Remove("UserWishlist");
                     }
                 }
@@ -175,24 +200,24 @@ namespace WebWeb.Controllers
             HttpContext.Session.SetString("ResetEmail", khachHang.Email);
             HttpContext.Session.SetString("OTPExpiry", DateTime.Now.AddMinutes(5).ToString());
 
-            // // 3. Gửi Mail
-            // try
-            // {
-            //     await SendResetPasswordEmailAsync(khachHang.Email, otp);
-            //     TempData["SendOTPSuccessMessage"] = "Mã OTP đã được gửi đến Email của bạn! Vui lòng kiểm tra hộp thư.";
-            //     return RedirectToAction(nameof(VerifyOTP));
-            // }
-            // catch (Exception ex)
-            // {
-            //     ModelState.AddModelError("", "Không thể gửi email. Vui lòng kiểm tra lại cấu hình EmailSettings! Lỗi: " + ex.Message);
-            //     return View(model);
-            // }
+            // 3. Gửi Mail
+            try
+            {
+                await SendResetPasswordEmailAsync(khachHang.Email, otp);
+                TempData["SendOTPSuccessMessage"] = "Mã OTP đã được gửi đến Email của bạn! Vui lòng kiểm tra hộp thư.";
+                return RedirectToAction(nameof(VerifyOTP));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Không thể gửi email. Vui lòng kiểm tra lại cấu hình EmailSettings! Lỗi: " + ex.Message);
+                return View(model);
+            }
 
-            // 3. Giả lập thành công & Bắn ngay mã OTP ra TempData để hiển thị ở trang VerifyOTP
-            TempData["DemoOTP"] = otp; // Lưu OTP demo
-            TempData["SendOTPSuccessMessage"] = "Mã xác thực OTP đã được hệ thống tạo thành công!";
+            // // 3. Giả lập thành công & Bắn ngay mã OTP ra TempData để hiển thị ở trang VerifyOTP
+            // TempData["DemoOTP"] = otp; // Lưu OTP demo
+            // TempData["SendOTPSuccessMessage"] = "Mã xác thực OTP đã được hệ thống tạo thành công!";
 
-            return RedirectToAction(nameof(VerifyOTP));
+            // return RedirectToAction(nameof(VerifyOTP));
         }
 
         // =================================================================

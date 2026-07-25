@@ -11,6 +11,8 @@ namespace WebWeb.Models
         public const string ChuaThanhToan = "Chưa thanh toán";
         public const string DaThanhToan = "Đã thanh toán";
         public const string DaHoanTien = "Đã hoàn tiền";
+        public const string DaTraLoi = "Đã trả lời";
+        public const string DaXem = "Đã xem";
     }
     public static class ProductStatuses
     {

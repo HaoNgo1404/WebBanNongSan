@@ -37,17 +37,42 @@
 
     <div class="admin-panel p-4">
         <form method="get" asp-area="Admin" asp-controller="DonHang" asp-action="IndexDinhKy" class="mb-4">
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
-                <div class="position-relative" style="max-width: 400px; width: 100%;">
-                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                    <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm kiếm gói..." />                 
+            <div class="row g-3">
+                <!-- 1. Tìm kiếm Từ khóa -->
+                <div class="col-md-4">
+                    <div class="position-relative">
+                        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                        <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm theo Mã gói, Tên KH, SĐT..." />
+                    </div>
                 </div>
 
-                <div class="d-flex gap-2 flex-wrap">
-                    <button type="submit" class="btn btn-outline-secondary btn-sm admin-btn">Tìm kiếm</button>
+                <!-- 2. Lọc Trạng thái Gói -->
+                <div class="col-md-3">
+                    <select name="trangThai" class="form-select">
+                        <option value="TatCa" selected="@(ViewBag.TrangThaiHienTai == "TatCa")">-- Tất cả trạng thái --</option>
+                        <option value="@WebWeb.Models.OrderStatuses.HoatDong" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.HoatDong)">Đang hoạt động</option>
+                        <option value="@WebWeb.Models.OrderStatuses.DaHuy" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.DaHuy)">Đã hủy</option>
+                    </select>
+                </div>
+
+                <!-- 3. Lọc Thời gian Đăng ký -->
+                <div class="col-md-3">
+                    <select name="thoiGian" class="form-select">
+                        <option value="TatCa" selected="@(ViewBag.ThoiGianHienTai == "TatCa")">-- Tất cả thời gian --</option>
+                        <option value="7ngay" selected="@(ViewBag.ThoiGianHienTai == "7ngay")">7 ngày gần đây</option>
+                        <option value="30ngay" selected="@(ViewBag.ThoiGianHienTai == "30ngay")">30 ngày gần đây</option>
+                        <option value="thangNay" selected="@(ViewBag.ThoiGianHienTai == "thangNay")">Trong tháng này</option>
+                    </select>
+                </div>
+
+                <!-- Nút bấm -->
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-filter"></i> Lọc</button>
+                    <a href="@Url.Action("IndexDinhKy", "DonHang")" class="btn btn-outline-secondary" title="Xóa bộ lọc"><i class="bi bi-arrow-counterclockwise"></i></a>
                 </div>
             </div>
         </form>
+        
         <div class="table-responsive">
             <div class="dinhky-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
                 <table class="admin-table">

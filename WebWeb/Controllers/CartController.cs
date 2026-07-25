@@ -31,45 +31,37 @@ namespace WebWeb.Controllers
             HttpContext.Session.SetString(CART_SESSION_KEY, JsonSerializer.Serialize(cart));
         }
 
-        // TRANG GIỎ HÀNG CHÍNH (ĐÃ CẬP NHẬT THAM SỐ PHÍ SHIP ĐỘNG)
+        // TRANG GIỎ HÀNG CHÍNH
         public async Task<IActionResult> Index()
-        {
-            // 1. Lấy danh sách sản phẩm trong giỏ từ Session hiện tại
-            var cart = GetCartItems();
+{
+            var cart = GetCartItems(); // Lấy từ Session
+
+            decimal tongTienHang = 0;
 
             foreach (var item in cart)
             {
-                // Gọi Service dùng chung tính giá thực tế tại thời điểm xem giỏ hàng
-                decimal giaThucTe = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, item.Gia);
+                // 1. Lấy giá gốc từ DB hoặc Session (item.Gia)
+                // 2. Tính giá đã giảm thực tế
+                item.GiaThucTe = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, item.Gia);
                 
-                item.Gia = giaThucTe; 
+                // Cộng dồn tổng tiền dựa trên giá thực tế
+                tongTienHang += item.ThanhTien;
             }
-            
-            SaveCartItems(cart);
 
-            // Tính tổng tiền các mặt hàng có trong giỏ (Dùng kiểu decimal để khớp tính toán)
-            decimal tongTienHang = cart.Sum(item => (decimal)item.ThanhTien);
-
-            // 2. ĐỌC THAM SỐ ĐỘNG TỪ DATABASE ĐỂ TÍNH PHÍ VẬN CHUYỂN
+            // Tính phí ship động từ DB
             var thamSoPhiShip = await _context.ThamSos.FirstOrDefaultAsync(t => t.MaThamSo == "TS5");
-            decimal phiShipMacDinh = thamSoPhiShip != null ? thamSoPhiShip.GiaTri : 30000; // Backup 30k nếu trống DB
+            decimal phiShipMacDinh = thamSoPhiShip != null ? thamSoPhiShip.GiaTri : 30000;
 
             var thamSoNguongFree = await _context.ThamSos.FirstOrDefaultAsync(t => t.MaThamSo == "TS4");
-            decimal nguongMienPhiShip = thamSoNguongFree != null ? thamSoNguongFree.GiaTri : 500000; // Backup 500k nếu trống DB
+            decimal nguongMienPhiShip = thamSoNguongFree != null ? thamSoNguongFree.GiaTri : 500000;
 
-            // 3. Logic kiểm tra điều kiện tính phí ship thực tế
-            decimal phiVanChuyenThucTe = 0;
-            if (tongTienHang > 0)
-            {
-                // Nếu tổng hóa đơn lớn hơn hoặc bằng ngưỡng quy định -> Miễn phí (0đ), ngược lại tính phí mặc định
-                phiVanChuyenThucTe = tongTienHang >= nguongMienPhiShip ? 0 : phiShipMacDinh;
-            }
+            decimal phiVanChuyenThucTe = (tongTienHang > 0 && tongTienHang < nguongMienPhiShip) ? phiShipMacDinh : 0;
 
-            // 4. Bỏ vào ViewBag để chuyển giao dữ liệu ra file Index.cshtml hứng dùng
             ViewBag.PhiVanChuyen = phiVanChuyenThucTe;
             ViewBag.TongTienHang = tongTienHang;
             ViewBag.TongThanhToan = tongTienHang + phiVanChuyenThucTe;
 
+            // KHÔNG gọi SaveCartItems(cart) ở đây nữa để tránh đè Session!
             return View(cart);
         }
 
@@ -148,8 +140,15 @@ namespace WebWeb.Controllers
         // PHẦN MINI CART GÓC MÀN HÌNH (PartialView)
         public IActionResult MiniCart()
         {
-            var cart = GetCartItems();
-            return PartialView(cart);
+            // 1. Lấy danh sách item từ Session
+            var cart = GetCartItems(); 
+
+            // 2. Tính toán GiaThucTe cho từng sản phẩm trước khi truyền sang View
+            foreach (var item in cart)
+            {
+                item.GiaThucTe = _khuyenMaiService.TinhGiaBanThucTe(item.NongSanId, item.Gia);
+            }
+            return PartialView("MiniCart",cart);
         }
     }
 }

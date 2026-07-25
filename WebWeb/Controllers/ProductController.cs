@@ -11,11 +11,13 @@ public class ProductController : Controller
 {
     private readonly ECommerceDBContext _context;
     private readonly KhuyenMaiService _khuyenMaiService;
+    private readonly AISentimentService _aiSentimentService; // 🟢 THÊM SERVICE AI
 
-    public ProductController(ECommerceDBContext context, KhuyenMaiService khuyenMaiService)
+    public ProductController(ECommerceDBContext context, KhuyenMaiService khuyenMaiService, AISentimentService aiSentimentService)
     {
         _context = context;
         _khuyenMaiService = khuyenMaiService;
+        _aiSentimentService = aiSentimentService;
     }
 
     public async Task<IActionResult> Detail(int id)
@@ -75,7 +77,11 @@ public class ProductController : Controller
 
         // Lấy danh sách nông sản thuộc danh mục này
         var dsNongSan = await _context.NongSans
-            .Where(ns => ns.DanhMucId == id)
+            .Include(ns => ns.LoHangs)
+            .Include(ns => ns.DanhGiaSanPhams)
+            .Include(ns => ns.NhaVuon)
+            .Where(ns => ns.DanhMucId == id &&
+                            (ns.LoHangs.Sum(l => l.SoLuongTon) > 0) || ns.DanhGiaSanPhams.Any(d => d.SoSao >= 4))
             .ToListAsync();
 
         // 2. KHỞI TẠO DICTIONARY ĐỂ CHỨA GIÁ ĐÃ GIẢM
@@ -86,8 +92,8 @@ public class ProductController : Controller
                 giaThucTeDict[product.NongSanId] = _khuyenMaiService.TinhGiaBanThucTe(product.NongSanId, product.GiaBanNiemYet);
             }
             ViewBag.GiaThucTeDict = giaThucTeDict;
-        ViewBag.TenDanhMuc = danhMuc.TenDanhMuc;
-        ViewData["Title"] = danhMuc.TenDanhMuc;
+            ViewBag.TenDanhMuc = danhMuc.TenDanhMuc;
+            ViewData["Title"] = danhMuc.TenDanhMuc;
 
         return View(dsNongSan);
     }
@@ -122,6 +128,9 @@ public class ProductController : Controller
             orderId = await _context.DonHangLes.Select(dh => dh.DonHangLeId).FirstOrDefaultAsync();
         }
 
+        // 🟢 GỌI AI PHÂN TÍCH BÌNH LUẬN TỰ ĐỘNG
+        string nhanCamXuc = await _aiSentimentService.PhanTichCamXucAsync(binhLuan);
+
         // 4. Tạo thực thể lưu trữ dữ liệu đánh giá sản phẩm lẻ
         var newReview = new DanhGiaSanPham
         {
@@ -137,7 +146,12 @@ public class ProductController : Controller
         {
             _context.DanhGiaSanPhams.Add(newReview);
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Cảm ơn bạn đã gửi đánh giá sản phẩm!" });
+            // Trả về kèm kết quả AI phân tích để hiển thị thông báo tức thì lên View
+            return Json(new { 
+                success = true, 
+                message = "Cảm ơn bạn đã gửi đánh giá!",
+                sentiment = nhanCamXuc 
+            });
         }
         catch (Exception ex)
         {

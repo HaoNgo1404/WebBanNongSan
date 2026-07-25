@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Tra cứu đơn hàng vãng lai";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 p-4">
+                <div class="text-center mb-4">
+                    <div class="badge bg-success bg-opacity-10 text-success p-3 rounded-circle mb-3">
+                        <i class="bi bi-search fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark">Tra cứu đơn hàng</h3>
+                    <p class="text-muted small">Dành cho khách hàng chưa đăng ký tài khoản</p>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger rounded-3 small mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> @ViewBag.Error
+                    </div>
+                }
+
+                <form asp-action="GuestTracking" method="post">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Thông tin tra cứu <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control border-start-0 ps-0" placeholder="Nhập Mã đơn (VD: 1024) hoặc Số điện thoại..." required />
+                        </div>
+                        <div class="form-text text-muted small mt-1">
+                            💡 Bạn chỉ cần nhập <strong>Số điện thoại</strong> đã dùng khi đặt hàng nếu không nhớ Mã đơn.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2.5 fw-bold rounded-pill">
+                        <i class="bi bi-box-seam me-1"></i> Tra cứu ngay
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

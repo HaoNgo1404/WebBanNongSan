@@ -144,21 +144,21 @@ CREATE TABLE DonHangLe (
     khuyenMaiId INT NULL,
     ngayDat DATETIME NOT NULL DEFAULT GETDATE(),
     tongTienTamTinh DECIMAL(18,2) NOT NULL CHECK (tongTienTamTinh >= 0),
-    tongTienThucTe DECIMAL(18,2) NULL CHECK (tongTienThucTe >= 0),
+    tongTienThucTe DECIMAL(18,2) NOT NULL CHECK (tongTienThucTe >= 0),
     tienChenhLech DECIMAL(18,2) NULL DEFAULT 0,
     trangThaiThanhToan NVARCHAR(50) NOT NULL DEFAULT N'Chưa' CHECK (trangThaiThanhToan IN (N'Chưa', N'Đã thanh toán', N'Đang xử lý')),
     phuongThucThanhToan NVARCHAR(50) NOT NULL DEFAULT N'COD',
     khungGioGiaoHang NVARCHAR(100) NOT NULL,
     trangThaiDonHang NVARCHAR(50) NOT NULL DEFAULT N'Chờ duyệt',
-    PhoneNonAccount varchar(15),
-    NameCusNonAccount nvarchar(100),
-    AddressCusNonAccount nvarchar(250),
+    PhoneNonAccount varchar(15) NULL,
+    NameCusNonAccount nvarchar(100) NULL,
+    AddressCusNonAccount nvarchar(250) NULL,
+    EmailNonAccount NVARCHAR(255) NULL,
     CONSTRAINT FK_DonHangLe_KhachHang FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID),
     CONSTRAINT FK_DonHangLe_SoDiaChi FOREIGN KEY (diaChiID) REFERENCES SoDiaChi(diaChiID),
     CONSTRAINT FK_DonHangLe_NhanVien FOREIGN KEY (nhanVienID) REFERENCES NhanVien(nhanVienID),
     CONSTRAINT FK_DonHangLe_KhuyenMai FOREIGN KEY (KhuyenMaiId) REFERENCES KhuyenMai(KhuyenMaiId)
 );
-
 -- 10. Bảng ChiTietDonHangLe
 CREATE TABLE ChiTietDonHangLe (
     donHangLeID INT NOT NULL,
@@ -320,6 +320,21 @@ CREATE TABLE BotCache (
     createAt DATETIME NOT NULL DEFAULT GETDATE(),
     hitCount INT NOT NULL DEFAULT 1
 );
+-- 26. Bảng SupportTicket 
+CREATE TABLE SupportTicket (
+    ticketID INT IDENTITY(1,1) PRIMARY KEY,
+    nhanVienID INT NULL,
+    khachHangID INT NULL,
+    tenKhachHang NVARCHAR(100) NOT NULL,
+    emailLienHe NVARCHAR(250) NULL,
+    cauHoi NVARCHAR(450) NOT NULL,
+    adminTraLoi NVARCHAR(MAX) NULL, 
+    trangThai NVARCHAR(50) NOT NULL DEFAULT N'Chờ xử lý', 
+    ngayTao DATETIME NOT NULL DEFAULT GETDATE(),
+    ngayPhanHoi DATETIME NULL,
+    CONSTRAINT FK_Support_KhachHang FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID),
+    CONSTRAINT FK_Support_NhanVien FOREIGN KEY (nhanVienID) REFERENCES NhanVien(nhanVienID),
+);
 
 -- Tạo Index để tìm kiếm câu hỏi trùng lặp siêu tốc!
 CREATE INDEX IX_BotCache_UserQuery ON BotCache(userQuery);
@@ -431,8 +446,9 @@ select * from DotGiaoDinhKy
 select * from ChiTietGoiDinhKy
 select * from NongSan
 select * from DanhMuc
+select * from DanhGiaSanPham
 select * from LoHang
 select * from ChiTietGioHang
 select * from KhuyenMai
 select * from BotCache
-
+select * from SupportTicket

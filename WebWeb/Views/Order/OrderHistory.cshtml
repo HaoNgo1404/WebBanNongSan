@@ -17,6 +17,47 @@
                     </div>    
                 </div>
 
+                <!-- BỘ LỌC TÌM KIẾM CHO CUSTOMER -->
+                <form method="get" asp-controller="Order" asp-action="OrderHistory" class="mb-4 bg-light p-3 rounded-3 border">
+                    <div class="row g-2">
+                        <!-- 1. Ô tìm kiếm theo Mã đơn -->
+                        <div class="col-md-4">
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                                <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Nhập mã đơn hàng..." />
+                            </div>
+                        </div>
+
+                        <!-- 2. Dropdown Trạng thái -->
+                        <div class="col-md-3">
+                            <select name="trangThai" class="form-select">
+                                <option value="TatCa" selected="@(ViewBag.TrangThaiHienTai == "TatCa")">-- Tất cả trạng thái --</option>
+                                <option value="@WebWeb.Models.OrderStatuses.ChoDuyet" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.ChoDuyet)">Chờ duyệt</option>
+                                <option value="@WebWeb.Models.OrderStatuses.ChoXuLy" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.ChoXuLy)">Chờ xử lý</option>
+                                <option value="@WebWeb.Models.OrderStatuses.DangGiao" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.DangGiao)">Đang giao</option>
+                                <option value="@WebWeb.Models.OrderStatuses.HoanThanh" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.HoanThanh)">Đã giao / Hoàn thành</option>
+                                <option value="@WebWeb.Models.OrderStatuses.DaHuy" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.DaHuy)">Đã hủy</option>
+                            </select>
+                        </div>
+
+                        <!-- 3. Dropdown Mốc thời gian -->
+                        <div class="col-md-3">
+                            <select name="thoiGian" class="form-select">
+                                <option value="TatCa" selected="@(ViewBag.ThoiGianHienTai == "TatCa")">-- Tất cả thời gian --</option>
+                                <option value="7ngay" selected="@(ViewBag.ThoiGianHienTai == "7ngay")">7 ngày gần đây</option>
+                                <option value="30ngay" selected="@(ViewBag.ThoiGianHienTai == "30ngay")">30 ngày gần đây</option>
+                                <option value="thangNay" selected="@(ViewBag.ThoiGianHienTai == "thangNay")">Trong tháng này</option>
+                            </select>
+                        </div>
+
+                        <!-- Nút bấm -->
+                        <div class="col-md-2 d-flex gap-1">
+                            <button type="submit" class="btn btn-success w-100 fw-medium"><i class="bi bi-filter"></i> Lọc</button>
+                            <a href="@Url.Action("OrderHistory", "Order")" class="btn btn-outline-secondary" title="Đặt lại bộ lọc"><i class="bi bi-arrow-counterclockwise"></i></a>
+                        </div>
+                    </div>
+                </form>
+                
                 <div class="donhang-le-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
                     <div class="order-list">
                         @if (TempData["SuccessMessage"] != null)
@@ -45,7 +86,7 @@
                                             <th>Ngày đặt</th>
                                             <th>Phương thức</th>
                                             <th>Thanh toán</th>
-                                            <th>Tổng tiền tạm tính</th>
+                                            <th>Tổng tiền</th>
                                             <th>Trạng thái đơn hàng</th>
                                             <th>Thao tác</th>
                                         </tr>
@@ -73,7 +114,7 @@
                                                         <span class="badge bg-danger-subtle text-danger border border-danger">@item.TrangThaiThanhToan</span>
                                                     }
                                                 </td>
-                                                <td class="fw-bold text-success">@string.Format("{0:N0}", item.TongTienTamTinh) đ</td>
+                                                <td class="fw-bold text-success">@string.Format("{0:N0}", item.TongTienThucTe) đ</td>
                                                 <td>
                                                     @switch (item.TrangThaiDonHang)
                                                     {
@@ -98,7 +139,7 @@
                                                     <a asp-action="OrderHistoryDetail" asp-route-id="@item.DonHangLeId" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-medium">
                                                         <i class="bi bi-eye"></i> Xem chi tiết
                                                     </a>
-                                                    @if (item.TrangThaiDonHang == WebWeb.Models.OrderStatuses.ChoDuyet)
+                                                    @if (item.TrangThaiDonHang != WebWeb.Models.OrderStatuses.HoanThanh && item.TrangThaiDonHang != WebWeb.Models.OrderStatuses.DaHuy)
                                                     {
                                                         <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium ms-1"
                                                                 onclick="cancelOrderLe('@item.DonHangLeId', this)">

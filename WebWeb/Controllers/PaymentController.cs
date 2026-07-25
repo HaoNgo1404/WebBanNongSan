@@ -29,7 +29,7 @@ namespace WebWeb.Controllers
         [HttpGet]
         public async Task<IActionResult> RedirectToVnPay(int orderId, string type = "le")
         {
-            decimal tongTien = 0;
+            decimal? tongTien = 0;
             string orderInfo = $"Thanh toan don hang {type} ma {orderId}"; 
 
             if (type == "dinhky")
@@ -42,7 +42,7 @@ namespace WebWeb.Controllers
             {
                 var donHang = await _context.DonHangLes.FindAsync(orderId);
                 if (donHang == null) return NotFound();
-                tongTien = donHang.TongTienTamTinh;
+                tongTien = donHang.TongTienThucTe;
             }
 
             string tmnCode = _configuration["PaymentSettings:Vnpay:TmnCode"]?.Trim();
@@ -86,7 +86,7 @@ namespace WebWeb.Controllers
         [HttpGet]
         public async Task<IActionResult> RedirectToMoMo(int orderId, string type = "le")
         {
-            decimal tongTien = 0;
+            decimal? tongTien = 0;
             // Trả về chuỗi ký tự viết liền không dấu, không khoảng trắng để chuỗi thô (Raw) của MoMo khớp tuyệt đối
             string orderInfo = $"ThanhToanDonHang{type}Ma{orderId}";
 
@@ -100,7 +100,7 @@ namespace WebWeb.Controllers
             {
                 var donHang = await _context.DonHangLes.FindAsync(orderId);
                 if (donHang == null) return NotFound();
-                tongTien = donHang.TongTienTamTinh;
+                tongTien = donHang.TongTienThucTe;
             }
 
             string partnerCode = _configuration["PaymentSettings:Momo:PartnerCode"];
@@ -313,7 +313,7 @@ namespace WebWeb.Controllers
                         {
                             MaGiaoDichCong = "MOMO-" + transId,
                             DonHangLeId = donHang.DonHangLeId,
-                            SoTien = donHang.TongTienTamTinh,
+                            SoTien = donHang.TongTienThucTe,
                             PhuongThuc = "MOMO",
                             TrangThai = 1,
                             NgayGiaoDich = DateTime.Now
@@ -384,7 +384,7 @@ namespace WebWeb.Controllers
             {
                 MaGiaoDichCong = "MOMO-DEMO-" + Guid.NewGuid().ToString("N")[..8],
                 DonHangLeId = donHang.DonHangLeId,
-                SoTien = donHang.TongTienTamTinh,
+                SoTien = donHang.TongTienThucTe,
                 PhuongThuc = "MOMO",
                 TrangThai = 1,
                 NgayGiaoDich = DateTime.Now

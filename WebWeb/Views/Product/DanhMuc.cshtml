@@ -87,13 +87,27 @@
                                             </div>
 
                                             <!-- NÚT GIỎ HÀNG THAY CHO NÚT XEM CHI TIẾT CŨ -->
-                                            <button type="button" 
-                                                    class="btn btn-outline-success btn-sm rounded-3 btn-add-to-cart p-0 d-flex align-items-center justify-content-center" 
-                                                    style="width: 36px; height: 36px;"
-                                                    onclick="event.preventDefault(); event.stopPropagation(); quickAddToCart(@item.NongSanId);" 
-                                                    title="Thêm vào giỏ hàng">
-                                                <i class="bi bi-cart fs-5"></i>
-                                            </button>
+                                            @if (item.SoLuongTon > 0)
+                                            {
+                                                <button type="button" 
+                                                        class="btn btn-outline-success btn-sm rounded-3 btn-add-to-cart p-0 d-flex align-items-center justify-content-center" 
+                                                        style="width: 36px; height: 36px;"
+                                                        onclick="event.preventDefault(); event.stopPropagation(); quickAddToCart(@item.NongSanId);" 
+                                                        title="Thêm vào giỏ hàng">
+                                                    <i class="bi bi-cart fs-5"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" 
+                                                        class="btn btn-secondary btn-sm rounded-3 p-0 d-flex align-items-center justify-content-center opacity-50" 
+                                                        style="width: 36px; height: 36px;" 
+                                                        disabled 
+                                                        onclick="event.preventDefault(); event.stopPropagation();"
+                                                        title="Hết hàng">
+                                                    <i class="bi bi-slash-circle fs-5"></i>
+                                                </button>
+                                            }
                                         </div>
                                     </div>
                                 </div>

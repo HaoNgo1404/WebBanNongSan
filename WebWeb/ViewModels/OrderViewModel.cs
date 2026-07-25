@@ -9,6 +9,7 @@ namespace WebWeb.Models.ViewModels
         // Thông tin địa chỉ nhận hàng
         public int DiaChiId { get; set; }
         public string PhuongThucThanhToan { get; set; } = "COD"; // Hoặc VNPAY
+        public decimal PhiVanChuyen { get; set; } = 0;
         
         // Dành riêng cho UC01: Đơn hàng lẻ
         public string KhungGioGiaoHang { get; set; } = null!;
@@ -16,7 +17,7 @@ namespace WebWeb.Models.ViewModels
         public string? PhoneNonAccount { get; set; }
         public string? NameCusNonAccount { get; set; }
         public string? AddressNonAccount { get; set; }
-        public string? Email { get; set; } 
+        public string? EmailNonAccount { get; set; } 
 
         // Dành riêng cho UC02: Gói định kỳ
         public string? TanSuatGiao { get; set; } // Ví dụ: "HangTuan", "CachTuan"

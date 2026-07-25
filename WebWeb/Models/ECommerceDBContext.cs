@@ -41,6 +41,7 @@ namespace WebWeb.Models
         public virtual DbSet<VaiTroPhanQuyen> VaiTroPhanQuyens { get; set; } = null!;
         public virtual DbSet<YeuThich> YeuThiches { get; set; } = null!;
         public DbSet<BotCache> BotCaches { get; set; } = null!;
+        public DbSet<SupportTicket> SupportTickets { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -291,6 +292,8 @@ namespace WebWeb.Models
                 entity.Property(e => e.DonHangLeId).HasColumnName("donHangLeID");
 
                 entity.Property(e => e.AddressNonAccount).HasMaxLength(500);
+                
+                entity.Property(e => e.EmailNonAccount).HasMaxLength(250);
 
                 entity.Property(e => e.DiaChiId).HasColumnName("diaChiID");
 
@@ -1039,6 +1042,57 @@ namespace WebWeb.Models
                 // Giúp EF Core biết và tối ưu các câu lệnh LINQ truy vấn theo cột này
                 entity.HasIndex(e => e.UserQuery)
                     .HasDatabaseName("IX_BotCache_UserQuery");
+            });
+
+            modelBuilder.Entity<SupportTicket>(entity =>
+            {
+                // 1. Ánh xạ tên bảng
+                entity.ToTable("SupportTicket");
+
+                // 2. Định nghĩa khóa chính
+                entity.HasKey(e => e.TicketID);
+
+                // 3. Ánh xạ các cột & Ràng buộc dữ liệu
+                entity.Property(e => e.TicketID)
+                    .HasColumnName("ticketID")
+                    .ValueGeneratedOnAdd(); // Tự động tăng (Identity)
+                
+                entity.Property(e => e.KhachHangID)
+                    .HasColumnName("khachHangID");
+
+                entity.Property(e => e.NhanVienID)
+                    .HasColumnName("nhanVienID");
+
+                // Bổ sung ánh xạ 2 cột này cho khớp với SQL
+                entity.Property(e => e.TenKhachHang)
+                    .HasColumnName("tenKhachHang")
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.Property(e => e.EmailLienHe)
+                    .HasColumnName("emailLienHe")
+                    .HasMaxLength(250);
+
+                entity.Property(e => e.CauHoi)
+                    .HasColumnName("cauHoi")
+                    .HasMaxLength(450) // Khớp chính xác độ dài NVARCHAR(450)
+                    .IsRequired();     // NOT NULL
+
+                entity.Property(e => e.AdminTraLoi)
+                    .HasColumnName("adminTraLoi"); // Đã sửa lại chữ 'm' thường cho khớp SQL
+
+                entity.Property(e => e.TrangThai)
+                    .HasMaxLength(50)
+                    .HasColumnName("trangThai")
+                    .HasDefaultValueSql("(N'Chờ xử lý')");
+
+                entity.Property(e => e.NgayTao)
+                    .HasColumnName("ngayTao")
+                    .HasDefaultValueSql("GETDATE()") // Thiết lập mặc định ngày tạo dưới DB
+                    .IsRequired();
+
+                entity.Property(e => e.NgayPhanHoi)
+                    .HasColumnName("ngayPhanHoi");
             });
 
             OnModelCreatingPartial(modelBuilder);

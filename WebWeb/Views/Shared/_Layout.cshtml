@@ -1,6 +1,22 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 @using System.Security.Claims
+@inject WebWeb.Services.KhuyenMaiService KhuyenMaiService
+@using System.Text.Json
+@using WebWeb.Models
+@{
+    // Lấy cart từ session
+    var cartJson = Context.Session.GetString("UserCart");
+    var currentCart = string.IsNullOrEmpty(cartJson) 
+        ? new List<GioHang>() 
+        : JsonSerializer.Deserialize<List<GioHang>>(cartJson) ?? new List<GioHang>();
+
+    // VÒNG LẶP TÍNH GIÁ GIẢM TẠI ĐÂY
+    foreach (var item in currentCart)
+    {
+        item.GiaThucTe = KhuyenMaiService.TinhGiaBanThucTe(item.NongSanId, item.Gia);
+    }
+}
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -65,10 +81,12 @@
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                            <a class="nav-link" asp-area="" asp-controller="About" asp-action="Index">Giới thiệu</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="About" asp-action="Index">Giới thiệu</a>
+                            <a class="nav-link" asp-controller="Notification" asp-action="GuestTracking">
+                                <i class="bi bi-search text-success me-1"></i> Tra cứu đơn
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link action-pill" asp-controller="Wishlist" asp-action="Index"><i class="bi bi-heart"></i> Yêu thích</a>
@@ -77,12 +95,9 @@
                             <div class="nav-item dropdown position-relative">
                                 <a class="nav-link action-pill" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-cart3 fs-4"></i>
-                                    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
-                                    @using System.Text.Json
                                     @{
-                                        var sessionCart = HttpContextAccessor.HttpContext?.Session.GetString("UserCart");
-                                        var currentCart = sessionCart == null ? new List<WebWeb.Models.GioHang>() : JsonSerializer.Deserialize<List<WebWeb.Models.GioHang>>(sessionCart);
-                                        var totalQty = currentCart?.Sum(c => c.SoLuong);
+                                        // LẤY TRỰC TIẾP TỪ BIẾN currentCart ĐÃ TÍNH GIÁ Ở ĐẦU FILE
+                                        var totalQty = currentCart?.Sum(c => c.SoLuong) ?? 0;
                                     }
                                     @if (totalQty > 0)
                                     {
@@ -93,6 +108,7 @@
                                 </a>
                                 
                                 <div class="dropdown-menu dropdown-menu-end p-0 border-0">
+                                    <!-- TRUYỀN BIẾN currentCart ĐÃ ĐƯỢC TÍNH GiaThucTe TỪ ĐẦU FILE -->
                                     @await Html.PartialAsync("~/Views/Cart/MiniCart.cshtml", currentCart)
                                 </div>
                             </div>
@@ -284,11 +300,11 @@
     <script src="~/js/order.js" asp-append-version="true"></script>
     <script>
         window.appNotifications = {
-            newUserWelcome: '@Html.Raw(TempData["NewUserWelcome"])',
-            loginSuccessMessage: '@Html.Raw(TempData["LoginSuccessMessage"])',
-            orderSuccessMessage: '@Html.Raw(TempData["OrderSuccessMessage"])',
-            sendOTPSuccessMessage: '@Html.Raw(TempData["SendOTPSuccessMessage"])',
-            resetPasswordSuccessMessage: '@Html.Raw(TempData["ResetPasswordSuccessMessage"])'
+            newUserWelcome: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["NewUserWelcome"])),
+            loginSuccessMessage: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["LoginSuccessMessage"])),
+            orderSuccessMessage: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["OrderSuccessMessage"])),
+            sendOTPSuccessMessage: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["SendOTPSuccessMessage"])),
+            resetPasswordSuccessMessage: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["ResetPasswordSuccessMessage"]))
         };
     </script>
     <script src="~/js/notification.js" asp-append-version="true"></script>
@@ -331,13 +347,47 @@
         const inputField = document.getElementById('user-chat-input');
         const messagesContainer = document.getElementById('chat-messages-container');
 
-        // CÁC BIẾN MỚI CHO TÍNH NĂNG PHÓNG TO
+        // CÁC BIẾN CHO TÍNH NĂNG PHÓNG TO
         const expandBtn = document.getElementById('expand-chat');
         const expandIcon = document.getElementById('expand-icon');
 
-        // Biến kiểm tra xem câu chào mừng đã chạy chưa
+        // Biến lưu câu hỏi gần nhất & trạng thái câu chào
+        let lastUserQuery = "";
         let isWelcomeTyped = false; 
         const welcomeMessage = "Xin chào! Em là trợ lý ảo thông minh của Green Fresh. Em có thể giúp gì cho Anh/Chị hôm nay ạ? 🌱🌸";
+
+        // =========================================================================
+        // HÀM TẢI PHẢN HỒI TỪ ADMIN CSKH
+        // =========================================================================
+        function checkAdminReplies() {
+            fetch('/api/Bot/danh-sach-tra-loi')
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success && res.data.length > 0) {
+                        res.data.forEach(item => {
+                            const existingMsg = document.getElementById(`reply-ticket-${item.ticketID}`);
+                            if (!existingMsg) {
+                                const replyHtml = `
+                                    <div id="reply-ticket-${item.ticketID}" class="message bot border border-success bg-light text-dark mb-2 shadow-sm p-2 rounded">
+                                        <div class="fw-bold text-success mb-1">
+                                            <i class="bi bi-person-check-fill me-1"></i> Admin CSKH đã phản hồi (#TK-${item.ticketID}):
+                                        </div>
+                                        <div class="small text-muted mb-1"><i>Câu hỏi: "${item.cauHoi}"</i></div>
+                                        <div><strong>Trả lời:</strong> ${item.adminTraLoi}</div>
+                                        <div class="text-end text-muted mt-1" style="font-size: 10px;">${item.ngayPhanHoi}</div>
+                                    </div>
+                                `;
+                                messagesContainer.insertAdjacentHTML('beforeend', replyHtml);
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                                // Đánh dấu ticket này đã được hiển thị/đã đọc
+                                fetch(`/api/Bot/da-doc-ticket/${item.ticketID}`, { method: 'POST' });
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.error("Lỗi tải phản hồi Admin:", err));
+        }
 
         // 1. Click bong bóng để mở/đóng khung chat
         bubble.addEventListener('click', () => {
@@ -345,14 +395,16 @@
             box.style.display = isOpening ? 'flex' : 'none';
             inputField.focus();
 
-            // Nếu đang mở hộp chat VÀ chưa từng chạy câu chào mừng
-            if (isOpening && !isWelcomeTyped) {
-                isWelcomeTyped = true; // Đánh dấu đã chạy để không lặp lại lần sau
-                
-                // Chờ hộp chat hiển thị hoàn toàn rồi bắt đầu gõ chữ (delay 100ms cho mượt)
-                setTimeout(() => {
-                    appendMessageWithTypingEffect(welcomeMessage, 'bot');
-                }, 100);
+            if (isOpening) {
+                // Tải phản hồi từ Admin mỗi khi người dùng mở khung chat
+                checkAdminReplies();
+
+                if (!isWelcomeTyped) {
+                    isWelcomeTyped = true;
+                    setTimeout(() => {
+                        appendMessageWithTypingEffect(welcomeMessage, 'bot');
+                    }, 100);
+                }
             }
         });
 
@@ -361,14 +413,10 @@
             box.style.display = 'none';
         });
 
-        // ==========================================================================
-        // LOGIC NÂNG CẤP: XỬ LÝ PHÓNG TO / THU NHỎ
-        // ==========================================================================
+        // 3. Phóng to / Thu nhỏ khung chat
         if (expandBtn) {
             expandBtn.addEventListener('click', () => {
                 box.classList.toggle('expanded');
-                
-                // Thay đổi Icon và Tooltip tương ứng với trạng thái
                 if (box.classList.contains('expanded')) {
                     expandIcon.className = "bi bi-fullscreen-exit";
                     expandBtn.setAttribute('title', 'Thu nhỏ');
@@ -376,137 +424,96 @@
                     expandIcon.className = "bi bi-arrows-fullscreen";
                     expandBtn.setAttribute('title', 'Phóng to');
                 }
-
-                // Cuộn xuống dòng tin nhắn cuối cùng sau khi giao diện thay đổi kích thước
                 setTimeout(() => {
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }, 250);
             });
         }
 
-        // 3. Hàm gửi tin nhắn
+        // 4. Hàm gửi tin nhắn chính
         function sendMessage() {
             const messageText = inputField.value.trim();
             if (!messageText) return;
 
-            // Hiển thị tin nhắn của Người dùng lên khung
+            // Lưu câu hỏi người dùng vừa nhập
+            lastUserQuery = messageText;
+
+            // Hiển thị tin nhắn người dùng lên giao diện
             appendMessage(messageText, 'user');
             inputField.value = '';
 
-            // Hiển thị biểu tượng AI đang suy nghĩ (Đang gõ...)
+            // Hiển thị icon đang suy nghĩ
             const typingIndicatorId = 'typing-' + Date.now();
             appendTypingIndicator(typingIndicatorId);
 
             // Gửi Ajax lên BotController
             fetch('/api/Bot/chat', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: messageText })
             })
             .then(response => response.json())
             .then(data => {
-                // Xóa biểu tượng đang suy nghĩ
                 removeTypingIndicator(typingIndicatorId);
-                // Hiển thị câu trả lời của AI với hiệu ứng gõ chữ
+                
+                // Hiển thị câu trả lời AI
                 appendMessageWithTypingEffect(data.response, 'bot');
+
+                // XỬ LÝ CHUYỂN SUPPORT TICKET SANG ADMIN:
+                if (data.source === "gemini_api_overloaded" || data.source === "gemini_api_error") {
+                    // Nếu AI bận/lỗi -> Tự động tạo ticket gửi Admin
+                    guiYeuCauChoAdmin(lastUserQuery, true);
+                } else {
+                    // Nếu AI trả lời bình thường -> Chèn nút để người dùng chủ động gửi nếu chưa vừa ý
+                    appendSupportButton(lastUserQuery);
+                }
             })
             .catch(error => {
                 console.error("Lỗi Chatbot:", error);
                 removeTypingIndicator(typingIndicatorId);
-                appendMessageWithTypingEffect("Dạ, kết nối mạng của em đang bị gián đoạn, anh/chị chờ em một xíu nhé!", 'bot');
+                appendMessageWithTypingEffect("Dạ, kết nối mạng của em đang bị gián đoạn. Em sẽ chuyển câu hỏi này cho Admin CSKH xử lý giúp mình ngay nhé!", 'bot');
+                guiYeuCauChoAdmin(lastUserQuery, true);
             });
         }
 
-        // Đăng ký sự kiện click gửi tin nhắn
+        // Đăng ký sự kiện Gửi tin nhắn
         sendBtn.addEventListener('click', sendMessage);
-
-        // Đăng ký sự kiện nhấn phím Enter để gửi tin nhắn
         inputField.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+            if (e.key === 'Enter') sendMessage();
         });
 
-        // Hàm chèn tin nhắn tĩnh thông thường (dành cho User)
+        // 5. Hàm chèn tin nhắn tĩnh của User
         function appendMessage(text, sender) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender);
-            msgDiv.innerHTML = text.replace(/\n/g, '<br>'); // Hỗ trợ xuống dòng
+            msgDiv.innerHTML = text.replace(/\n/g, '<br>');
             messagesContainer.appendChild(msgDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight; // Tự động cuộn xuống dưới cùng
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        @* // Hiển thị tin nhắn của Bot từng ký tự một (Typing Effect)
+        // 6. Hiển thị tin nhắn của Bot từng dòng (Line-by-line Effect)
         function appendMessageWithTypingEffect(text, sender) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender);
             messagesContainer.appendChild(msgDiv);
 
-            let index = 0;
-            const typingSpeed = 15; // Tốc độ gõ chữ (15ms/ký tự)
-
-            // Định dạng trước xuống dòng
-            const htmlFormattedText = text.replace(/\n/g, '<br>');
-            
-            function typeCharacter() {
-                if (index < htmlFormattedText.length) {
-                    if (htmlFormattedText.substring(index, index + 4) === '<br>') {
-                        msgDiv.innerHTML += '<br>';
-                        index += 4;
-                    } else {
-                        msgDiv.innerHTML += htmlFormattedText.charAt(index);
-                        index++;
-                    }
-                    
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight; // Cuộn mượt theo chữ chạy
-                    setTimeout(typeCharacter, typingSpeed);
-                }
-            }
-
-            typeCharacter();
-        } *@
-        // Hiển thị tin nhắn của Bot từng dòng một (Line-by-line Effect)
-        function appendMessageWithTypingEffect(text, sender) {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('message', sender);
-            messagesContainer.appendChild(msgDiv);
-
-            // 1. Tách chuỗi tin nhắn thành mảng các dòng dựa trên ký tự xuống dòng '\n'
             const lines = text.split('\n');
             let lineIndex = 0;
-            const lineDelay = 250; // Khoảng thời gian trễ giữa các dòng (250ms)
+            const lineDelay = 250;
 
             function showNextLine() {
                 if (lineIndex < lines.length) {
-                    // Lấy nội dung dòng hiện tại
-                    const currentLine = lines[lineIndex];
-
-                    // Nếu không phải dòng đầu tiên, chèn thẻ <br> để xuống dòng trước khi thêm nội dung mới
-                    if (lineIndex > 0) {
-                        msgDiv.innerHTML += '<br>';
-                    }
-
-                    // Thêm toàn bộ nội dung của dòng hiện tại vào giao diện
-                    msgDiv.innerHTML += currentLine;
-
-                    // Tăng chỉ số dòng
+                    if (lineIndex > 0) msgDiv.innerHTML += '<br>';
+                    msgDiv.innerHTML += lines[lineIndex];
                     lineIndex++;
-
-                    // Tự động cuộn mượt khung chat xuống dưới cùng sau khi dòng mới xuất hiện
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-                    // Gọi đệ quy hiển thị dòng tiếp theo sau khoảng thời gian delay
                     setTimeout(showNextLine, lineDelay);
                 }
             }
-
-            // Bắt đầu chạy hiển thị dòng đầu tiên
             showNextLine();
         }
 
-        // Hàm tạo hiệu ứng "AI đang suy nghĩ"
+        // 7. Icon AI đang suy nghĩ
         function appendTypingIndicator(id) {
             const indicatorDiv = document.createElement('div');
             indicatorDiv.id = id;
@@ -516,11 +523,45 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Hàm xóa hiệu ứng "AI đang suy nghĩ"
         function removeTypingIndicator(id) {
             const elem = document.getElementById(id);
             if (elem) elem.remove();
         }
+
+        // 8. Chèn nút hỗ trợ "Chưa hài lòng? Gửi cho Admin CSKH"
+        function appendSupportButton(queryText) {
+            setTimeout(() => {
+                const btnDiv = document.createElement('div');
+                btnDiv.classList.add('text-end', 'mt-1', 'mb-2');
+                btnDiv.innerHTML = `
+                    <button class="btn btn-outline-success btn-sm rounded-pill py-0 px-2" style="font-size: 11px;" onclick="guiYeuCauChoAdmin('${queryText.replace(/'/g, "\\'")}', false)">
+                        <i class="bi bi-headset me-1"></i> Chưa hài lòng? Gửi cho Admin CSKH
+                    </button>
+                `;
+                messagesContainer.appendChild(btnDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1200);
+        }
+
+        // 9. Hàm gửi câu hỏi cho Admin qua API Yêu cầu hỗ trợ
+        window.guiYeuCauChoAdmin = function(cauHoiGoc, isAuto) {
+            if (!cauHoiGoc) return;
+
+            fetch('/api/Bot/yeu-cau-ho-tro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cauHoi: cauHoiGoc })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (!isAuto) {
+                        appendMessageWithTypingEffect("Dạ em đã chuyển thắc mắc: *\"" + cauHoiGoc + "\"* tới bộ phận CSKH Admin rồi ạ! Admin sẽ xem xét và phản hồi cho mình sớm nhất nha. 🌱", 'bot');
+                    }
+                }
+            })
+            .catch(err => console.error("Lỗi gửi Ticket:", err));
+        };
     });
 </script>
 </body>

@@ -8,7 +8,6 @@
     {
         decimal tongTienTamTinh = 0;
         
-        // Khởi tạo bảng để cấu trúc thẻ tr hoạt động chuẩn HTML
         <table class="table table-borderless mb-0">
             <tbody>
                 @for (int i = 0; i < Model.Items.Count; i++)
@@ -20,12 +19,10 @@
                     decimal thanhTienRow = Model.Items[i].SoLuongDat * Model.Items[i].DonGiaThoiDiem;
                     tongTienTamTinh += thanhTienRow;
 
-                    // CHÈN ĐOẠN CODE DATA-* VÀO ĐÂY (Sử dụng Model.Items[i] thay vì item)
                     <tr class="cart-item-row border-bottom pb-2" 
                         data-nongsan-id="@Model.Items[i].NongSanId" 
                         data-don-gia="@Model.Items[i].DonGiaThoiDiem" 
                         data-so-luong="@Model.Items[i].SoLuongDat">
-                        
                         <td>
                             <h6 class="mb-0 fw-bold text-dark">Mã nông sản: #@Model.Items[i].NongSanId</h6>
                             <small class="text-muted">Số lượng: <span class="badge bg-secondary">@Model.Items[i].SoLuongDat kg</span></small>
@@ -38,34 +35,42 @@
             </tbody>
         </table>
         
-        <div class="d-flex justify-content-between mt-3 pt-2 border-top">
-            <span class="fw-bold text-secondary">Tổng tiền:</span>
-            <span class="h5 text-danger fw-bold checkout-summary-total">@tongTienTamTinh.ToString("N0") đ</span>
-            @if (User.Identity != null && User.Identity.IsAuthenticated)
-            {
-                // Lấy thông tin điểm tích lũy được truyền từ Controller qua ViewBag
-                int diemHienCo = ViewBag.DiemTichLuy ?? 0;
-                <div class="card p-3 mb-3 border-success-subtle bg-success-subtle bg-opacity-10 rounded-3">
-                    <div class="form-check d-flex align-items-center gap-2">
-                        <input class="form-check-input border-success" type="checkbox" id="chkUsePoints" name="usePoints" value="true">
-                        <label class="form-check-label fw-semibold text-success-emphasis" for="chkUsePoints">
-                            Sử dụng điểm tích lũy giảm giá
-                        </label>
-                    </div>
-                    <div id="pointsInputArea" class="mt-2" style="display: none;">
-                        <div class="d-flex align-items-center justify-content-between text-muted small mb-2">
-                            <span>Bạn đang có: <strong class="text-success" id="maxPoints">@diemHienCo</strong> điểm</span>
-                            <span>(1 điểm = 1 đồng)</span>
-                        </div>
-                        <div class="input-group input-group-sm">
-                            <input type="number" id="inputDiemDung" name="diemDung" class="form-control" value="0" min="0" max="@diemHienCo">
-                            <button class="btn btn-success" type="button" id="btnApplyPoints">Áp dụng</button>
-                        </div>
-                        <small class="text-danger d-block mt-1" id="pointsError"></small>
-                    </div>
-                </div>
-            }
+        <!-- HIỂN THỊ PHÍ SHIP TRỰC TIẾP TỪ MODEL -->
+        <div class="summary-details mt-3 pt-2 border-top">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-secondary">Tổng tiền hàng:</span>
+                <span class="fw-bold text-dark checkout-summary-total">@tongTienTamTinh.ToString("N0") đ</span>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-secondary">Phí vận chuyển:</span>
+                <span class="fw-bold text-dark" id="ShippingFeeDisplay">@Model.PhiVanChuyen.ToString("N0") đ</span>
+            </div>
         </div>
+
+        @if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            int diemHienCo = ViewBag.DiemTichLuy ?? 0;
+            <div class="card p-3 my-3 border-success-subtle bg-success-subtle bg-opacity-10 rounded-3">
+                <div class="form-check d-flex align-items-center gap-2">
+                    <input class="form-check-input border-success" type="checkbox" id="chkUsePoints" name="usePoints" value="true">
+                    <label class="form-check-label fw-semibold text-success-emphasis" for="chkUsePoints">
+                        Sử dụng điểm tích lũy giảm giá
+                    </label>
+                </div>
+                <div id="pointsInputArea" class="mt-2" style="display: none;">
+                    <div class="d-flex align-items-center justify-content-between text-muted small mb-2">
+                        <span>Bạn đang có: <strong class="text-success" id="maxPoints">@diemHienCo</strong> điểm</span>
+                        <span>(1 điểm = 1 đồng)</span>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <input type="number" id="inputDiemDung" name="diemDung" class="form-control" value="0" min="0" max="@diemHienCo">
+                        <button class="btn btn-success" type="button" id="btnApplyPoints">Áp dụng</button>
+                    </div>
+                    <small class="text-danger d-block mt-1" id="pointsError"></small>
+                </div>
+            </div>
+        }
     }
     else
     {
@@ -74,12 +79,8 @@
             <p class="mb-0 mt-2">Không có nông sản nào trong danh sách thanh toán.</p>
         </div>
     }
+
     <div class="alert alert-warning mt-3 mb-0 p-2 rounded-3 border-0" style="font-size: 0.825rem;">
         <i class="bi bi-info-circle-fill"></i> <strong>Lưu ý về trọng lượng:</strong> Đối với phân hệ nông sản tươi sống, trọng lượng thực tế khi cân bốc xếp tại kho sẽ có sai số nhỏ. Số tiền chênh lệch sẽ được đối soát tự động khi hệ thống lập hóa đơn cuối cùng.
     </div>
 </div>
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <script src="~/js/order.js"></script> 
-}

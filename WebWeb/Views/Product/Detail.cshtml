@@ -30,8 +30,26 @@
                 <span class="section-label">Nông sản sạch</span>
                 <h1>@Model.TenNongSan</h1>
                 <div class="detail-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="text-muted">4.9 • 128 đánh giá</span>
+                    <span class="stars text-warning">
+                        @{
+                            // Làm tròn điểm đánh giá để vẽ sao
+                            int ratingFloor = (int)Math.Floor(Model.DiemDanhGiaTrungBinh);
+                        }
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= ratingFloor)
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star text-muted"></i>
+                            }
+                        }
+                    </span>
+                    <span class="text-muted ms-2">
+                        @Model.DiemDanhGiaTrungBinh.ToString("0.0") • @Model.TongSoDanhGia đánh giá
+                    </span>
                 </div>
                 <div class="detail-price">@if (ViewBag.GiaBanThucTe != null && (decimal)ViewBag.GiaBanThucTe < Model.GiaBanNiemYet)
                     {
@@ -57,31 +75,53 @@
                     <div><span>Đơn vị:</span> @Model.DonViTinh</div>
                     <div><span>Xuất xứ:</span> @(Model.NhaVuon != null ? Model.NhaVuon.DiaChi ?? "Đang cập nhật" : "Đang cập nhật")</div>
                     <div><span>Nhà vườn:</span> @(Model.NhaVuon != null ? Model.NhaVuon.TenNhaVuon : "Đang cập nhật")</div>
-                    <div><span>Tình trạng:</span> Còn hàng</div>
+                    <div>
+                        <span>Tình trạng:</span> 
+                        @if (Model.SoLuongTon > 0)
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Còn hàng</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Hết hàng</span>
+                        }
+                    </div>
                 </div>
 
                 <div class="d-flex align-items-center g-3 mb-4 mt-2 gap-3">
-    
-                    <!-- Form Thêm vào giỏ hàng (bên trái & giữa) -->
-                    <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex align-items-center gap-3 flex-grow-1 mb-0">
-                        <input type="hidden" name="id" value="@Model.NongSanId" />
 
-                        <!-- Bộ tăng giảm số lượng -->
-                        <div class="input-group input-group-quantity rounded-3 overflow-hidden border" style="max-width: 140px; height: 48px;">
-                            <button class="btn btn-link px-3 text-dark text-decoration-none" type="button" id="btn-minus">
-                                <i class="bi bi-dash-lg"></i>
+                    @if (Model.SoLuongTon > 0)
+                    {
+                        <!-- Form Thêm vào giỏ hàng (bên trái & giữa) -->
+                        <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex align-items-center gap-3 flex-grow-1 mb-0">
+                            <input type="hidden" name="id" value="@Model.NongSanId" />
+
+                            <!-- Bộ tăng giảm số lượng -->
+                            <div class="input-group input-group-quantity rounded-3 overflow-hidden border" style="max-width: 140px; height: 48px;">
+                                <button class="btn btn-link px-3 text-dark text-decoration-none" type="button" id="btn-minus">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                                <input type="number" id="input-quantity" name="quantity" class="form-control text-center border-0 bg-transparent fw-bold" value="1" min="1" readonly style="width: 50px;">
+                                <button class="btn btn-link px-3 text-dark text-decoration-none" type="button" id="btn-plus">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+
+                            <!-- Nút Thêm giỏ hàng -->
+                            <button type="submit" class="btn btn-success rounded-3 px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 flex-grow-1" style="height: 48px;">
+                                <i class="bi bi-cart-plus-fill fs-5"></i> THÊM VÀO GIỎ HÀNG
                             </button>
-                            <input type="number" id="input-quantity" name="quantity" class="form-control text-center border-0 bg-transparent fw-bold" value="1" min="1" readonly style="width: 50px;">
-                            <button class="btn btn-link px-3 text-dark text-decoration-none" type="button" id="btn-plus">
-                                <i class="bi bi-plus-lg"></i>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- Khóa form khi HẾT HÀNG -->
+                        <div class="flex-grow-1">
+                            <button type="button" class="btn btn-secondary rounded-3 px-4 fw-bold w-100 d-flex align-items-center justify-content-center gap-2 disabled opacity-75" style="height: 48px;" disabled>
+                                <i class="bi bi-x-circle-fill fs-5"></i> SẢN PHẨM HIỆN TẠI HẾT HÀNG
                             </button>
                         </div>
-
-                        <!-- Nút Thêm giỏ hàng -->
-                        <button type="submit" class="btn btn-success rounded-3 px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 flex-grow-1" style="height: 48px;">
-                            <i class="bi bi-cart-plus-fill fs-5"></i> THÊM VÀO GIỎ HÀNG
-                        </button>
-                    </form>
+                    }
 
                     <!-- Khối nút Wishlist dạng HÌNH VUÔNG bo góc nhẹ -->
                     <div class="wishlist-wrapper">
@@ -196,11 +236,30 @@
                             {
                                 <div class="col-12">
                                     <div class="review-item p-3 border rounded-4 bg-white shadow-sm">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="d-flex align-items-center gap-2">
                                             <strong>
                                                 <!-- Đánh giá này chắc chắn thuộc về một khách hàng thân thiết tồn tại trong hệ thống -->
                                                 <span class="text-success"><i class="bi bi-patch-check-fill"></i> Khách hàng thân thiết</span>
                                             </strong>
+                                            <!-- BADGE HIỂN THỊ PHÂN TÍCH CẢM XÚC CỦA AI -->
+                                            @if (review.SoSao >= 4)
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
+                                                    <i class="bi bi-emoji-smile-fill me-1"></i> Tích cực
+                                                </span>
+                                            }
+                                            else if (review.SoSao <= 2)
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small">
+                                                    <i class="bi bi-emoji-frown-fill me-1"></i> Tiêu cực
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill small">
+                                                    <i class="bi bi-emoji-neutral-fill me-1"></i> Trung tính
+                                                </span>
+                                            }
                                             <span class="text-warning">
                                                 @for (var i = 0; i < review.SoSao; i++) { <i class="bi bi-star-fill text-warning"></i> }
                                                 @for (var i = review.SoSao; i < 5; i++) { <i class="bi bi-star text-muted"></i> }

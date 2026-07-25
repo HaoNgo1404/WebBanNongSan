@@ -247,5 +247,92 @@ namespace WebWeb.Controllers
         {
             return View();
         }
+
+        // =================================================================
+        // TRANG TRA CỨU ĐƠN HÀNG DÀNH CHO KHÁCH VÃNG LAI (PUBLIC)
+        // URL: /Notification/GuestTracking
+        // =================================================================
+        // GET: /Notification/GuestTracking
+        [HttpGet]
+        public IActionResult GuestTracking()
+        {
+            return View();
+        }
+
+        // POST: /Notification/GuestTracking
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GuestTracking(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                ViewBag.Error = "Vui lòng nhập Mã đơn hàng hoặc Số điện thoại để tra cứu!";
+                return View();
+            }
+
+            string keyword = searchTerm.Trim();
+            bool isNumeric = int.TryParse(keyword, out int parsedOrderId);
+
+            // Tìm kiếm thông minh: Khớp Mã đơn HOẶC Khớp Số điện thoại (ở bảng DonHangLe hoặc SoDiaChi)
+            var dsDonHang = await _context.DonHangLes
+                .Include(d => d.DiaChi)
+                .Include(d => d.ChiTietDonHangLes).ThenInclude(ct => ct.NongSan)
+                .Where(d => (isNumeric && d.DonHangLeId == parsedOrderId)
+                        || d.PhoneNonAccount == keyword 
+                        || (d.DiaChi != null && d.DiaChi.SoDienThoaiNhan == keyword))
+                .OrderByDescending(d => d.NgayDat)
+                .ToListAsync();
+
+            if (dsDonHang == null || !dsDonHang.Any())
+            {
+                ViewBag.Error = $"Không tìm thấy thông tin đơn hàng nào phù hợp với từ khóa '{keyword}'!";
+                ViewBag.SearchTerm = keyword;
+                return View();
+            }
+
+            // Nếu chỉ tìm thấy đúng 1 đơn hàng -> Chuyển thẳng tới trang chi tiết
+            if (dsDonHang.Count == 1)
+            {
+                return View("GuestTrackingDetail", dsDonHang.First());
+            }
+
+            // Nếu tìm bằng SĐT và ra NHIỀU ĐƠN HÀNG -> Trả về danh sách các đơn hàng để khách chọn đơn muốn xem
+            ViewBag.SearchTerm = keyword;
+            return View("GuestTrackingList", dsDonHang);
+        }
+
+        // TRA CỨU TRỰC TIẾP TỪ LINK EMAIL (Dùng Token mã hóa)
+        [HttpGet]
+        public async Task<IActionResult> GuestTrackingDetail(int orderId, string token)
+        {
+            if (string.IsNullOrEmpty(token)) return RedirectToAction(nameof(GuestTracking));
+
+            try
+            {
+                string decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(token));
+                // Cấu trúc token decoded: "{orderId}_{phone}_GuestSecretKey"
+                var parts = decoded.Split('_');
+                if (parts.Length < 3 || parts[0] != orderId.ToString())
+                {
+                    TempData["ErrorMessage"] = "Liên kết tra cứu không hợp lệ!";
+                    return RedirectToAction(nameof(GuestTracking));
+                }
+
+                string phoneClean = parts[1];
+                var donHang = await _context.DonHangLes
+                    .Include(d => d.DiaChi)
+                    .Include(d => d.ChiTietDonHangLes).ThenInclude(ct => ct.NongSan)
+                    .FirstOrDefaultAsync(d => d.DonHangLeId == orderId 
+                                        && (d.PhoneNonAccount == phoneClean || (d.DiaChi != null && d.DiaChi.SoDienThoaiNhan == phoneClean)));
+
+                if (donHang == null) return NotFound();
+
+                return View("GuestTrackingDetail", donHang);
+            }
+            catch
+            {
+                return RedirectToAction(nameof(GuestTracking));
+            }
+        }
     }
 }

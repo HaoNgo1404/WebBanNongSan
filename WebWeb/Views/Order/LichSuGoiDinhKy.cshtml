@@ -7,14 +7,14 @@
 <style>
     /* Tùy biến thanh cuộn cho khu vực danh sách gói */
     .goi-dinhky-container::-webkit-scrollbar {
-        width: 6px; /* Độ rộng của thanh cuộn */
+        width: 6px;
     }
     .goi-dinhky-container::-webkit-scrollbar-track {
         background: #f1f1f1; 
         border-radius: 10px;
     }
     .goi-dinhky-container::-webkit-scrollbar-thumb {
-        background: #198754; /* Màu xanh lá chuẩn bootstrap/nông sản */
+        background: #198754; 
         border-radius: 10px;
     }
     .goi-dinhky-container::-webkit-scrollbar-thumb:hover {
@@ -33,13 +33,53 @@
                     <p class="section-label mb-0 text-success fw-bold text-uppercase small">Đơn hàng</p>
                     <h2 class="mb-0 fw-bold text-dark"><i class="bi bi-box text-success"></i> Gói nông sản định kỳ đã đăng ký</h2>
                 </div>
-                <div class="goi-dinhky-container" style="max-height: 380px; overflow-y: auto; padding-right: 8px;">
+
+                <!-- BỘ LỌC TÌM KIẾM ĐỒNG BỘ CSS -->
+                <form method="get" asp-controller="Order" asp-action="LichSuGoiDinhKy" class="mb-4 bg-light p-3 rounded-3 border">
+                    <div class="row g-2">
+                        <!-- 1. Ô tìm kiếm theo Mã gói -->
+                        <div class="col-md-4">
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                                <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Nhập mã gói đăng ký..." />
+                            </div>
+                        </div>
+
+                        <!-- 2. Dropdown Trạng thái -->
+                        <div class="col-md-3">
+                            <select name="trangThai" class="form-select">
+                                <option value="TatCa" selected="@(ViewBag.TrangThaiHienTai == "TatCa")">-- Tất cả trạng thái --</option>
+                                <option value="@WebWeb.Models.OrderStatuses.HoatDong" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.HoatDong)">Đang hoạt động</option>
+                                <option value="@WebWeb.Models.OrderStatuses.ChoDuyet" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.ChoDuyet)">Chờ xét duyệt</option>
+                                <option value="@WebWeb.Models.OrderStatuses.DaHuy" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.DaHuy)">Đã hủy gói</option>
+                            </select>
+                        </div>
+
+                        <!-- 3. Dropdown Mốc thời gian -->
+                        <div class="col-md-3">
+                            <select name="thoiGian" class="form-select">
+                                <option value="TatCa" selected="@(ViewBag.ThoiGianHienTai == "TatCa")">-- Tất cả thời gian --</option>
+                                <option value="7ngay" selected="@(ViewBag.ThoiGianHienTai == "7ngay")">7 ngày gần đây</option>
+                                <option value="30ngay" selected="@(ViewBag.ThoiGianHienTai == "30ngay")">30 ngày gần đây</option>
+                                <option value="thangNay" selected="@(ViewBag.ThoiGianHienTai == "thangNay")">Trong tháng này</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. Cụm Nút Lọc & Nút Refresh -->
+                        <div class="col-md-2 d-flex gap-1">
+                            <button type="submit" class="btn btn-success w-100 fw-medium"><i class="bi bi-filter"></i> Lọc</button>
+                            <a href="@Url.Action("LichSuGoiDinhKy", "Order")" class="btn btn-outline-secondary" title="Đặt lại bộ lọc"><i class="bi bi-arrow-counterclockwise"></i></a>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="goi-dinhky-container" style="max-height: 520px; overflow-y: auto; padding-right: 8px;">
                     <div class="goi-dinhky-list d-flex flex-column gap-3">
                         @if (Model == null || !Model.Any())
                         {
                             <div class="text-center py-5 bg-light rounded-4 border border-dashed">
                                 <i class="bi bi-calendar-range text-muted fs-1"></i>
-                                <p class="text-muted mt-2 mb-0">Bạn chưa đăng ký gói nông sản định kỳ nào.</p>
+                                <p class="text-muted mt-2 mb-0">Không tìm thấy gói nông sản định kỳ nào phù hợp.</p>
                                 <a asp-controller="Home" asp-action="Index" class="btn btn-success rounded-pill btn-sm mt-3 px-3">Khám phá ngay</a>
                             </div>
                         }
@@ -47,7 +87,6 @@
                         {
                             foreach (var item in Model)
                             {
-                                // Lấy ra thông tin giao dịch thanh toán đầu tiên (nếu có) từ ICollection
                                 var giaoDichDauTien = item.GiaoDichThanhToans?.FirstOrDefault();
 
                                 <div class="card p-3 border rounded-4 @(item.TrangThaiGoi == WebWeb.Models.OrderStatuses.DaHuy ? "bg-light border-secondary-subtle" : "bg-white shadow-sm border-success-subtle")">
@@ -95,7 +134,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
                                         <div>
                                             <span class="text-secondary small">Thanh toán:</span>
                                             <span class="badge bg-light text-dark border me-3">
@@ -105,7 +144,12 @@
                                             <span class="text-secondary small">Tổng tiền gói:</span>
                                             <strong class="text-danger fs-5 ms-1">@item.TongTienGoi.ToString("N0")₫</strong>
                                         </div>
+                                        
                                         <div class="d-flex gap-2">
+                                            <button class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold" onclick="showChiTietGoi(@item.GoiId)">
+                                                <i class="bi bi-eye"></i> Chi tiết đợt giao
+                                            </button>
+
                                             @if (item.TrangThaiGoi != WebWeb.Models.OrderStatuses.DaHuy)
                                             {
                                                 <button class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" onclick="confirmCancelGoi(@item.GoiId)">
@@ -130,10 +174,120 @@
     </div>
 </div>
 
+<!-- Modal Xem Chi Tiết Đợt Giao -->
+<div class="modal fade" id="modalChiTietGoi" tabindex="-1" aria-labelledby="modalChiTietGoiLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-header-title modal-title fw-bold text-success" id="modalChiTietGoiLabel">
+                    <i class="bi bi-card-checklist"></i> Danh sách các đợt giao hàng
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="modalLoading" class="text-center py-4">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">Đang tải danh sách các đợt giao...</p>
+                </div>
+                <div id="modalContent" class="d-none">
+                    <!-- Nội dung đợt giao sẽ được render qua AJAX -->
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        function showChiTietGoi(goiId) {
+            const modalEl = document.getElementById('modalChiTietGoi');
+            const modal = new bootstrap.Modal(modalEl);
+            const modalLoading = document.getElementById('modalLoading');
+            const modalContent = document.getElementById('modalContent');
+
+            modalLoading.classList.remove('d-none');
+            modalContent.classList.add('d-none');
+            modalContent.innerHTML = '';
+            
+            modal.show();
+
+            fetch('@Url.Action("GetChiTietGoiDinhKy", "Order")?id=' + goiId, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                modalLoading.classList.add('d-none');
+                modalContent.classList.remove('d-none');
+
+                if (data.success && data.data && data.data.length > 0) {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="text-center">Đợt</th>
+                                        <th scope="col">Ngày dự kiến giao</th>
+                                        <th scope="col">Danh mục sản phẩm</th>
+                                        <th scope="col" class="text-end">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                    data.data.forEach((dot) => {
+                        let statusBadge = '<span class="badge bg-warning text-dark">Chờ duyệt</span>';
+                        if (dot.trangThai === 'DaGiao' || dot.trangThai === 'HoanThanh') {
+                            statusBadge = '<span class="badge bg-success">Đã giao</span>';
+                        } else if (dot.trangThai === 'DangGiao') {
+                            statusBadge = '<span class="badge bg-primary">Đang giao</span>';
+                        } else if (dot.trangThai === 'ChoXuLy') {
+                            statusBadge = '<span class="badge bg-info text-dark">Chờ xử lý</span>';
+                        } else if (dot.trangThai === 'DaHuy') {
+                            statusBadge = '<span class="badge bg-danger">Đã hủy</span>';
+                        }
+
+                        html += `
+                            <tr>
+                                <td class="text-center fw-bold text-success">#${dot.dotSo}</td>
+                                <td class="fw-semibold text-dark">${dot.ngayGiao}</td>
+                                <td class="small text-muted">${dot.ghiChu}</td>
+                                <td class="text-end">${statusBadge}</td>
+                            </tr>`;
+                    });
+
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>`;
+                    modalContent.innerHTML = html;
+                } else {
+                    modalContent.innerHTML = `
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-info-circle fs-3 text-warning"></i>
+                            <p class="mt-2 mb-0">${data.message || 'Chưa có thông tin đợt giao cho gói này.'}</p>
+                        </div>`;
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi:", err);
+                modalLoading.classList.add('d-none');
+                modalContent.classList.remove('d-none');
+                modalContent.innerHTML = `
+                    <div class="alert alert-danger mb-0" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Không thể tải chi tiết gói định kỳ. Vui lòng thử lại sau!
+                    </div>`;
+            });
+        }
+
         function confirmCancelGoi(goiId) {
-            if (confirm("Hào có chắc chắn muốn hủy gói nông sản định kỳ #" + goiId + " này không?")) {
+            if (confirm("Bạn có chắc chắn muốn hủy gói nông sản định kỳ #" + goiId + " này không?")) {
                 fetch('@Url.Action("HuyGoiDinhKy", "Order")?id=' + goiId, {
                     method: 'POST',
                     headers: {

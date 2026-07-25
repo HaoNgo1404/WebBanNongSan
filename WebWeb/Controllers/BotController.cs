@@ -12,7 +12,7 @@ namespace WebWeb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BotController : ControllerBase
+    public class BotController : BaseController
     {
         private readonly ECommerceDBContext _context;
         private readonly IConfiguration _configuration;
@@ -165,7 +165,7 @@ namespace WebWeb.Controllers
                 var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
                 
                 // string geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={apiKey}";
-                string geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={apiKey}";
+                string geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={apiKey}";
                 
                 var response = await client.PostAsync(geminiUrl, content);
 
@@ -265,6 +265,77 @@ namespace WebWeb.Controllers
 
             return (jaccardSimilarity * 0.4) + (levenshteinSimilarity * 0.6);
         }
+        [HttpPost("yeu-cau-ho-tro")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> YeuCauHoTro([FromBody] SupportTicketRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.CauHoi))
+            {
+                return BadRequest(new { message = "Nội dung câu hỏi không được để trống." });
+            }
+
+            int currentUserId = GetCurrentUserId(); // Tận dụng hàm lấy ID khách hàng đã có
+            var khachHang = await _context.KhachHangs.FindAsync(currentUserId); 
+            
+            var ticket = new SupportTicket
+            {
+                KhachHangID = currentUserId > 0 ? currentUserId : null,
+                TenKhachHang = khachHang?.HoTen ?? request.TenKhachHang ?? "Khách vãng lai",
+                EmailLienHe = khachHang?.Email ?? request.EmailLienHe,
+                CauHoi = request.CauHoi,
+                TrangThai = OrderStatuses.ChoXuLy,
+                NgayTao = DateTime.Now
+            };
+
+            _context.SupportTickets.Add(ticket);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { 
+                success = true, 
+                message = "Yêu cầu hỗ trợ của bạn đã được chuyển tới bộ phận CSKH Admin. Chúng tôi sẽ phản hồi sớm nhất!",
+                ticketId = ticket.TicketID
+            });
+        }
+
+        [HttpGet("danh-sach-tra-loi")]
+        public async Task<IActionResult> GetDanhSachTraLoi()
+        {
+            int userId = GetCurrentUserId();
+            if (userId == 0) return Ok(new { success = false, data = new List<object>() });
+
+            // Chỉ lấy các ticket ĐÃ TRẢ LỜI mà CHƯA ĐỌC
+            var tickets = await _context.SupportTickets
+                .Where(t => t.KhachHangID == userId && t.TrangThai == OrderStatuses.DaTraLoi && !string.IsNullOrEmpty(t.AdminTraLoi))
+                .OrderByDescending(t => t.NgayPhanHoi)
+                .Select(t => new {
+                    t.TicketID,
+                    t.CauHoi,
+                    t.AdminTraLoi,
+                    NgayPhanHoi = t.NgayPhanHoi.HasValue ? t.NgayPhanHoi.Value.ToString("dd/MM/yyyy HH:mm") : ""
+                })
+                .ToListAsync();
+
+            return Ok(new { success = true, data = tickets });
+        }
+
+        [HttpPost("da-doc-ticket/{id}")]
+        public async Task<IActionResult> MarkTicketAsRead(int id)
+        {
+            var ticket = await _context.SupportTickets.FindAsync(id);
+            if (ticket != null)
+            {
+                ticket.TrangThai = OrderStatuses.DaXem; // Chuyển trạng thái để lần sau mở chat không load lại
+                await _context.SaveChangesAsync();
+            }
+            return Ok(new { success = true });
+        }
+    }
+
+    public class SupportTicketRequest
+    {
+        public string CauHoi { get; set; } = string.Empty;
+        public string? TenKhachHang { get; set; }
+        public string? EmailLienHe { get; set; }
     }
 
     public class ChatRequest

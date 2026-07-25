@@ -23,6 +23,11 @@ namespace WebWeb.Models
         public decimal GiaBanNiemYet { get; set; }
         public string DonViTinh { get; set; } = null!;
         public int SaiSoChoPhep { get; set; }
+        public decimal SoLuongTon => LoHangs?.Sum(l => l.SoLuongTon) ?? 0;
+
+        public bool IsHot => DanhGiaSanPhams != null && DanhGiaSanPhams.Any(d => d.SoSao >= 4);
+        public double DiemDanhGiaTrungBinh => (DanhGiaSanPhams != null && DanhGiaSanPhams.Any()) ? Math.Round(DanhGiaSanPhams.Average(d => d.SoSao), 1) : 5.0;
+        public int TongSoDanhGia => DanhGiaSanPhams?.Count ?? 0;
         public int DanhMucId { get; set; }
         public int NhaVuonId { get; set; }
 

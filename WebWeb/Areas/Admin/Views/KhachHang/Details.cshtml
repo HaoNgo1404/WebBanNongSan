@@ -75,7 +75,7 @@
                                     <tr>
                                         <td><a class="text-success fw-bold text-decoration-none" asp-area="Admin" asp-controller="DonHangQuanLy" asp-action="Details" asp-route-id="@dh.DonHangLeId">#DHL-@dh.DonHangLeId</a></td>
                                         <td>@dh.NgayDat.ToString("dd/MM/yyyy")</td>
-                                        <td class="fw-semibold">@((dh.TongTienThucTe ?? dh.TongTienTamTinh).ToString("#,##0")) đ</td>
+                                        <td class="fw-semibold">@(dh.TongTienThucTe.ToString("#,##0")) đ</td>
                                         <td><span class="small">@dh.TrangThaiDonHang</span></td>
                                     </tr>
                                 }

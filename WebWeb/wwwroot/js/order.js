@@ -37,17 +37,20 @@ $('#BtnApplyVoucher').click(function () {
         }
     });
 
+    // Nếu ở trang Checkout không tìm thấy .cart-item-row, lấy dữ liệu dự phòng từ giỏ hàng hoặc Form
     if (danhSachItem.length === 0) {
-        alert("Không tìm thấy thông tin sản phẩm trong giỏ hàng để áp mã!");
-        return;
+        // Lấy từ dữ liệu ẩn trên View nếu có
+        console.warn("Không tìm thấy danh sách cart-item-row trên giao diện.");
     }
 
     $.ajax({
-        // TRUYỀN CODE QUA URL ĐỂ CONTROLLER ĐÓN [FromQuery]
-        url: '/Admin/KhuyenMai/CheckVoucher?code=' + encodeURIComponent(code),
-        type: 'POST', // Ép buộc POST
-        contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify(danhSachItem), // Đóng gói mảng JSON
+        url: '/Promotion/CheckVoucher',
+        type: 'POST',
+        // Gửi data dưới dạng object để jQuery tự serialize (tránh lỗi 415)
+        data: {
+            code: code,
+            cartItems: danhSachItem
+        },
         success: function (res) {
             var $msg = $('#VoucherMessage');
             $msg.removeClass('d-none text-danger text-success');
@@ -56,15 +59,13 @@ $('#BtnApplyVoucher').click(function () {
                 $msg.addClass('text-success').html('<i class="bi bi-check-circle-fill"></i> ' + res.message);
                 $('#HiddenKhuyenMaiId').val(res.khuyenMaiId);
                 
-                // Cập nhật số tiền giảm lên UI
                 if ($('#DiscountDisplay').length) {
                     $('#DiscountDisplay').text('-' + res.soTienGiam.toLocaleString('vi-VN') + ' đ');
                 }
                 
-                // Tính toán tổng số tiền cuối cùng
                 var txtTotal = $('.checkout-summary-total').text() || '0'; 
                 var temporaryTotal = parseFloat(txtTotal.replace(/[^0-9]/g, '')) || 0;
-                var finalAmount = temporaryTotal - res.soTienGiam;
+                var finalAmount = Math.max(0, temporaryTotal - res.soTienGiam);
                 
                 if ($('#FinalAmountDisplay').length) {
                     $('#FinalAmountDisplay').text(finalAmount.toLocaleString('vi-VN') + ' đ');
@@ -77,15 +78,15 @@ $('#BtnApplyVoucher').click(function () {
         },
         error: function (xhr) {
             console.error(xhr.responseText);
-            alert('Lỗi kết nối kiểm tra mã voucher! Hãy ấn F12 xem tab Console.');
+            alert('Lỗi kết nối kiểm tra mã voucher! Chi tiết lỗi: ' + xhr.status + ' ' + xhr.statusText);
         }
     });
 });
 
 $(document).on('click', '#BtnQuickApply', function() {
     var code = $(this).data('code');
-    $('#VoucherCodeInput').val(code); // Tự điền mã vào ô text
-    $('#BtnApplyVoucher').click();    // Tự kích hoạt nút kiểm tra tính tiền AJAX
+    $('#VoucherCodeInput').val(code); 
+    $('#BtnApplyVoucher').click();    
 });
 
 document.addEventListener("DOMContentLoaded", function () {

@@ -36,14 +36,41 @@
 
     <div class="admin-panel p-4">
         <form method="get" asp-area="Admin" asp-controller="DonHang" asp-action="Index" class="mb-4">
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
-                <div class="position-relative" style="max-width: 400px; width: 100%;">
-                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                    <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm kiếm đơn hàng..." />                 
+            <div class="row g-3">
+                <!-- 1. Tìm kiếm theo Từ khóa -->
+                <div class="col-md-4">
+                    <div class="position-relative">
+                        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                        <input class="form-control ps-5" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Tìm theo Mã đơn, Khách hàng, SĐT..." />
+                    </div>
                 </div>
 
-                <div class="d-flex gap-2 flex-wrap">
-                    <button type="submit" class="btn btn-outline-secondary btn-sm admin-btn">Tìm kiếm</button>
+                <!-- 2. Lọc theo Trạng thái -->
+                <div class="col-md-3">
+                    <select name="trangThai" class="form-select">
+                        <option value="TatCa" selected="@(ViewBag.TrangThaiHienTai == "TatCa")">-- Tất cả trạng thái --</option>
+                        <option value="@WebWeb.Models.OrderStatuses.ChoDuyet" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.ChoDuyet)">Chờ duyệt</option>
+                        <option value="@WebWeb.Models.OrderStatuses.ChoXuLy" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.ChoXuLy)">Chờ xử lý</option>
+                        <option value="@WebWeb.Models.OrderStatuses.DangGiao" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.DangGiao)">Đang giao</option>
+                        <option value="@WebWeb.Models.OrderStatuses.HoanThanh" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.HoanThanh)">Đã giao / Hoàn thành</option>
+                        <option value="@WebWeb.Models.OrderStatuses.DaHuy" selected="@(ViewBag.TrangThaiHienTai == WebWeb.Models.OrderStatuses.DaHuy)">Đã hủy</option>
+                    </select>
+                </div>
+
+                <!-- 3. Lọc theo Thời gian -->
+                <div class="col-md-3">
+                    <select name="thoiGian" class="form-select">
+                        <option value="TatCa" selected="@(ViewBag.ThoiGianHienTai == "TatCa")">-- Tất cả thời gian --</option>
+                        <option value="7ngay" selected="@(ViewBag.ThoiGianHienTai == "7ngay")">7 ngày gần đây</option>
+                        <option value="30ngay" selected="@(ViewBag.ThoiGianHienTai == "30ngay")">30 ngày gần đây</option>
+                        <option value="thangNay" selected="@(ViewBag.ThoiGianHienTai == "thangNay")">Trong tháng này</option>
+                    </select>
+                </div>
+
+                <!-- Nút bấm Xử lý -->
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-filter"></i> Lọc</button>
+                    <a href="@Url.Action("Index", "DonHang")" class="btn btn-outline-secondary" title="Xóa bộ lọc"><i class="bi bi-arrow-counterclockwise"></i></a>
                 </div>
             </div>
         </form>
@@ -86,7 +113,7 @@
                                     </td>
                                     <td>@item.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td><span class="badge bg-light text-dark border">@item.KhungGioGiaoHang</span></td>
-                                    <td class="text-success fw-bold">@((item.TongTienThucTe ?? item.TongTienTamTinh).ToString("#,##0")) đ</td>
+                                    <td class="text-success fw-bold">@(item.TongTienThucTe.ToString("#,##0")) đ</td>
                                     <td>
                                         @if (item.TrangThaiThanhToan == WebWeb.Models.OrderStatuses.DaThanhToan)
                                         {
@@ -126,19 +153,21 @@
                                         </a>
                                         
                                         @if (item.TrangThaiDonHang == WebWeb.Models.OrderStatuses.ChoDuyet) {
-                                            // Chuẩn bị dữ liệu danh sách sản phẩm để truyền vào HTML attribute
+                                            // Chuẩn bị dữ liệu danh sách sản phẩm an toàn hơn
                                             var dsSanPham = item.ChiTietDonHangLes?.Select(ct => new {
-                                                ten = ct.NongSan?.TenNongSan ?? "Nông sản",
+                                                ten = ct.NongSan?.TenNongSan ?? "Nông sản chưa xác định",
                                                 soluong = ct.SoLuongDat,
                                                 dvt = ct.NongSan?.DonViTinh ?? "kg"
                                             }).ToList();
                                             
-                                            var jsonSanPham = System.Text.Json.JsonSerializer.Serialize(dsSanPham);
+                                            var jsonSanPham = dsSanPham != null 
+                                                ? System.Text.Json.JsonSerializer.Serialize(dsSanPham) 
+                                                : "[]";
 
                                             <button class="btn btn-sm btn-success rounded-3 btn-duyet-don" 
                                                     data-id="@item.DonHangLeId"
-                                                    data-total="@item.TongTienTamTinh.ToString("#,##0")"
-                                                    data-products='@jsonSanPham'>
+                                                    data-total="@item.TongTienThucTe.ToString("#,##0")"
+                                                    data-products="@jsonSanPham">
                                                 <i class="bi bi-check-circle-fill"></i> Duyệt đơn
                                             </button>
                                         }
@@ -153,7 +182,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">Không có đơn hàng lẻ nào trong hệ thống.</td>
+                                <td colspan="9" class="text-center text-muted py-4">Không có đơn hàng lẻ nào trong hệ thống.</td>
                             </tr>
                         }
                     </tbody>
@@ -179,7 +208,7 @@
                     const donHangId = this.getAttribute('data-id');
                     const tongTien = this.getAttribute('data-total');
                     
-                    // Bốc và giải mã chuỗi danh sách sản phẩm
+                    // Bốc dữ liệu JSON trực tiếp từ attribute
                     const rawProducts = this.getAttribute('data-products');
                     let productsList = [];
                     try {
@@ -190,7 +219,7 @@
 
                     // Dựng bảng HTML hiển thị danh sách nông sản và số lượng
                     let tableRows = '';
-                    if(productsList.length > 0) {
+                    if(productsList && productsList.length > 0) {
                         productsList.forEach((p, i) => {
                             tableRows += `
                                 <tr>
@@ -199,10 +228,10 @@
                                 </tr>`;
                         });
                     } else {
-                        tableRows = `<tr><td colspan="2" style="padding: 8px; text-align: center; color: #888;">Không có dữ liệu chi tiết</td></tr>`;
+                        tableRows = `<tr><td colspan="2" style="padding: 12px; text-align: center; color: #888;">Không có dữ liệu chi tiết nông sản</td></tr>`;
                     }
 
-                    // Nội dung HTML sẽ chèn vào ruột của Pop-up
+                    // Nội dung HTML chèn vào Pop-up
                     const popupContent = `
                         <div style="font-size: 14px; color: #333;">
                             <p style="text-align: left; margin-bottom: 12px;">Xem trước thông tin đơn hàng trước khi phê duyệt:</p>
@@ -219,26 +248,25 @@
                             </table>
                             <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; padding-top: 5px; border-top: 2px dashed #ccc;">
                                 <span>TỔNG TIỀN THANH TOÁN:</span>
-                                <span style="color: #dc3545;">${tongTien} VNĐ</span>
+                                <span style="color: #dc3545;">${tongTien} đ</span>
                             </div>
                         </div>
                     `;
 
-                    // Hiển thị Pop-up xác nhận chứa thông tin trực quan
+                    // Hiển thị Pop-up SweetAlert2
                     Swal.fire({
                         title: `XÁC NHẬN DUYỆT ĐƠN HÀNG #${donHangId}`,
                         html: popupContent,
                         icon: 'info',
                         showCancelButton: true,
-                        confirmButtonColor: '#198754', // Nút duyệt màu xanh
-                        cancelButtonColor: '#6c757d',  // Nút hủy màu xám
+                        confirmButtonColor: '#198754',
+                        cancelButtonColor: '#6c757d',
                         confirmButtonText: '<i class="bi bi-check2-circle"></i> Phê duyệt & Trừ kho',
                         cancelButtonText: 'Đóng lại',
                         allowOutsideClick: false,
-                        width: '500px'
+                        width: '520px'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Mở trạng thái loading trong khi gửi Ajax
                             Swal.fire({
                                 title: 'Đang tiến hành duyệt...',
                                 text: 'Vui lòng chờ hệ thống xử lý kho.',
@@ -246,7 +274,6 @@
                                 didOpen: () => { Swal.showLoading(); }
                             });
 
-                            // Gửi yêu cầu ngầm lên DonHangController
                             fetch(`/Admin/DonHang/DuyetDonHang/${donHangId}`, {
                                 method: 'POST',
                                 headers: {
@@ -263,7 +290,7 @@
                                         icon: 'success',
                                         confirmButtonText: 'OK'
                                     }).then(() => {
-                                        location.reload(); // Làm mới trang để cập nhật giao diện bảng
+                                        location.reload();
                                     });
                                 } else {
                                     Swal.fire({

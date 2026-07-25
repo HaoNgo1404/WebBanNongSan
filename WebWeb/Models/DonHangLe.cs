@@ -20,7 +20,7 @@ namespace WebWeb.Models
         public int? KhuyenMaiId { get; set; }
         public DateTime NgayDat { get; set; }
         public decimal TongTienTamTinh { get; set; }
-        public decimal? TongTienThucTe { get; set; }
+        public decimal TongTienThucTe { get; set; }
         public decimal? TienChenhLech { get; set; }
         public string TrangThaiThanhToan { get; set; } = null!;
         public string PhuongThucThanhToan { get; set; } = null!;
@@ -29,6 +29,7 @@ namespace WebWeb.Models
         public string? PhoneNonAccount { get; set; }
         public string? NameCusNonAccount { get; set; }
         public string? AddressNonAccount { get; set; }
+        public string? EmailNonAccount { get; set; } 
 
         public virtual SoDiaChi? DiaChi { get; set; }
         public virtual KhachHang? KhachHang { get; set; }
