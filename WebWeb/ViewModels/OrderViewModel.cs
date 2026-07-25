@@ -23,6 +23,7 @@ namespace WebWeb.Models.ViewModels
         public string? TanSuatGiao { get; set; } // Ví dụ: "HangTuan", "CachTuan"
         public string? ThuTrongTuan { get; set; } // Ví dụ: "Thu2-Thu5", "Thu7"
         public int? SoThangDangKy { get; set; }   // Để tính ngày kết thúc
+        public bool IsLoggedIn { get; set; }
 
         // Danh sách nông sản trong giỏ hàng được chọn để thanh toán
         public List<CartItemViewModel> Items { get; set; } = new List<CartItemViewModel>();

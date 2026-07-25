@@ -25,6 +25,7 @@ public class ProductController : Controller
         var product = await _context.NongSans
             .Include(n => n.NhaVuon)
             .Include(n => n.DanhGiaSanPhams)
+            .Include(n => n.LoHangs)
             .FirstOrDefaultAsync(n => n.NongSanId == id);
 
         if (product == null) return NotFound();

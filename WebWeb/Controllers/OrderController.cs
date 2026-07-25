@@ -86,7 +86,8 @@ namespace WebWeb.Controllers
             // ĐOẠN XỬ LÝ ĐỊA CHỈ MẶC ĐỊNH ĐỂ FIX LỖI BINDING
             // ==========================================
             int? currentUserId = GetCurrentKhachHangId();
-            if (currentUserId != null)
+            model.IsLoggedIn = currentUserId.HasValue && currentUserId.Value > 0;
+            if (model.IsLoggedIn)
             {
                 var listDiaChi = _context.SoDiaChis
                     .Where(d => d.KhachHangId == currentUserId.Value)
