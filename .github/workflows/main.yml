@@ -1,0 +1,46 @@
+name: Build and Auto Deploy Green Fresh
+
+on:
+  push:
+    branches: [ "main" ] # Hoặc đổi tên nhánh của Hào nếu dùng nhánh khác (ví dụ: master)
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Lấy source code từ GitHub về
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Cài đặt .NET SDK 6.0 (hoặc phiên bản Hào đang dùng)
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.0.x'
+
+    # 3. Khôi phục các thư viện NuGet
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # 4. 🟢 CHÈN API KEY TỪ GITHUB SECRETS VÀO APPSETTINGS.JSON
+    - name: Appsettings Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: '**/appsettings.json'
+      env:
+        OpenAI.ApiKey: ${{ secrets.GEMINI_API_KEY }}
+
+    # 5. Build và đóng gói ứng dụng
+    - name: dotnet publish
+      run: dotnet publish --configuration Release --output ./publish
+
+    # 6. Deploy lên Server qua FTP (Đã thay bằng Action chuẩn SamKirkland)
+    - name: FTP Deploy to site1
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./publish/
+        server-dir: /
