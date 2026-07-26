@@ -87,7 +87,7 @@ namespace WebWeb.Controllers
             // ==========================================
             int? currentUserId = GetCurrentKhachHangId();
             model.IsLoggedIn = currentUserId.HasValue && currentUserId.Value > 0;
-            if (model.IsLoggedIn)
+            if (currentUserId.HasValue)
             {
                 var listDiaChi = _context.SoDiaChis
                     .Where(d => d.KhachHangId == currentUserId.Value)

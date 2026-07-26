@@ -27,7 +27,7 @@
                 
                 <h5 class="mb-3 fw-bold text-dark"><i class="bi bi-geo-alt-fill text-danger"></i> Thông tin nhận nông sản</h5>
 
-                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                @if (Model.IsLoggedIn)
                 {
                     <div class="mb-3">
                         <label class="form-label fw-bold text-success">

@@ -50,8 +50,11 @@ namespace WebWeb.Controllers
             string baseUrl = _configuration["PaymentSettings:Vnpay:BaseUrl"]?.Trim();
             string returnUrl = _configuration["PaymentSettings:Vnpay:ReturnUrl"]?.Trim();
 
-            string txtCreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
-            string txtExpireDate = DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss");
+            TimeZoneInfo tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            DateTime timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+
+            string txtCreateDate = timeNow.ToString("yyyyMMddHHmmss");
+            string txtExpireDate = timeNow.AddMinutes(15).ToString("yyyyMMddHHmmss");
             
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
             if (ipAddress == "::1") ipAddress = "127.0.0.1";
@@ -69,8 +72,8 @@ namespace WebWeb.Controllers
             vnpay.AddRequestData("vnp_IpAddr", ipAddress);
             vnpay.AddRequestData("vnp_Locale", "vn");
             vnpay.AddRequestData("vnp_OrderInfo", orderInfo);
-            // SỬA QUAN TRỌNG: Đổi từ "other" sang mã loại hình dịch vụ số "250000" (Thanh toán hóa đơn nông sản/thực phẩm)
-            vnpay.AddRequestData("vnp_OrderType", "other"); 
+            // SỬA QUAN TRỌNG: Đổi từ "other" sang mã loại hình dịch vụ chuẩn số "250000"
+            vnpay.AddRequestData("vnp_OrderType", "250000"); 
             vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
             vnpay.AddRequestData("vnp_TxnRef", vnp_TxnRef);
             vnpay.AddRequestData("vnp_ExpireDate", txtExpireDate);
@@ -87,7 +90,7 @@ namespace WebWeb.Controllers
         public async Task<IActionResult> RedirectToMoMo(int orderId, string type = "le")
         {
             decimal? tongTien = 0;
-            // Trả về chuỗi ký tự viết liền không dấu, không khoảng trắng để chuỗi thô (Raw) của MoMo khớp tuyệt đối
+            // Chuỗi ký tự viết liền không dấu, không khoảng trắng
             string orderInfo = $"ThanhToanDonHang{type}Ma{orderId}";
 
             if (type == "dinhky")
@@ -107,23 +110,30 @@ namespace WebWeb.Controllers
             string accessKey = _configuration["PaymentSettings:Momo:AccessKey"];
             string secretKey = _configuration["PaymentSettings:Momo:SecretKey"];
             string endpoint = _configuration["PaymentSettings:Momo:Endpoint"];
-            string returnUrl = _configuration["PaymentSettings:Momo:ReturnUrl"];
+
+            // Lấy ReturnUrl từ appsettings, nếu không cấu hình sẽ tự fallback về localhost:5000
+            string configReturnUrl = _configuration["PaymentSettings:Momo:ReturnUrl"];
+            string redirectUrl = !string.IsNullOrEmpty(configReturnUrl) 
+                ? configReturnUrl 
+                : "http://localhost:5000/Payment/MomoReturn";
+            
+            string ipnUrl = redirectUrl;
 
             string requestId = $"{type}_{orderId}_{DateTime.Now.Ticks}";
             string orderIdMomo = requestId;
-            long amountLong = (long)tongTien;
+            long amountLong = (long)(tongTien ?? 0);
             string requestType = "payWithMethod";
             string extraData = ""; 
 
-            // Chuỗi thô (Raw Hash) khớp từng ký tự theo tài liệu MoMo Developer Hào gửi
+            // Chuỗi thô (Raw Hash) sắp xếp Alphabet bắt buộc khớp từng thuộc tính theo tài liệu MoMo Developer
             string rawHash = $"accessKey={accessKey}" +
                              $"&amount={amountLong}" +
                              $"&extraData={extraData}" +
-                             $"&ipnUrl={returnUrl}" + 
+                             $"&ipnUrl={ipnUrl}" + 
                              $"&orderId={orderIdMomo}" +
                              $"&orderInfo={orderInfo}" +
                              $"&partnerCode={partnerCode}" +
-                             $"&redirectUrl={returnUrl}" + 
+                             $"&redirectUrl={redirectUrl}" + 
                              $"&requestId={requestId}" +
                              $"&requestType={requestType}";
             
@@ -134,10 +144,10 @@ namespace WebWeb.Controllers
                 signature = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
             }
 
-            System.Diagnostics.Debug.WriteLine(rawHash);
-            System.Diagnostics.Debug.WriteLine(signature);
+            System.Diagnostics.Debug.WriteLine("RAW HASH: " + rawHash);
+            System.Diagnostics.Debug.WriteLine("SIGNATURE: " + signature);
 
-            // Object gửi đi bắt buộc thuộc tính nhận URL phải đặt tên khớp với chuỗi băm
+            // Payload JSON gửi đi
             var requestData = new
             {
                 partnerCode = partnerCode,
@@ -145,8 +155,8 @@ namespace WebWeb.Controllers
                 orderId = orderIdMomo,
                 amount = amountLong, 
                 orderInfo = orderInfo,
-                redirectUrl = returnUrl,
-                ipnUrl = returnUrl, // Đảm bảo trùng tên thuộc tính băm
+                redirectUrl = redirectUrl,
+                ipnUrl = ipnUrl,
                 requestType = requestType,
                 extraData = extraData,
                 signature = signature,
@@ -164,7 +174,6 @@ namespace WebWeb.Controllers
                     var momoResponse = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
                     if (momoResponse != null && momoResponse.ContainsKey("payUrl"))
                     {
-
                         return Redirect(momoResponse["payUrl"].ToString());
                     }
                 }
@@ -173,7 +182,7 @@ namespace WebWeb.Controllers
         }
 
         // =================================================================
-        // 3. ĐÓN KẾT QUẢ VNPAY TRẢ VỀ (GIỮ NGUYÊN ĐỂ XỬ LÝ DATABASE)
+        // 3. ĐÓN KẾT QUẢ VNPAY TRẢ VỀ
         // =================================================================
         [HttpGet]
         public async Task<IActionResult> VnPayReturn()
@@ -259,7 +268,7 @@ namespace WebWeb.Controllers
         }
 
         // =================================================================
-        // 4. ĐÓN KẾT QUẢ MOMO TRẢ VỀ (GIỮ NGUYÊN ĐỂ XỬ LÝ DATABASE)
+        // 4. ĐÓN KẾT QUẢ MOMO TRẢ VỀ
         // =================================================================
         [HttpGet]
         public async Task<IActionResult> MomoReturn()
@@ -364,13 +373,7 @@ namespace WebWeb.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(
-                    "OrderPackageSuccess",
-                    "Notification",
-                    new
-                    {
-                        orderId = goiKy.GoiId
-                    });
+                return RedirectToAction("OrderPackageSuccess", "Notification", new { orderId = goiKy.GoiId });
             }
 
             var donHang = await _context.DonHangLes.FindAsync(id);
@@ -399,13 +402,7 @@ namespace WebWeb.Controllers
                 return Content(ex.InnerException?.Message ?? ex.Message);
             }
 
-            return RedirectToAction(
-                "OrderSuccess",
-                "Notification",
-                new
-                {
-                    orderId = donHang.DonHangLeId
-                });
+            return RedirectToAction("OrderSuccess", "Notification", new { orderId = donHang.DonHangLeId });
         }
     }
 }
