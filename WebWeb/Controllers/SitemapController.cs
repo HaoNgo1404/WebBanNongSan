@@ -6,6 +6,7 @@ using WebWeb.Models;
 
 namespace WebWeb.Controllers;
 
+[Route("sitemap.xml")]
 public class SitemapController : Controller
 {
     private readonly ECommerceDBContext _context;
