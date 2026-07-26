@@ -35,13 +35,12 @@ jobs:
     - name: dotnet publish
       run: dotnet publish --configuration Release --output ./publish
 
-    # 6. Deploy lên Server qua FTP (Hoặc Web Deploy)
-    # ⚠️ Hào thay đổi thông tin kết nối FTP của site1 ở đây:
+    # 6. Deploy lên Server qua FTP (Đã thay bằng Action chuẩn SamKirkland)
     - name: FTP Deploy to site1
-      uses: SamKirsch/ftp-deploy@v2
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        server: ${{ secrets.FTP_SERVER }}       # VD: ftp.site1.somee.com hoặc IP
-        username: ${{ secrets.FTP_USERNAME }}     # User FTP
-        password: ${{ secrets.FTP_PASSWORD }}     # Pass FTP
-        local_dir: './publish'
-        server_dir: '/'                         # Thư mục root trên hosting
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./publish/
+        server-dir: /
