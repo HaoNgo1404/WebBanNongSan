@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Chặn các trang cá nhân / giỏ hàng / thanh toán không cần index
+Disallow: /Cart/
+Disallow: /Account/
+Disallow: /Order/
+
+# Chỉ định đường dẫn Sitemap chính thức
+Sitemap: https://greenfresh-001-site1.jtempurl.com//sitemap.xml
