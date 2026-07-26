@@ -1,4 +1,5 @@
 @model IEnumerable<WebWeb.Models.NongSan>
+@using WebWeb.Helpers
 @{
     ViewData["Title"] = ViewBag.TenDanhMuc;
 }
@@ -52,9 +53,10 @@
                 <div class="row g-4">
                     @foreach (var item in Model)
                     {
+                        var productSlug = item.TenNongSan.ToSlug();
                         <div class="col-6 col-lg-4">
                             <!-- BAO BỌC TOÀN BỘ PRODUCT CARD BẰNG THẺ A DẪN TỚI TRANG CHI TIẾT -->
-                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.NongSanId" class="text-decoration-none text-dark d-block h-100">
+                            <a asp-controller="Product" asp-action="Detail" asp-route-slug="@productSlug" asp-route-id="@item.NongSanId" class="text-decoration-none text-dark d-block h-100">
                                 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden product-card transition-all" style="transition: transform 0.2s;">
                                     <div class="position-relative overflow-hidden mb-3 text-center">
                                         <img src="@Url.Content("~/images/" + item.HinhAnh)" 

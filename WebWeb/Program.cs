@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using WebWeb.Models;
 using WebWeb.Services;
 using System.Text;
+using WebWeb.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,54 +91,30 @@ app.MapGet("/sitemap", async (HttpContext context, ECommerceDBContext db) =>
 {
     string baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
 
-    var products = await db.NongSans.Select(p => p.NongSanId).ToListAsync();
+    var products = await db.NongSans
+        .Select(p => new { p.NongSanId, p.TenNongSan })
+        .ToListAsync();
+
     var categories = await db.DanhMucs.Select(c => c.DanhMucId).ToListAsync();
 
     var sb = new StringBuilder();
     sb.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-    sb.AppendLine("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+    sb.Append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
 
     // 1. Trang cố định
-    sb.AppendLine($"  <url>");
-    sb.AppendLine($"    <loc>{baseUrl}/</loc>");
-    sb.AppendLine($"    <lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod>");
-    sb.AppendLine($"    <changefreq>daily</changefreq>");
-    sb.AppendLine($"    <priority>1.0</priority>");
-    sb.AppendLine($"  </url>");
+    sb.Append($"  <url><loc>{baseUrl}/</loc><lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>\n");
+    sb.Append($"  <url><loc>{baseUrl}/About</loc><lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>\n");
 
-    sb.AppendLine($"  <url>");
-    sb.AppendLine($"    <loc>{baseUrl}/About</loc>");
-    sb.AppendLine($"    <lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod>");
-    sb.AppendLine($"    <changefreq>monthly</changefreq>");
-    sb.AppendLine($"    <priority>0.5</priority>");
-    sb.AppendLine($"  </url>");
-
-    // 2. Trang Danh mục
-    foreach (var catId in categories)
+    // 2. Trang Sản phẩm dạng URL Slug chuẩn SEO mới!
+    foreach (var prod in products)
     {
-        sb.AppendLine($"  <url>");
-        sb.AppendLine($"    <loc>{baseUrl}/Product/DanhMuc/{catId}</loc>");
-        sb.AppendLine($"    <lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod>");
-        sb.AppendLine($"    <changefreq>weekly</changefreq>");
-        sb.AppendLine($"    <priority>0.8</priority>");
-        sb.AppendLine($"  </url>");
+        string slug = prod.TenNongSan.ToSlug();
+        sb.Append($"  <url><loc>{baseUrl}/san-pham/{slug}-p{prod.NongSanId}</loc><lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n");
     }
 
-    // 3. Trang Sản phẩm
-    foreach (var prodId in products)
-    {
-        sb.AppendLine($"  <url>");
-        sb.AppendLine($"    <loc>{baseUrl}/Product/Detail/{prodId}</loc>");
-        sb.AppendLine($"    <lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod>");
-        sb.AppendLine($"    <changefreq>daily</changefreq>");
-        sb.AppendLine($"    <priority>0.9</priority>");
-        sb.AppendLine($"  </url>");
-    }
+    sb.Append("</urlset>");
 
-    sb.AppendLine("</urlset>");
-
-    // Trả về chuẩn Content-Type là application/xml để Google nhận diện ngay lập tức
-    return Results.Text(sb.ToString(), "application/xml", Encoding.UTF8);
+    return Results.Text(sb.ToString(), "application/xml; charset=utf-8", Encoding.UTF8);
 });
 
 app.Run();

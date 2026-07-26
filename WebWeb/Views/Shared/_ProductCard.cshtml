@@ -1,8 +1,13 @@
 @model WebWeb.Models.NongSan
 @inject WebWeb.Services.KhuyenMaiService KhuyenMaiService
 
+@using WebWeb.Helpers
+@{
+    var productSlug = Model.TenNongSan.ToSlug();
+}
+
 <!-- BAO BỌC TOÀN BỘ PRODUCT CARD BẰNG THẺ A DẪN TỚI TRANG CHI TIẾT -->
-<a asp-controller="Product" asp-action="Detail" asp-route-id="@Model.NongSanId" class="text-decoration-none text-dark d-block h-100">
+<a asp-controller="Product" asp-route-slug="@productSlug" asp-action="Detail" asp-route-id="@Model.NongSanId" class="text-decoration-none text-dark d-block h-100">
     <div class="product-card h-100">
         <div class="product-card-image">
             <img src="@Url.Content("~/images/" + Model.HinhAnh)" style="width:100%; height:200px; object-fit:cover;" class="rounded-top"

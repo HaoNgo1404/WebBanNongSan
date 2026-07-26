@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Security.Claims;
 using WebWeb.Models;
 using WebWeb.Services;
+using WebWeb.Helpers; // 🟢 THÊM NAMESPACE HELPER SLUG
 
 namespace WebWeb.Controllers;
 
@@ -11,7 +12,7 @@ public class ProductController : Controller
 {
     private readonly ECommerceDBContext _context;
     private readonly KhuyenMaiService _khuyenMaiService;
-    private readonly AISentimentService _aiSentimentService; // 🟢 THÊM SERVICE AI
+    private readonly AISentimentService _aiSentimentService;
 
     public ProductController(ECommerceDBContext context, KhuyenMaiService khuyenMaiService, AISentimentService aiSentimentService)
     {
@@ -20,7 +21,9 @@ public class ProductController : Controller
         _aiSentimentService = aiSentimentService;
     }
 
-    public async Task<IActionResult> Detail(int id)
+    // 🟢 ROUTE CHUẨN SEO: /san-pham/dua-hau-long-an-p1
+    [HttpGet("san-pham/{slug}-p{id:int}")]
+    public async Task<IActionResult> Detail(string slug, int id)
     {
         var product = await _context.NongSans
             .Include(n => n.NhaVuon)
@@ -30,6 +33,13 @@ public class ProductController : Controller
             .FirstOrDefaultAsync(n => n.NongSanId == id);
 
         if (product == null) return NotFound();
+
+        // 🟢 Kiểm tra và Redirect 301 nếu Slug trên URL không khớp với tên sản phẩm hiện tại
+        string expectedSlug = product.TenNongSan.ToSlug();
+        if (string.IsNullOrEmpty(slug) || slug != expectedSlug)
+        {
+            return RedirectToRoutePermanent(new { slug = expectedSlug, id = product.NongSanId });
+        }
 
         // 🟢 Tối ưu SEO On-Page cho sản phẩm
         ViewData["Title"] = $"{product.TenNongSan} - Green Fresh";
@@ -47,7 +57,7 @@ public class ProductController : Controller
         ViewData["OgImage"] = $"{Request.Scheme}://{Request.Host}/images/products/{product.HinhAnh}";
 
         decimal giaBanThucTe = _khuyenMaiService.TinhGiaBanThucTe(product.NongSanId, product.GiaBanNiemYet);
-            ViewBag.GiaBanThucTe = giaBanThucTe;
+        ViewBag.GiaBanThucTe = giaBanThucTe;
 
         // LOGIC CHECK TIM: Lấy danh sách ID đã thích của User hiện tại
         List<int> likedProductIds = new List<int>();
@@ -112,14 +122,14 @@ public class ProductController : Controller
 
         // 2. KHỞI TẠO DICTIONARY ĐỂ CHỨA GIÁ ĐÃ GIẢM
         var giaThucTeDict = new Dictionary<int, decimal>();
-            foreach (var product in dsNongSan)
-            {
-                // Gọi qua Service dùng chung
-                giaThucTeDict[product.NongSanId] = _khuyenMaiService.TinhGiaBanThucTe(product.NongSanId, product.GiaBanNiemYet);
-            }
-            ViewBag.GiaThucTeDict = giaThucTeDict;
-            ViewBag.TenDanhMuc = danhMuc.TenDanhMuc;
-            ViewData["Title"] = danhMuc.TenDanhMuc;
+        foreach (var product in dsNongSan)
+        {
+            // Gọi qua Service dùng chung
+            giaThucTeDict[product.NongSanId] = _khuyenMaiService.TinhGiaBanThucTe(product.NongSanId, product.GiaBanNiemYet);
+        }
+        ViewBag.GiaThucTeDict = giaThucTeDict;
+        ViewBag.TenDanhMuc = danhMuc.TenDanhMuc;
+        ViewData["Title"] = danhMuc.TenDanhMuc;
 
         return View(dsNongSan);
     }
@@ -130,20 +140,17 @@ public class ProductController : Controller
     [HttpPost]
     public async Task<IActionResult> DanhGiaSanPhamLe(int nongSanId, int soSao, string binhLuan)
     {
-        // 1. Kiểm tra trạng thái đăng nhập của khách hàng
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("KhachHangId")?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int customerId))
         {
             return Json(new { success = false, message = "Bạn cần đăng nhập để thực hiện đánh giá này!" });
         }
 
-        // 2. Kiểm tra tính hợp lệ của số sao
         if (soSao < 1 || soSao > 5)
         {
             return Json(new { success = false, message = "Số sao đánh giá phải từ 1 đến 5 sao!" });
         }
 
-        // 3. Tìm 1 ID đơn hàng bất kỳ của khách để lót lỗi khóa ngoại DonHangLeId cứng trong DB
         var orderId = await _context.DonHangLes
             .Where(dh => dh.KhachHangId == customerId)
             .Select(dh => dh.DonHangLeId)
@@ -154,10 +161,8 @@ public class ProductController : Controller
             orderId = await _context.DonHangLes.Select(dh => dh.DonHangLeId).FirstOrDefaultAsync();
         }
 
-        // 🟢 GỌI AI PHÂN TÍCH BÌNH LUẬN TỰ ĐỘNG
         string nhanCamXuc = await _aiSentimentService.PhanTichCamXucAsync(binhLuan);
 
-        // 4. Tạo thực thể lưu trữ dữ liệu đánh giá sản phẩm lẻ
         var newReview = new DanhGiaSanPham
         {
             NongSanId = nongSanId,
@@ -172,7 +177,6 @@ public class ProductController : Controller
         {
             _context.DanhGiaSanPhams.Add(newReview);
             await _context.SaveChangesAsync();
-            // Trả về kèm kết quả AI phân tích để hiển thị thông báo tức thì lên View
             return Json(new { 
                 success = true, 
                 message = "Cảm ơn bạn đã gửi đánh giá!",
@@ -191,14 +195,12 @@ public class ProductController : Controller
     [HttpPost]
     public async Task<IActionResult> DanhGiaDonHang(int donHangId, int soSao, string binhLuan)
     {
-        // 1. Kiểm tra trạng thái đăng nhập
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("KhachHangId")?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int customerId))
         {
             return Json(new { success = false, message = "Bạn cần đăng nhập để đánh giá đơn hàng!" });
         }
 
-        // 2. Kiểm tra xem đơn hàng có thực sự thuộc về khách hàng và đã ở trạng thái Hoàn thành ("Đã giao") chưa
         var donHang = await _context.DonHangLes
             .Include(dh => dh.ChiTietDonHangLes)
             .FirstOrDefaultAsync(dh => dh.DonHangLeId == donHangId && dh.KhachHangId == customerId);
@@ -208,7 +210,6 @@ public class ProductController : Controller
             return Json(new { success = false, message = "Không tìm thấy đơn hàng hợp lệ để đánh giá!" });
         }
 
-        // Kiểm tra điều kiện trạng thái "HoanThanh" (Đã giao thành công) từ Shipper
         if (donHang.TrangThaiDonHang != "HoanThanh" && donHang.TrangThaiDonHang != OrderStatuses.HoanThanh)
         {
             return Json(new { success = false, message = "Đơn hàng chưa giao thành công, không thể thực hiện đánh giá!" });
@@ -221,7 +222,6 @@ public class ProductController : Controller
 
         try
         {
-            // 3. Đánh giá tự động cho tất cả các sản phẩm có mặt trong đơn hàng này
             foreach (var chiTiet in donHang.ChiTietDonHangLes)
             {
                 var review = new DanhGiaSanPham
@@ -246,12 +246,11 @@ public class ProductController : Controller
     }
 
     // =================================================================
-    // LUỒNG 3: KHÁCH HÀNG GỬI KHIẾU NẠI ĐƠN HÀNG (ĐÃ KHỚP CHUẨN MODEL KHIEUNAI)
+    // LUỒNG 3: KHÁCH HÀNG GỬI KHIẾU NẠI ĐƠN HÀNG
     // =================================================================
     [HttpPost]
-    public async Task<IActionResult> KhieuNaiDonHang(int donHangId, string noiDung, IFormFile? hinhAnh) // 1. Chuyển donHangId sang kiểu int
+    public async Task<IActionResult> KhieuNaiDonHang(int donHangId, string noiDung, IFormFile? hinhAnh)
     {
-        // Lấy ID khách hàng từ phiên đăng nhập
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("KhachHangId")?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int customerId))
         {
@@ -263,14 +262,12 @@ public class ProductController : Controller
             return Json(new { success = false, message = "Vui lòng nhập nội dung khiếu nại đầy đủ!" });
         }
 
-        // 2. Kiểm tra xem đơn hàng lẻ này có thực sự tồn tại không
         var donHang = await _context.DonHangLes.FindAsync(donHangId);
         if (donHang == null)
         {
             return Json(new { success = false, message = "Không tìm thấy đơn hàng tương ứng trên hệ thống!" });
         }
 
-        // 3. Logic chặn thời gian khiếu nại (Giữ nguyên logic tính toán của Hào)
         int soGioHanDinh = 24; 
         var thamSoTg = await _context.ThamSos.FirstOrDefaultAsync(t => t.MaThamSo == "TS6");
         if (thamSoTg != null)
@@ -284,30 +281,23 @@ public class ProductController : Controller
             return Json(new { success = false, message = $"Đơn hàng đã quá hạn thời gian khiếu nại hỗ trợ ({soGioHanDinh} giờ kể từ khi đặt/giao)!" });
         }
 
-        // ==========================================
-        // LOGIC XỬ LÝ LƯU FILE ẢNH MINH CHỨNG
-        // ==========================================
         string? fileNameSaved = null;
         if (hinhAnh != null && hinhAnh.Length > 0)
         {
             try
             {
-                // Định nghĩa thư mục lưu file: wwwroot/uploads/khieunai
                 string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "khieunai");
                 
-                // Nếu thư mục chưa tồn tại thì tự động tạo mới
                 if (!Directory.Exists(uploadFolder))
                 {
                     Directory.CreateDirectory(uploadFolder);
                 }
 
-                // Đổi tên file để tránh trùng lặp (Ví dụ: khieunai_125_63784920.jpg)
                 string extension = Path.GetExtension(hinhAnh.FileName);
                 fileNameSaved = $"khieunai_{donHangId}_{DateTime.Now.Ticks}{extension}";
                 
                 string filePath = Path.Combine(uploadFolder, fileNameSaved);
 
-                // Lưu file xuống ổ đĩa cứng server
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await hinhAnh.CopyToAsync(stream);
@@ -319,15 +309,14 @@ public class ProductController : Controller
             }
         }
 
-        // 4. Khởi tạo đối tượng khớp chính xác với Entity Model
         var khieuNai = new KhieuNai
         {
-            DonHangLeId = donHangId, // Giờ đã là kiểu int nên gán cực kỳ an toàn
+            DonHangLeId = donHangId,
             KhachHangId = customerId,
             NoiDung = noiDung.Trim(),
             NgayGui = DateTime.Now,
-            TrangThai = 0, // 0: Chờ tiếp nhận
-            PhuongAnXuLy = null, // Ban đầu để null, khi nào Admin duyệt mới cập nhật chuỗi chữ để tránh lỗi độ dài DB
+            TrangThai = 0,
+            PhuongAnXuLy = null,
             SoTienHoan = 0,
             HinhAnhMinhChung = fileNameSaved
         };
@@ -340,7 +329,6 @@ public class ProductController : Controller
         }
         catch (Exception ex)
         {
-            // Trả về lỗi chi tiết nếu DB bị lỗi ràng buộc
             return Json(new { success = false, message = "Lỗi lưu dữ liệu: " + ex.InnerException?.Message });
         }
     }
