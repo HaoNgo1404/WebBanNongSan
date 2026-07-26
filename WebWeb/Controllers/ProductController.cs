@@ -83,6 +83,21 @@ public class ProductController : Controller
                 likedProductIds = JsonSerializer.Deserialize<List<int>>(sessionData) ?? new List<int>();
             }
         }
+        
+        // Gửi danh sách ID này sang View
+        ViewBag.LikedProductIds = likedProductIds;
+
+        // 🟢 BỔ SUNG: PHÂN TÍCH CẢM XÚC BÌNH LUẬN TRƯỚC KHI RENDER VIEW
+        var camXucDict = new Dictionary<int, string>();
+        if (product.DanhGiaSanPhams != null && product.DanhGiaSanPhams.Any())
+        {
+            foreach (var review in product.DanhGiaSanPhams)
+            {
+                string kq = await _aiSentimentService.PhanTichCamXucAsync(review.BinhLuan ?? "");
+                camXucDict[review.DanhGiaId] = kq;
+            }
+        }
+        ViewBag.CamXucDict = camXucDict;
 
         // Gửi danh sách ID này sang View
         ViewBag.LikedProductIds = likedProductIds;

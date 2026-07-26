@@ -1,5 +1,6 @@
 @model WebWeb.Models.NongSan
 @using System.Text.Json
+@inject WebWeb.Services.AISentimentService AISentimentService
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
     ViewData["Title"] = Model.TenNongSan;
@@ -231,9 +232,12 @@
                     <!-- HIỂN THỊ DANH SÁCH CÁC ĐÁNH GIÁ -->
                     @if (Model.DanhGiaSanPhams != null && Model.DanhGiaSanPhams.Any())
                     {
+                        var camXucDict = ViewBag.CamXucDict as Dictionary<int, string> ?? new Dictionary<int, string>();
                         <div class="row g-3">
                             @foreach (var review in Model.DanhGiaSanPhams.OrderByDescending(r => r.NgayDanhGia))
                             {
+                                // Lấy nhãn cảm xúc do AI phân tích từ Dictionary
+                                string camXuc = camXucDict.ContainsKey(review.DanhGiaId) ? camXucDict[review.DanhGiaId] : "TrungTinh";
                                 <div class="col-12">
                                     <div class="review-item p-3 border rounded-4 bg-white shadow-sm">
                                         <div class="d-flex align-items-center gap-2">
@@ -242,13 +246,13 @@
                                                 <span class="text-success"><i class="bi bi-patch-check-fill"></i> Khách hàng thân thiết</span>
                                             </strong>
                                             <!-- BADGE HIỂN THỊ PHÂN TÍCH CẢM XÚC CỦA AI -->
-                                            @if (review.SoSao >= 4)
+                                            @if (camXuc == "Tot")
                                             {
                                                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
                                                     <i class="bi bi-emoji-smile-fill me-1"></i> Tích cực
                                                 </span>
                                             }
-                                            else if (review.SoSao <= 2)
+                                            else if (camXuc == "Xau")
                                             {
                                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small">
                                                     <i class="bi bi-emoji-frown-fill me-1"></i> Tiêu cực
