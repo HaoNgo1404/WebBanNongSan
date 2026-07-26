@@ -29,6 +29,7 @@
     <link rel="canonical" href="@(ViewData["CanonicalUrl"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")" />
 
     <!-- 2. Open Graph / Facebook Share Tags -->
+    <meta property="fb:app_id" content="@(ViewData["FbAppId"] ?? "123456789012345")" />
     <meta property="og:type" content="@(ViewData["OgType"] ?? "website")" />
     <meta property="og:title" content="@(ViewData["OgTitle"] ?? ViewData["Title"] ?? "Nông Sản Sạch Tươi Ngon")" />
     <meta property="og:description" content="@(ViewData["OgDescription"] ?? ViewData["MetaDescription"] ?? "Mua nông sản sạch chất lượng cao tại WebBanNongSan.")" />
