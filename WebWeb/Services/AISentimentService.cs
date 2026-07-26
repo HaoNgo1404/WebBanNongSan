@@ -74,14 +74,35 @@ namespace WebWeb.Services
             return "TrungTinh";
         }
 
-        // Fallback nhẹ không lo sập ứng dụng khi mất mạng/lỗi API
+        // 🟢 ĐÃ TỐI ƯU: Fallback từ khóa chuẩn xác cho tiếng Việt
         private string PhanTichCơBanLocal(string text)
         {
-            text = text.ToLower();
-            if (text.Contains("tươi") || text.Contains("ngon") || text.Contains("tốt") || text.Contains("sạch") || text.Contains("hài lòng"))
-                return "Tot";
-            if (text.Contains("hư") || text.Contains("thối") || text.Contains("dở") || text.Contains("chậm") || text.Contains("tệ") || text.Contains("kém"))
-                return "Xau";
+            if (string.IsNullOrWhiteSpace(text)) return "TrungTinh";
+            
+            text = text.ToLower().Trim();
+
+            // Danh sách từ khóa Tiêu cực (Chê bai)
+            string[] tuKhoaXau = { 
+                "dở", "tệ", "thối", "hư", "héo", "chậm", "kém", "đắt", "bẩn", 
+                "dở tệ", "quá tệ", "không ngon", "không tươi", "thất vọng", "tệ hại" 
+            };
+
+            // Danh sách từ khóa Tích cực (Khen ngợi)
+            string[] tuKhoaTot = { 
+                "tươi", "ngon", "tốt", "sạch", "hài lòng", "giao nhanh", 
+                "tuyệt vời", "chất lượng", "rất ngon", "đẹp", "xuất sắc" 
+            };
+
+            foreach (var tu in tuKhoaXau)
+            {
+                if (text.Contains(tu)) return "Xau";
+            }
+
+            foreach (var tu in tuKhoaTot)
+            {
+                if (text.Contains(tu)) return "Tot";
+            }
+
             return "TrungTinh";
         }
     }

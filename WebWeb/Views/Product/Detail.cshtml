@@ -237,7 +237,8 @@
                             @foreach (var review in Model.DanhGiaSanPhams.OrderByDescending(r => r.NgayDanhGia))
                             {
                                 // Lấy nhãn cảm xúc do AI phân tích từ Dictionary
-                                string camXuc = camXucDict.ContainsKey(review.DanhGiaId) ? camXucDict[review.DanhGiaId] : "TrungTinh";
+                                string rawCamXuc = camXucDict.ContainsKey(review.DanhGiaId) ? camXucDict[review.DanhGiaId] : "TrungTinh";
+                                string camXucClean = (rawCamXuc ?? "").Trim().ToLower();
                                 <div class="col-12">
                                     <div class="review-item p-3 border rounded-4 bg-white shadow-sm">
                                         <div class="d-flex align-items-center gap-2">
@@ -246,13 +247,13 @@
                                                 <span class="text-success"><i class="bi bi-patch-check-fill"></i> Khách hàng thân thiết</span>
                                             </strong>
                                             <!-- BADGE HIỂN THỊ PHÂN TÍCH CẢM XÚC CỦA AI -->
-                                            @if (camXuc == "Tot")
+                                            @if (camXucClean.Contains("tot") || camXucClean.Contains("tich cuc") || camXucClean.Contains("positive"))
                                             {
                                                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
                                                     <i class="bi bi-emoji-smile-fill me-1"></i> Tích cực
                                                 </span>
                                             }
-                                            else if (camXuc == "Xau")
+                                            else if (camXucClean.Contains("xau") || camXucClean.Contains("tieu cuc") || camXucClean.Contains("dở") || camXucClean.Contains("te") || camXucClean.Contains("negative"))
                                             {
                                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small">
                                                     <i class="bi bi-emoji-frown-fill me-1"></i> Tiêu cực
