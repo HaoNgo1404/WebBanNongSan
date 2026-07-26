@@ -26,9 +26,25 @@ public class ProductController : Controller
             .Include(n => n.NhaVuon)
             .Include(n => n.DanhGiaSanPhams)
             .Include(n => n.LoHangs)
+            .Include(n => n.DanhMuc)
             .FirstOrDefaultAsync(n => n.NongSanId == id);
 
         if (product == null) return NotFound();
+
+        // 🟢 Tối ưu SEO On-Page cho sản phẩm
+        ViewData["Title"] = $"{product.TenNongSan} - Green Fresh";
+        ViewData["MetaDescription"] = $"{product.TenNongSan} tươi sạch. {product.MoTa}. Giá ưu đãi chỉ {product.GiaBanNiemYet:N0}đ.";
+        ViewData["MetaKeywords"] = $"{product.TenNongSan}, {product.DanhMuc?.TenDanhMuc}, nông sản sạch, Green Fresh";
+
+        // 🟢 Tối ưu Open Graph khi Share Facebook
+        ViewData["OgType"] = "product";
+        ViewData["OgTitle"] = product.TenNongSan;
+        ViewData["OgDescription"] = !string.IsNullOrEmpty(product.MoTa) && product.MoTa.Length > 150 
+            ? product.MoTa.Substring(0, 150) + "..." 
+            : product.MoTa;
+            
+        // Đường dẫn ảnh tuyệt đối (Absolute URL)
+        ViewData["OgImage"] = $"{Request.Scheme}://{Request.Host}/images/products/{product.HinhAnh}";
 
         decimal giaBanThucTe = _khuyenMaiService.TinhGiaBanThucTe(product.NongSanId, product.GiaBanNiemYet);
             ViewBag.GiaBanThucTe = giaBanThucTe;
@@ -75,6 +91,15 @@ public class ProductController : Controller
         {
             return NotFound();
         }
+
+        // 🟢 TỐI ƯU SEO CHO TRANG DANH MỤC
+        ViewData["Title"] = $"{danhMuc.TenDanhMuc} Tươi Sạch - Green Fresh";
+        ViewData["MetaDescription"] = $"Danh sách {danhMuc.TenDanhMuc} tươi ngon, an toàn vệ sinh thực phẩm, cam kết chất lượng OCOP từ Green Fresh.";
+        ViewData["MetaKeywords"] = $"{danhMuc.TenDanhMuc}, mua {danhMuc.TenDanhMuc}, nông sản tươi, Green Fresh";
+        
+        ViewData["OgType"] = "website";
+        ViewData["OgTitle"] = $"{danhMuc.TenDanhMuc} Tươi Sạch";
+        ViewData["OgDescription"] = $"Mua các loại {danhMuc.TenDanhMuc} tươi sạch giá tốt nhất tại Green Fresh.";
 
         // Lấy danh sách nông sản thuộc danh mục này
         var dsNongSan = await _context.NongSans

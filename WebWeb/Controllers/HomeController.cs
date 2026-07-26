@@ -18,6 +18,17 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
+        // 🟢 TỐI ƯU SEO TRANG CHỦ
+        ViewData["Title"] = "Green Fresh - Nông Sản Sạch & Thực Phẩm Tươi Ngon";
+        ViewData["MetaDescription"] = "Green Fresh chuyên cung cấp rau củ quả tươi sạch, đạt chuẩn OCOP, nguồn gốc rõ ràng, giao hàng tận nơi nhanh chóng.";
+        ViewData["MetaKeywords"] = "green fresh, nông sản sạch, rau củ tươi, trái cây OCOP, thực phẩm sạch";
+        
+        // Open Graph cho Facebook
+        ViewData["OgType"] = "website";
+        ViewData["OgTitle"] = "Green Fresh - Nông Sản Sạch Cho Gia Đình";
+        ViewData["OgDescription"] = "Cung cấp nông sản sạch, đạt chuẩn an toàn thực phẩm, giao nhanh trong ngày.";
+        ViewData["OgImage"] = $"{Request.Scheme}://{Request.Host}/images/banner-home.jpg"; // Đảm bảo bạn có file ảnh này trong wwwroot/images/
+
         var products = await _context.NongSans
             .Include(n => n.LoHangs)
             .Include(n => n.DanhGiaSanPhams)

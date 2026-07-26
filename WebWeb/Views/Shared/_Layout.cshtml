@@ -20,7 +20,29 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - GreenFresh</title>
+
+    <!-- 1. Standard SEO Meta Tags -->
+    <title>@(ViewData["Title"] ?? "Green Fresh - Thực Phẩm Tươi Tốt Cho Gia Đình")</title>
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "Chuyên cung cấp nông sản, rau củ quả tươi sạch, đạt chuẩn OCOP, giao hàng tận nơi.")" />
+    <meta name="keywords" content="@(ViewData["MetaKeywords"] ?? "nông sản sạch, rau củ tươi, hoa quả ngon, nông sản việt")" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="@(ViewData["CanonicalUrl"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")" />
+
+    <!-- 2. Open Graph / Facebook Share Tags -->
+    <meta property="og:type" content="@(ViewData["OgType"] ?? "website")" />
+    <meta property="og:title" content="@(ViewData["OgTitle"] ?? ViewData["Title"] ?? "Nông Sản Sạch Tươi Ngon")" />
+    <meta property="og:description" content="@(ViewData["OgDescription"] ?? ViewData["MetaDescription"] ?? "Mua nông sản sạch chất lượng cao tại WebBanNongSan.")" />
+    <meta property="og:image" content="@(ViewData["OgImage"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}/images/default-share.jpg")" />
+    <meta property="og:url" content="@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")" />
+    <meta property="og:site_name" content="Green Fresh" />
+
+    <!-- 3. Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@(ViewData["OgTitle"] ?? ViewData["Title"])" />
+    <meta name="twitter:description" content="@(ViewData["OgDescription"] ?? ViewData["MetaDescription"])" />
+    <meta name="twitter:image" content="@ViewData["OgImage"]" />
+
+    @* <title>@ViewData["Title"] - GreenFresh</title> *@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
