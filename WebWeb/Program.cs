@@ -94,7 +94,7 @@ app.MapGet("/sitemap", async (HttpContext context, ECommerceDBContext db) =>
     var categories = await db.DanhMucs.Select(c => c.DanhMucId).ToListAsync();
 
     var sb = new StringBuilder();
-    sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    sb.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
     sb.AppendLine("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
 
     // 1. Trang cố định
