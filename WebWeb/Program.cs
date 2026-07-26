@@ -16,6 +16,9 @@ builder.Services.AddSession(options => {
     options.Cookie.IsEssential = true;
 });
 
+// .NET mặc định đã bao gồm AddEnvironmentVariables(), nhưng gọi rõ ràng giúp yên tâm hơn:
+builder.Configuration.AddEnvironmentVariables();
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
