@@ -16,7 +16,7 @@ public class SitemapController : Controller
     }
 
     [HttpGet]
-    [Route("sitemap")] // Cấu hình đường dẫn cố định domain.com/sitemap.xml
+    [Route("sitemap.xml")] // Cấu hình đường dẫn cố định domain.com/sitemap.xml
     public async Task<IActionResult> Index()
     {
         string baseUrl = $"{Request.Scheme}://{Request.Host}";
