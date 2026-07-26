@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using WebWeb.Models;
 using WebWeb.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,5 +84,60 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// 🟢 ROUTE SITEMAP CHUẨN ĐỊNH DẠNG XML CHO GOOGLE SEARCH CONSOLE
+app.MapGet("/sitemap", async (HttpContext context, ECommerceDBContext db) =>
+{
+    string baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
+
+    var products = await db.NongSans.Select(p => p.NongSanId).ToListAsync();
+    var categories = await db.DanhMucs.Select(c => c.DanhMucId).ToListAsync();
+
+    var sb = new StringBuilder();
+    sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    sb.AppendLine("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+
+    // 1. Trang cố định
+    sb.AppendLine($"  <url>");
+    sb.AppendLine($"    <loc>{baseUrl}/</loc>");
+    sb.AppendLine($"    <lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod>");
+    sb.AppendLine($"    <changefreq>daily</changefreq>");
+    sb.AppendLine($"    <priority>1.0</priority>");
+    sb.AppendLine($"  </url>");
+
+    sb.AppendLine($"  <url>");
+    sb.AppendLine($"    <loc>{baseUrl}/About</loc>");
+    sb.AppendLine($"    <lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod>");
+    sb.AppendLine($"    <changefreq>monthly</changefreq>");
+    sb.AppendLine($"    <priority>0.5</priority>");
+    sb.AppendLine($"  </url>");
+
+    // 2. Trang Danh mục
+    foreach (var catId in categories)
+    {
+        sb.AppendLine($"  <url>");
+        sb.AppendLine($"    <loc>{baseUrl}/Product/DanhMuc/{catId}</loc>");
+        sb.AppendLine($"    <lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod>");
+        sb.AppendLine($"    <changefreq>weekly</changefreq>");
+        sb.AppendLine($"    <priority>0.8</priority>");
+        sb.AppendLine($"  </url>");
+    }
+
+    // 3. Trang Sản phẩm
+    foreach (var prodId in products)
+    {
+        sb.AppendLine($"  <url>");
+        sb.AppendLine($"    <loc>{baseUrl}/Product/Detail/{prodId}</loc>");
+        sb.AppendLine($"    <lastmod>{DateTime.UtcNow:yyyy-MM-dd}</lastmod>");
+        sb.AppendLine($"    <changefreq>daily</changefreq>");
+        sb.AppendLine($"    <priority>0.9</priority>");
+        sb.AppendLine($"  </url>");
+    }
+
+    sb.AppendLine("</urlset>");
+
+    // Trả về chuẩn Content-Type là application/xml để Google nhận diện ngay lập tức
+    return Results.Text(sb.ToString(), "application/xml", Encoding.UTF8);
+});
 
 app.Run();
