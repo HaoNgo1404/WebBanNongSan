@@ -90,16 +90,24 @@ public class ProductController : Controller
         return View(product);
     }
 
-    // URL chạy thực tế sẽ dạng: /Product/DanhMuc?id=1 hoặc /Product/DanhMuc/1 tùy cấu hình route
-    public async Task<IActionResult> DanhMuc(int id)
+    // 🟢 ROUTE CHUẨN SEO CHO DANH MỤC: /danh-muc/rau-cu-c1
+    [HttpGet("danh-muc/{slug}-c{id:int}")]
+    public async Task<IActionResult> DanhMuc(string slug, int id)
     {
-        // Tìm danh mục dựa vào DanhMucId truyền từ Navbar qua
+        // Tìm danh mục dựa vào DanhMucId
         var danhMuc = await _context.DanhMucs
             .FirstOrDefaultAsync(dm => dm.DanhMucId == id);
 
         if (danhMuc == null)
         {
             return NotFound();
+        }
+
+        // 🟢 Kiểm tra và Redirect 301 nếu Slug trên URL không khớp hoặc dùng URL cũ
+        string expectedSlug = danhMuc.TenDanhMuc.ToSlug();
+        if (string.IsNullOrEmpty(slug) || slug != expectedSlug)
+        {
+            return RedirectToRoutePermanent(new { slug = expectedSlug, id = danhMuc.DanhMucId });
         }
 
         // 🟢 TỐI ƯU SEO CHO TRANG DANH MỤC
@@ -120,16 +128,14 @@ public class ProductController : Controller
                             (ns.LoHangs.Sum(l => l.SoLuongTon) > 0) || ns.DanhGiaSanPhams.Any(d => d.SoSao >= 4))
             .ToListAsync();
 
-        // 2. KHỞI TẠO DICTIONARY ĐỂ CHỨA GIÁ ĐÃ GIẢM
+        // KHỞI TẠO DICTIONARY ĐỂ CHỨA GIÁ ĐÃ GIẢM
         var giaThucTeDict = new Dictionary<int, decimal>();
         foreach (var product in dsNongSan)
         {
-            // Gọi qua Service dùng chung
             giaThucTeDict[product.NongSanId] = _khuyenMaiService.TinhGiaBanThucTe(product.NongSanId, product.GiaBanNiemYet);
         }
         ViewBag.GiaThucTeDict = giaThucTeDict;
         ViewBag.TenDanhMuc = danhMuc.TenDanhMuc;
-        ViewData["Title"] = danhMuc.TenDanhMuc;
 
         return View(dsNongSan);
     }
