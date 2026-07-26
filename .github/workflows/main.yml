@@ -40,8 +40,8 @@ jobs:
     - name: FTP Deploy to site1
       uses: SamKirsch/ftp-deploy@v2
       with:
-        server: ${{ win8036.site4now.net }}       # VD: ftp.site1.somee.com hoặc IP
-        username: ${{ greenfresh-001 }}     # User FTP
-        password: ${{ Quanghao"1404 }}     # Pass FTP
+        server: ${{ secrets.FTP_SERVER }}       # VD: ftp.site1.somee.com hoặc IP
+        username: ${{ secrets.FTP_USERNAME }}     # User FTP
+        password: ${{ secrets.FTP_PASSWORD }}     # Pass FTP
         local_dir: './publish'
         server_dir: '/'                         # Thư mục root trên hosting
