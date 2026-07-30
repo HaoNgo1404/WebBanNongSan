@@ -33,7 +33,7 @@ jobs:
       with:
         files: 'publish/appsettings*.json'
       env:
-        OpenAI.ApiKey: ${{ secrets.GEMINI_API_KEY }}
+        OpenAI.ApiKey:  "TEST_KEY_12345" #${{ secrets.GEMINI_API_KEY }}
 
     # 6. Push thư mục ./publish đã có ApiKey lên FTP SmarterASP.NET
     - name: FTP Deploy to site1
