@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "0qup+HJyxd/L7jaQ6QzQuuoFTilBAuojlBTLtz4MBUU=",
+  "Hash": "CyyZ0YwcKy6fhbDIS65fIb/wQDsVv0jfQz/jX4TYSFA=",
   "Source": "WebWeb",
   "BasePath": "_content/WebWeb",
   "Mode": "Default",
@@ -236,6 +236,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\chuoi-gia.jpg"
+    },
+    {
+      "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\images\\default-share.jpg",
+      "SourceId": "WebWeb",
+      "SourceType": "Discovered",
+      "ContentRoot": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\",
+      "BasePath": "_content/WebWeb",
+      "RelativePath": "images/default-share.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\default-share.jpg"
     },
     {
       "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\images\\dua-leo.jpg",
@@ -1460,6 +1477,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\LICENSE.txt"
+    },
+    {
+      "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\robots.txt",
+      "SourceId": "WebWeb",
+      "SourceType": "Discovered",
+      "ContentRoot": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\",
+      "BasePath": "_content/WebWeb",
+      "RelativePath": "robots.txt",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\robots.txt"
     }
   ]
 }

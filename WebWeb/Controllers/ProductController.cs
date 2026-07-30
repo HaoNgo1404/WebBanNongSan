@@ -140,7 +140,7 @@ public class ProductController : Controller
             .Include(ns => ns.DanhGiaSanPhams)
             .Include(ns => ns.NhaVuon)
             .Where(ns => ns.DanhMucId == id &&
-                            (ns.LoHangs.Sum(l => l.SoLuongTon) > 0) || ns.DanhGiaSanPhams.Any(d => d.SoSao >= 4))
+                            (ns.LoHangs.Sum(l => l.SoLuongTon) > 0 || ns.DanhGiaSanPhams.Any(d => d.SoSao >= 4)))
             .ToListAsync();
 
         // KHỞI TẠO DICTIONARY ĐỂ CHỨA GIÁ ĐÃ GIẢM

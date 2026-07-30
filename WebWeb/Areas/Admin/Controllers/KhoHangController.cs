@@ -32,24 +32,38 @@ namespace WebWeb.Areas.Admin.Controllers
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(n => n.PhieuNhapId.ToString().Contains(searchTerm) ||
-                                         n.NongSan.TenNongSan.Contains(searchTerm));
+                                        n.NongSan.TenNongSan.Contains(searchTerm));
                 ViewBag.SearchTerm = searchTerm;
             }
+
             // Lấy tất cả lô hàng để tiến hành gộp nhóm theo Nông sản ở bộ nhớ (In-Memory)
             var allLoHangs = await _context.LoHangs
                 .Include(l => l.NongSan)
-                .AsNoTracking()
                 .ToListAsync();
 
-            // Gộp nhóm theo NongSanId để tính tổng số lượng tồn kho hiện tại
+            DateTime today = DateTime.Now.Date;
+
+            // Gộp nhóm theo NongSanId để tính tổng số lượng tồn kho hiện tại và kiểm tra HSD
             var listTonKhoGop = allLoHangs
                 .GroupBy(l => l.NongSanId)
-                .Select(g => new NongSanTonKhoViewModel
+                .Select(g => 
                 {
-                    NongSanId = g.Key,
-                    TenNongSan = g.First().NongSan?.TenNongSan ?? "Không rõ",
-                    TongSoLuongTon = g.Sum(l => l.SoLuongTon),
-                    SoLuongLoHangActive = g.Count(l => l.SoLuongTon > 0)
+                    var tongTon = g.Sum(l => l.SoLuongTon);
+                    
+                    // Lấy các lô hàng đang còn tồn kho (> 0)
+                    var activeLoHangs = g.Where(l => l.SoLuongTon > 0).ToList();
+                    
+                    // Kiểm tra: Nếu sản phẩm có tồn kho > 0 nhưng TẤT CẢ lô hàng đều có HanSuDung < today => Hết hạn
+                    bool isHetHan = tongTon > 0 && activeLoHangs.Count > 0 && activeLoHangs.All(l => l.HanSuDung.Date < today);
+
+                    return new NongSanTonKhoViewModel
+                    {
+                        NongSanId = g.Key,
+                        TenNongSan = g.First().NongSan?.TenNongSan ?? "Không rõ",
+                        TongSoLuongTon = tongTon,
+                        SoLuongLoHangActive = activeLoHangs.Count,
+                        IsHetHan = isHetHan // 🟢 Đã bổ sung
+                    };
                 })
                 .OrderBy(x => x.NongSanId)
                 .ToList();
@@ -66,13 +80,52 @@ namespace WebWeb.Areas.Admin.Controllers
             var nongSan = await _context.NongSans.FindAsync(id);
             if (nongSan == null) return NotFound();
 
-            // Lấy danh sách toàn bộ các lô hàng thuộc nông sản này, kể cả lô đã hết hàng để đối soát
+            // Không xài AsNoTracking ở đây để có thể Cập nhật DB nếu trạng thái bị cũ
             var danhSachLoHang = await _context.LoHangs
                 .Include(l => l.PhieuNhapKho)
                     .ThenInclude(p => p.NhaVuon)
                 .Where(l => l.NongSanId == id)
                 .OrderByDescending(l => l.NgayNhapKho)
                 .ToListAsync();
+
+            // 🟢 TỰ ĐỘNG CHUẨN HÓA TRẠNG THÁI THEO THỜI GIAN THỰC (REAL-TIME)
+            bool hasChanges = false;
+            DateTime today = DateTime.Now.Date;
+
+            foreach (var item in danhSachLoHang)
+            {
+                string trangThaiDung;
+
+                if (item.SoLuongTon == 0)
+                {
+                    trangThaiDung = ProductStatuses.HetHang;
+                }
+                else if (item.HanSuDung.Date < today) // Ngày HSD nhỏ hơn hôm nay => HẾT HẠN
+                {
+                    trangThaiDung = ProductStatuses.HetHan;
+                }
+                else if ((item.HanSuDung.Date - today).TotalDays <= 3) // Từ 0 đến 3 ngày => SẮP HẾT HẠN
+                {
+                    trangThaiDung = ProductStatuses.SapHetHan;
+                }
+                else
+                {
+                    trangThaiDung = ProductStatuses.ConHan;
+                }
+
+                // Nếu DB đang lưu sai/cũ thì cập nhật lại DB luôn
+                if (item.TrangThaiHsd != trangThaiDung)
+                {
+                    item.TrangThaiHsd = trangThaiDung;
+                    _context.Entry(item).State = EntityState.Modified;
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges)
+            {
+                await _context.SaveChangesAsync();
+            }
 
             ViewBag.TenNongSan = nongSan.TenNongSan;
             ViewBag.NongSanId = id;
@@ -100,7 +153,6 @@ namespace WebWeb.Areas.Admin.Controllers
                 .Include(l => l.NongSan)
                 .Include(l => l.PhieuNhapKho)
                     .ThenInclude(p => p.NhaVuon)
-                .AsNoTracking()
                 .OrderByDescending(l => l.LoHangId)
                 .ToListAsync();
 
@@ -264,7 +316,24 @@ namespace WebWeb.Areas.Admin.Controllers
                     entity.SoLuongTon = model.SoLuongTon;
                     entity.DonGiaNhap = model.DonGiaNhap;
                     entity.HanSuDung = model.HanSuDung;
-                    entity.TrangThaiHsd = model.SoLuongTon == 0 ? ProductStatuses.HetHang : (model.HanSuDung < DateTime.Now ? ProductStatuses.HetHan  : ProductStatuses.ConHan );
+                    DateTime today = DateTime.Now.Date;
+
+                    if (model.SoLuongTon == 0)
+                    {
+                        entity.TrangThaiHsd = ProductStatuses.HetHang;
+                    }
+                    else if (model.HanSuDung.Date < today)
+                    {
+                        entity.TrangThaiHsd = ProductStatuses.HetHan;
+                    }
+                    else if ((model.HanSuDung.Date - today).TotalDays <= 3)
+                    {
+                        entity.TrangThaiHsd = ProductStatuses.SapHetHan;
+                    }
+                    else
+                    {
+                        entity.TrangThaiHsd = ProductStatuses.ConHan;
+                    }
 
                     _context.Update(entity);
                     await _context.SaveChangesAsync();

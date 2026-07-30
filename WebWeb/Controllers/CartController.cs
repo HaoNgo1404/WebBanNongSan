@@ -68,12 +68,35 @@ namespace WebWeb.Controllers
         // THÊM SẢN PHẨM VÀO GIỎ HÀNG
         public async Task<IActionResult> Add(int id, int quantity = 1)
         {
-            var product = await _context.NongSans.FirstOrDefaultAsync(n => n.NongSanId == id);
+            // 1. Include LoHangs để kiểm tra HSD và tồn kho lô hàng
+            var product = await _context.NongSans
+                .Include(n => n.LoHangs)
+                .FirstOrDefaultAsync(n => n.NongSanId == id);
+
             if (product == null) return NotFound();
+
+            // 2. Kiểm tra điều kiện Hết hàng / Hết hạn sử dụng
+            bool isConHan = product.LoHangs == null || !product.LoHangs.Any() || 
+                            product.LoHangs.Any(l => l.SoLuongTon > 0 && l.HanSuDung >= DateTime.Now);
+
+            if (product.SoLuongTon <= 0 || !isConHan)
+            {
+                TempData["ErrorMessage"] = "Sản phẩm này hiện đã hết hàng hoặc hết hạn sử dụng!";
+                return RedirectToAction(nameof(Index)); // Hoặc Redirect về trang trước đó
+            }
 
             var cart = GetCartItems();
             var existingItem = cart.FirstOrDefault(c => c.NongSanId == id);
+            int currentInCart = existingItem != null ? existingItem.SoLuong : 0;
 
+            // 3. Kiểm tra số lượng đặt không vượt quá số lượng tồn kho
+            if (currentInCart + quantity > product.SoLuongTon)
+            {
+                TempData["ErrorMessage"] = $"Rất tiếc, chỉ còn lại {product.SoLuongTon} sản phẩm khả dụng!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // 4. Tiến hành thêm vào giỏ hàng
             if (existingItem != null)
             {
                 existingItem.SoLuong += quantity;
@@ -92,6 +115,7 @@ namespace WebWeb.Controllers
             }
 
             SaveCartItems(cart);
+            TempData["SuccessMessage"] = "Đã thêm sản phẩm vào giỏ hàng!";
             return RedirectToAction(nameof(Index));
         }
 

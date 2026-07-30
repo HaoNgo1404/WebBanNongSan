@@ -9,11 +9,15 @@
 <!-- BAO BỌC TOÀN BỘ PRODUCT CARD BẰNG THẺ A DẪN TỚI TRANG CHI TIẾT -->
 <a asp-controller="Product" asp-route-slug="@productSlug" asp-action="Detail" asp-route-id="@Model.NongSanId" class="text-decoration-none text-dark d-block h-100">
     <div class="product-card h-100">
+        @{
+            bool isConHang = Model.SoLuongTon > 0 && 
+                (Model.LoHangs == null || !Model.LoHangs.Any() || Model.LoHangs.Any(l => l.SoLuongTon > 0 && l.HanSuDung >= DateTime.Now));
+        }
         <div class="product-card-image">
             <img src="@Url.Content("~/images/" + Model.HinhAnh)" style="width:100%; height:200px; object-fit:cover;" class="rounded-top"
                  alt="@Model.TenNongSan" />
             <!-- HIỂN THỊ BADGE HẾT HÀNG HOẶC HOT -->
-            @if (Model.SoLuongTon <= 0)
+            @if (!isConHang)
             {
                 <span class="badge bg-danger position-absolute top-0 start-0 m-2 px-3 py-2 rounded-pill fs-6 shadow-sm">
                     <i class="bi bi-x-circle me-1"></i> Hết hàng
@@ -56,7 +60,7 @@
                 </div>
 
                 <!-- NÚT GIỎ HÀNG: Đã bỏ thẻ <form> con, dùng onclick chặn nhảy sang trang Detail và gọi hàm quickAddToCart, Khóa nếu hết hàng -->
-                @if (Model.SoLuongTon > 0)
+                @if (isConHang)
                 {
                     <button type="button" 
                             class="btn btn-outline-success btn-sm rounded-3 btn-add-to-cart p-0 d-flex align-items-center justify-content-center" 

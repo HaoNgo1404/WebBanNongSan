@@ -75,8 +75,12 @@
                     <div><span>Xuất xứ:</span> @(Model.NhaVuon != null ? Model.NhaVuon.DiaChi ?? "Đang cập nhật" : "Đang cập nhật")</div>
                     <div><span>Nhà vườn:</span> @(Model.NhaVuon != null ? Model.NhaVuon.TenNhaVuon : "Đang cập nhật")</div>
                     <div>
-                        <span>Tình trạng:</span> 
-                        @if (Model.SoLuongTon > 0)
+                        <span>Tình trạng:</span>
+                        @{
+                            bool conHangVaConHanDetail = Model.SoLuongTon > 0 && 
+                                (Model.LoHangs == null || !Model.LoHangs.Any() || Model.LoHangs.Any(l => l.SoLuongTon > 0 && l.HanSuDung >= DateTime.Now));
+                        }
+                        @if (conHangVaConHanDetail)
                         {
                             <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Còn hàng</span>
                         }
@@ -89,7 +93,7 @@
 
                 <div class="d-flex align-items-center g-3 mb-4 mt-2 gap-3">
 
-                    @if (Model.SoLuongTon > 0)
+                    @if (conHangVaConHanDetail)
                     {
                         <!-- Form Thêm vào giỏ hàng (bên trái & giữa) -->
                         <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex align-items-center gap-3 flex-grow-1 mb-0">

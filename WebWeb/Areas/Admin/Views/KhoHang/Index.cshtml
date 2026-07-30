@@ -56,15 +56,24 @@
                                 <td>
                                     @if (item.TongSoLuongTon == 0) { 
                                         <span class="badge bg-danger">Hết hàng</span> 
+                                    } else if (item.IsHetHan) {
+                                        <span class="badge bg-warning text-dark">Lô hàng quá hạn</span>
                                     } else { 
                                         <span class="badge bg-info text-dark fw-bold fs-6">@item.TongSoLuongTon</span> 
                                     }
                                 </td>
                                 <td>
-                                    @if (item.TongSoLuongTon > 0) {
-                                        <span class="text-success fw-medium"><i class="bi bi-box-seam-fill"></i> Sẵn sàng bán</span>
-                                    } else {
+                                    @if (item.TongSoLuongTon == 0) 
+                                    {
                                         <span class="text-muted"><i class="bi bi-dash-circle"></i> Hết hàng</span>
+                                    } 
+                                    else if (item.IsHetHan) 
+                                    {
+                                        <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Không sẵn sàng</span>
+                                    } 
+                                    else 
+                                    {
+                                        <span class="text-success fw-medium"><i class="bi bi-box-seam-fill"></i> Sẵn sàng bán</span>
                                     }
                                 </td>
                                 <td class="text-center">

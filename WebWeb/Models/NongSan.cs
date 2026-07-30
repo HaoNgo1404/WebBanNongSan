@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebWeb.Models
 {
@@ -30,6 +31,25 @@ namespace WebWeb.Models
         public int TongSoDanhGia => DanhGiaSanPhams?.Count ?? 0;
         public int DanhMucId { get; set; }
         public int NhaVuonId { get; set; }
+        // File: Models/NongSan.cs
+        [NotMapped]
+        public bool IsConHang
+        {
+            get
+            {
+                // 1. Kiểm tra tổng số lượng tồn
+                if (SoLuongTon <= 0) return false;
+
+                // 2. Nếu có danh sách lô hàng, kiểm tra xem còn lô nào chưa hết hạn và còn tồn không
+                if (LoHangs != null && LoHangs.Any())
+                {
+                    return LoHangs.Any(l => l.SoLuongTon > 0 && l.HanSuDung >= DateTime.Now);
+                }
+
+                // Trường hợp không quản lý theo lô hàng chi tiết
+                return true;
+            }
+        }
 
         public virtual DanhMuc? DanhMuc { get; set; }
         public virtual NhaVuon? NhaVuon { get; set; }

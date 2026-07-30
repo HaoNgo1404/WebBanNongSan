@@ -19,5 +19,6 @@ namespace WebWeb.Models
         public const string ConHan = "Còn hạn";
         public const string HetHang = "Hết hàng";
         public const string HetHan = "Hết hạn";
+        public const string SapHetHan = "Sắp hết hạn";
     }
 }

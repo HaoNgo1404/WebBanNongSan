@@ -7,5 +7,6 @@ namespace WebWeb.ViewModels
         public string TenNongSan { get; set; } = null!;
         public decimal TongSoLuongTon { get; set; }
         public int SoLuongLoHangActive { get; set; } // Số lượng lô hiện vẫn đang còn hàng
+        public bool IsHetHan { get; set; }
     }
 }
