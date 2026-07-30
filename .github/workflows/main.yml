@@ -27,7 +27,7 @@ jobs:
     - name: dotnet publish
       run: dotnet publish --configuration Release --output ./publish
 
-    # 5. 🟢 DÙNG NODE.JS ĐỂ PHÂN TÍCH VÀ GHI API KEY VÀO APPSETTINGS.JSON
+    # 5. Đọc JSON và gán ApiKey bằng PowerShell (không sợ lệch khoảng trắng/định dạng)
     - name: Inject API Key into appsettings.json
       shell: pwsh
       run: |
@@ -36,10 +36,10 @@ jobs:
         $json.OpenAI.ApiKey = "${{ secrets.GEMINI_API_KEY }}"
         $json | ConvertTo-Json -Depth 10 | Set-Content $path
         
-        Write-Host "--- NỘI DUNG FILE APPSETTINGS.JSON SAU KHI CHÈN ---"
+        Write-Host "--- LOG KIỂM TRA NỘI DUNG FILE TRÊN RUNNER ---"
         Get-Content $path
 
-    # 6. Push thư mục ./publish đã có ApiKey lên FTP SmarterASP.NET
+    # 6. Deploy lên FTP SmarterASP.NET
     - name: FTP Deploy to site1
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -49,6 +49,3 @@ jobs:
         local-dir: ./publish/
         server-dir: /
         force-upload: true
-        exclude: |              # Xóa bỏ danh sách lọc mặc định để không bỏ sót appsettings.json
-          **/.git*
-          **/.git*/**
