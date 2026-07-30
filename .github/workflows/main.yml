@@ -47,6 +47,8 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./publish/
-        server-dir: /site1/     # 🟢 ĐỔI THÀNH /site1/ ĐỂ ĐẨY ĐÚNG THƯ MỤC WEB
+        server-dir: /site1/
+        passive: true           # 🟢 Ép sử dụng Passive Mode để tránh nghẽn socket
+        timeout: 600000         # 🟢 Tăng thời gian chờ timeout lên 10 phút (600,000ms)
         state-name: .ftp-deploy-sync-state.json
         force-upload: true
