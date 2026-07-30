@@ -45,3 +45,6 @@ jobs:
         local-dir: ./publish/
         server-dir: /
         force-upload: true
+        exclude: |              # Xóa bỏ danh sách lọc mặc định để không bỏ sót appsettings.json
+          **/.git*
+          **/.git*/**
