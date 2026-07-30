@@ -28,12 +28,11 @@ jobs:
       run: dotnet publish --configuration Release --output ./publish
 
     # 5. 🟢 CHÈN KEY TRỰC TIẾP VÀO FILE APPSETTINGS TRONG THƯ MỤC ./PUBLISH
-    - name: Appsettings Variable Substitution
-      uses: microsoft/variable-substitution@v1
-      with:
-        files: 'publish/appsettings*.json'
-      env:
-        OpenAI.ApiKey:  "TEST_KEY_12345" #${{ secrets.GEMINI_API_KEY }}
+    - name: Inject API Key into appsettings.json
+      run: |
+        sed -i 's/"ApiKey": ""/"ApiKey": "${{ secrets.GEMINI_API_KEY }}"/g' ./publish/appsettings.json
+        echo "Check contents of appsettings.json after injection:"
+        cat ./publish/appsettings.json
 
     # 6. Push thư mục ./publish đã có ApiKey lên FTP SmarterASP.NET
     - name: FTP Deploy to site1
