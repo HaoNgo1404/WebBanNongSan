@@ -2,7 +2,7 @@ name: Build and Auto Deploy Green Fresh
 
 on:
   push:
-    branches: [ "main" ] # Hoặc đổi tên nhánh của Hào nếu dùng nhánh khác (ví dụ: master)
+    branches: [ "main" ] # Hoặc đổi thành "master" nếu Hào dùng nhánh master
 
 jobs:
   build-and-deploy:
@@ -13,7 +13,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # 2. Cài đặt .NET SDK 6.0 (hoặc phiên bản Hào đang dùng)
+    # 2. Cài đặt .NET SDK
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -23,19 +23,19 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    # 4. 🟢 CHÈN API KEY TỪ GITHUB SECRETS VÀO APPSETTINGS.JSON
-    - name: Appsettings Variable Substitution
-      uses: microsoft/variable-substitution@v1
-      with:
-        files: '**/appsettings.json'
-      env:
-        OpenAI.ApiKey: ${{ secrets.GEMINI_API_KEY }}
-
-    # 5. Build và đóng gói ứng dụng
+    # 4. 🟢 CHẠY PUBLISH TRƯỚC ĐỂ SINH RA THƯ MỤC LƯU TRỮ PRODUCTION
     - name: dotnet publish
       run: dotnet publish --configuration Release --output ./publish
 
-    # 6. Deploy lên Server qua FTP (Đã thay bằng Action chuẩn SamKirkland)
+    # 5. 🟢 CHÈN API KEY THẲNG VÀO FILE TRONG THƯ MỤC PUBLISH (Sửa triệt để lỗi không nhận key)
+    - name: Appsettings Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: 'publish/**/appsettings*.json' # Quét và chèn vào toàn bộ file appsettings nằm trong folder publish
+      env:
+        OpenAI.ApiKey: ${{ secrets.GEMINI_API_KEY }}
+
+    # 6. Deploy toàn bộ thư mục ./publish (đã được chèn Key thành công) lên SmarterASP via FTP
     - name: FTP Deploy to site1
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
