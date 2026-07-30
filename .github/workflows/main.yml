@@ -39,7 +39,7 @@ jobs:
         Write-Host "--- LOG KIỂM TRA NỘI DUNG FILE TRÊN RUNNER ---"
         Get-Content $path
 
-    # 6. Deploy lên FTP SmarterASP.NET
+    # 6. Push thư mục ./publish lên FTP SmarterASP.NET
     - name: FTP Deploy to site1
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -47,5 +47,6 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./publish/
-        server-dir: /
+        server-dir: /site1/     # 🟢 ĐỔI THÀNH /site1/ ĐỂ ĐẨY ĐÚNG THƯ MỤC WEB
+        state-name: .ftp-deploy-sync-state.json
         force-upload: true
