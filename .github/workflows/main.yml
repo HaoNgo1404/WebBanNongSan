@@ -2,14 +2,14 @@ name: Build and Auto Deploy Green Fresh
 
 on:
   push:
-    branches: [ "main" ] # Hoặc đổi thành "master" nếu Hào dùng nhánh master
+    branches: [ "main" ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Lấy source code từ GitHub về
+    # 1. Lấy source code
     - name: Checkout code
       uses: actions/checkout@v3
 
@@ -19,23 +19,23 @@ jobs:
       with:
         dotnet-version: '6.0.x'
 
-    # 3. Khôi phục các thư viện NuGet
+    # 3. Restore dependencies
     - name: Restore dependencies
       run: dotnet restore
 
-    # 4. 🟢 CHẠY PUBLISH TRƯỚC ĐỂ SINH RA THƯ MỤC LƯU TRỮ PRODUCTION
+    # 4. Publish project ra thư mục ./publish TRƯỚC
     - name: dotnet publish
       run: dotnet publish --configuration Release --output ./publish
 
-    # 5. 🟢 CHÈN API KEY THẲNG VÀO FILE TRONG THƯ MỤC PUBLISH (Sửa triệt để lỗi không nhận key)
+    # 5. 🟢 CHÈN KEY TRỰC TIẾP VÀO FILE APPSETTINGS TRONG THƯ MỤC ./PUBLISH
     - name: Appsettings Variable Substitution
       uses: microsoft/variable-substitution@v1
       with:
-        files: 'publish/**/appsettings*.json' # Quét và chèn vào toàn bộ file appsettings nằm trong folder publish
+        files: 'publish/appsettings*.json'
       env:
         OpenAI.ApiKey: ${{ secrets.GEMINI_API_KEY }}
 
-    # 6. Deploy toàn bộ thư mục ./publish (đã được chèn Key thành công) lên SmarterASP via FTP
+    # 6. Push thư mục ./publish đã có ApiKey lên FTP SmarterASP.NET
     - name: FTP Deploy to site1
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -44,3 +44,4 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./publish/
         server-dir: /
+        force-upload: true
