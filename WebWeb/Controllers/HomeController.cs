@@ -29,6 +29,15 @@ public class HomeController : Controller
         ViewData["OgDescription"] = "Cung cấp nông sản sạch, đạt chuẩn an toàn thực phẩm, giao nhanh trong ngày.";
         ViewData["OgImage"] = $"{Request.Scheme}://{Request.Host}/images/banner-home.jpg"; // Đảm bảo bạn có file ảnh này trong wwwroot/images/
 
+        var now = DateTime.Now;
+        var khuyenMais = await _context.KhuyenMais
+            .Where(k => k.NgayKetThuc >= now)
+            .OrderByDescending(k => k.KhuyenMaiId)
+            .Take(5)
+            .ToListAsync();
+
+        ViewBag.KhuyenMais = khuyenMais;
+
         var products = await _context.NongSans
             .Include(n => n.LoHangs)
             .Include(n => n.DanhGiaSanPhams)

@@ -6,46 +6,120 @@
     var seasonalProducts = Model.ToList(); // Lấy toàn bộ để nếu > 4 sản phẩm thì tự sinh slide trượt
 }
 
-<section class="hero-section">
-    <div class="row align-items-center g-4">
-        <div class="col-lg-7">
-            <div class="hero-copy">
-                <span class="hero-badge">Green Fresh • Nông sản sạch</span>
-                <h1>Đặt hàng nông sản tươi ngon trực tiếp từ nhà vườn.</h1>
-                <p>Khám phá rau củ, trái cây và thực phẩm sạch được chọn lọc kỹ lưỡng, giao tận nơi trong ngày.</p>
-                <div class="hero-actions">
-                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@(featuredProducts.FirstOrDefault()?.NongSanId ?? 1)" class="btn btn-success btn-lg">Mua ngay</a>
-                    <a href="#products" class="btn btn-outline-light btn-lg">Xem sản phẩm</a>
+<section class="hero-section position-relative">
+    <!-- CONTAINER CHỨA TẤT CẢ SLIDE BLOCK -->
+    <div id="heroBlockSlider" class="hero-block-slider">
+        
+        <!-- 🟢 BLOCK 0: MẶC ĐỊNH GREEN FRESH -->
+        <div class="hero-block-item active">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <div class="hero-copy">
+                        <span class="hero-badge">Green Fresh • Nông sản sạch</span>
+                        <h1>Đặt hàng nông sản tươi ngon trực tiếp từ nhà vườn.</h1>
+                        <p>Khám phá rau củ, trái cây và thực phẩm sạch được chọn lọc kỹ lưỡng, giao tận nơi trong ngày.</p>
+                        <div class="hero-actions">
+                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@(featuredProducts.FirstOrDefault()?.NongSanId ?? 1)" class="btn btn-success btn-lg">Mua ngay</a>
+                            <a href="#products" class="btn btn-outline-light btn-lg">Xem sản phẩm</a>
+                        </div>
+                        <div class="hero-stats">
+                            <div>
+                                <strong>100%</strong>
+                                <span>Sạch</span>
+                            </div>
+                            <div>
+                                <strong>24h</strong>
+                                <span>Giao nhanh</span>
+                            </div>
+                            <div>
+                                <strong>4.9/5</strong>
+                                <span>Đánh giá</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="hero-stats">
-                    <div>
-                        <strong>100%</strong>
-                        <span>Sạch</span>
-                    </div>
-                    <div>
-                        <strong>24h</strong>
-                        <span>Giao nhanh</span>
-                    </div>
-                    <div>
-                        <strong>4.9/5</strong>
-                        <span>Đánh giá</span>
+                <div class="col-lg-5">
+                    <div class="hero-card">
+                        <div class="hero-card-inner">
+                            <h3>Sản phẩm nổi bật</h3>
+                            <p>Đa dạng chủng loại với mức giá hợp lý, phù hợp cho gia đình và doanh nghiệp.</p>
+                            <ul>
+                                <li><i class="bi bi-check-circle"></i> Truy xuất nguồn gốc</li>
+                                <li><i class="bi bi-check-circle"></i> Đóng gói an toàn</li>
+                                <li><i class="bi bi-check-circle"></i> Theo mùa và cập nhật hàng ngày</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-5">
-            <div class="hero-card">
-                <div class="hero-card-inner">
-                    <h3>Sản phẩm nổi bật</h3>
-                    <p>Đa dạng chủng loại với mức giá hợp lý, phù hợp cho gia đình và doanh nghiệp.</p>
-                    <ul>
-                        <li><i class="bi bi-check-circle"></i> Truy xuất nguồn gốc</li>
-                        <li><i class="bi bi-check-circle"></i> Đóng gói an toàn</li>
-                        <li><i class="bi bi-check-circle"></i> Theo mùa và cập nhật hàng ngày</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+
+        <!-- 🟢 CÁC BLOCK KHUYẾN MÃI (OFFERS) TỪ DATABASE -->
+        @{
+            var khuyenMais = ViewBag.KhuyenMais as List<WebWeb.Models.KhuyenMai>;
+            if (khuyenMais != null && khuyenMais.Any())
+            {
+                foreach (var km in khuyenMais)
+                {
+                    string discountText = km.LoaiGiamGia == 1 ? $"Giảm {km.MucGiam:0}%" : $"Giảm {km.MucGiam:N0}đ";
+                    string voucherCode = string.IsNullOrEmpty(km.VoucherCode) ? "SPECIAL" : km.VoucherCode;
+                    
+                    <div class="hero-block-item">
+                        <div class="row align-items-center g-4">
+                            <div class="col-lg-7">
+                                <div class="hero-copy">
+                                    <span class="hero-badge offer-badge">
+                                        <i class="bi bi-tag-fill me-1"></i> Ưu Đãi HOT • @discountText
+                                    </span>
+                                    <h1>@km.TenChuongTrinh</h1>
+                                    <p>
+                                        Nhập mã <strong class="text-warning fs-5">@voucherCode</strong> khi thanh toán. 
+                                        Áp dụng cho đơn hàng từ @km.GiaTriDonToiThieu.ToString("N0")đ.
+                                    </p>
+                                    <div class="hero-actions">
+                                        <a href="/Home/Offers" class="btn btn-warning btn-lg text-dark fw-bold">Săn Mã Ngay</a>
+                                        <a href="#products" class="btn btn-outline-light btn-lg">Dùng Cho Mua Sắm</a>
+                                    </div>
+                                    <div class="hero-stats">
+                                        <div>
+                                            <strong>@discountText</strong>
+                                            <span>Mức giảm</span>
+                                        </div>
+                                        <div>
+                                            <strong>Mã: @voucherCode</strong>
+                                            <span>Voucher</span>
+                                        </div>
+                                        <div>
+                                            <strong>@km.NgayKetThuc.ToString("dd/MM")</strong>
+                                            <span>Hạn dùng</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="hero-card">
+                                    <div class="hero-card-inner">
+                                        <h3 class="text-warning"><i class="bi bi-gift-fill me-2"></i>Quyền lợi Voucher</h3>
+                                        <p>Đặc quyền dành riêng cho khách hàng mua sắm nông sản sạch trong đợt ưu đãi này.</p>
+                                        <ul>
+                                            <li><i class="bi bi-check-circle-fill text-warning"></i> Giảm trực tiếp vào tổng hóa đơn</li>
+                                            <li><i class="bi bi-check-circle-fill text-warning"></i> Áp dụng song song miễn phí vận chuyển</li>
+                                            <li><i class="bi bi-check-circle-fill text-warning"></i> Số lượng mã có hạn theo ngày</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+
+    </div>
+
+    <!-- 🟢 CÁC ICON HÌNH TRÒN (DOTS) NẰM PHÍA DƯỚI HERO SECTION -->
+    <div class="hero-block-dots d-flex gap-2 align-items-center justify-content-center mt-3" id="heroBlockDots">
+        <!-- JavaScript tự sinh Dots -->
     </div>
 </section>
 
@@ -174,7 +248,7 @@
     <div class="row g-4 align-items-center">
         <div class="col-lg-6">
             <div class="info-card">
-                <p class="section-label">Vì sao chọn Fresh Farm</p>
+                <p class="section-label">Vì sao chọn Green Fresh</p>
                 <h2>Cam kết mang lại trải nghiệm mua sắm nông sản thật sự an tâm.</h2>
                 <p>Fresh Farm kết nối khách hàng với nhà vườn, giữ nguyên chất lượng sản phẩm từ đầu đến tay người tiêu dùng.</p>
                 <ul class="check-list">
@@ -229,7 +303,7 @@
         <div class="col-md-4">
             <div class="testimonial-card">
                 <div class="stars">★★★★★</div>
-                <p>“Fresh Farm giúp doanh nghiệp của tôi có nguồn hàng ổn định và chất lượng.”</p>
+                <p>“Green Fresh giúp doanh nghiệp của tôi có nguồn hàng ổn định và chất lượng.”</p>
                 <strong>Quang Vũ</strong>
             </div>
         </div>
@@ -247,3 +321,188 @@
         </div>
     </div>
 </section>
+
+@section Styles {
+    <style>
+        /* 1. Khóa chiều cao khối Hero cố định để tránh giật khung */
+        .hero-section {
+            padding: 2rem 2.5rem !important;
+            box-sizing: border-box;
+        }
+
+        /* Set chiều cao cố định cho khung Slider */
+        .hero-block-slider {
+            position: relative;
+            width: 100%;
+            height: 260px; /* Khóa đệm chiều cao chuẩn, slide nào cũng nằm trong khung này */
+        }
+
+        /* 2. Dùng absolute phủ chồng các slide lên nhau thay vì display:none */
+        .hero-block-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateX(20px);
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out, visibility 0.4s;
+        }
+
+        .hero-block-item.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(0);
+        }
+
+        /* 3. Căn giữa chuẩn 100% trục dọc trong khung height 100% */
+        .hero-block-item .row {
+            height: 100%;
+            align-items: center !important;
+            margin: 0 !important;
+        }
+
+        /* 4. Khối Card bên phải cố định kích thước, nằm im chính giữa */
+        .hero-card {
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem !important;
+            margin: 0 auto !important;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            box-sizing: border-box;
+        }
+
+        .hero-card-inner {
+            width: 100%;
+        }
+
+        .hero-card-inner > *:first-child {
+            margin-top: 0 !important;
+        }
+
+        .hero-card h3 {
+            margin-bottom: 0.4rem !important;
+        }
+
+        .hero-card p {
+            margin-bottom: 0.6rem !important;
+            font-size: 0.88rem;
+        }
+
+        .hero-card ul {
+            margin-bottom: 0 !important;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .hero-card li {
+            margin-bottom: 0.3rem !important;
+            font-size: 0.85rem;
+        }
+
+        /* 5. Khối thông tin bên trái */
+        .hero-copy h1 {
+            margin-bottom: 0.4rem !important;
+            font-size: 1.85rem;
+            line-height: 1.25;
+        }
+
+        .hero-copy p {
+            margin-bottom: 0.8rem !important;
+            font-size: 0.92rem;
+        }
+
+        .hero-actions {
+            margin-bottom: 1rem !important;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 0.75rem !important;
+        }
+
+        .hero-stats > div {
+            padding: 0.35rem 0.75rem !important;
+        }
+
+        /* 6. Dots phân trang */
+        .hero-block-dots {
+            margin-top: 0.75rem !important;
+        }
+
+        .hero-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .hero-dot.active {
+            background-color: #ffffff;
+            border-color: #28a745;
+            transform: scale(1.2);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const blocks = document.querySelectorAll("#heroBlockSlider .hero-block-item");
+            const dotsContainer = document.getElementById("heroBlockDots");
+            if (!blocks.length) return;
+
+            let currentIndex = 0;
+            let timer = null;
+
+            // 1. Tạo các Dot hình tròn tương ứng với từng Block
+            blocks.forEach((_, index) => {
+                const dot = document.createElement("span");
+                dot.classList.add("hero-dot");
+                if (index === 0) dot.classList.add("active");
+
+                // Click icon hình tròn để chuyển trực tiếp đến Block tương ứng
+                dot.addEventListener("click", () => {
+                    goToBlock(index);
+                    resetTimer();
+                });
+                dotsContainer.appendChild(dot);
+            });
+
+            const dots = dotsContainer.querySelectorAll(".hero-dot");
+
+            // 2. Hàm chuyển Block
+            function goToBlock(index) {
+                blocks[currentIndex].classList.remove("active");
+                dots[currentIndex].classList.remove("active");
+
+                currentIndex = index;
+
+                blocks[currentIndex].classList.add("active");
+                dots[currentIndex].classList.add("active");
+            }
+
+            // 3. Tự động lướt qua từng Block (5 giây / block)
+            function startTimer() {
+                timer = setInterval(() => {
+                    let nextIndex = (currentIndex + 1) % blocks.length;
+                    goToBlock(nextIndex);
+                }, 5000);
+            }
+
+            function resetTimer() {
+                clearInterval(timer);
+                startTimer();
+            }
+
+            startTimer();
+        });
+    </script>
+}
