@@ -3,7 +3,7 @@ name: Deploy ASP.NET Core App to SmarterASP.NET
 on:
   push:
     branches:
-      - main  # Hoặc master tùy thuộc vào nhánh chính của bạn
+      - main  # Hoặc master tùy nhánh chính của Hào
 
 jobs:
   deploy:
@@ -17,36 +17,37 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '6.0.x' # Thay đổi thành 7.0.x hoặc 8.0.x tùy phiên bản dự án
+        dotnet-version: '6.0.x' # Sửa lại version phù hợp nếu dùng .NET 7/8/9
 
-    # 3. 🟢 [SỬA LỖI]: CHÈN API KEY VÀO FILE NGUỒN TRƯỚC KHU BUILD/PUBLISH
-    - name: Appsettings Variable Substitution
-      uses: microsoft/variable-substitution@v1
-      with:
-        files: './WebWeb/appsettings.json'
-      env:
-        OpenAI.ApiKey: ${{ secrets.GEMINI_API_KEY }}
-
-    # 4. Restore dependencies và Build dự án
+    # 3. Restore dependencies và Build dự án
     - name: Restore and Build
       run: |
         dotnet restore
         dotnet build --configuration Release --no-restore
 
-    # 5. Publish dự án ra thư mục ./publish (Lúc này appsettings.json chuẩn đã được đóng gói)
+    # 4. Publish dự án ra thư mục ./publish
     - name: Publish App
       run: dotnet publish --configuration Release --output ./publish
 
-    # (Tùy chọn) In log kiểm tra file appsettings.json trong thư mục publish
+    # 5. 🟢 [CHÍNH XÁC]: THẾ API KEY TRỰC TIẾP VÀO THƯ MỤC PUBLISH
+    # Sau khi dotnet publish xong, ta ghi đè Key thẳng vào file đóng gói cuối cùng
+    - name: Appsettings Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: './publish/appsettings.json'
+      env:
+        OpenAI.ApiKey: ${{ secrets.GEMINI_API_KEY }}
+
+    # 6. Verify kiểm tra Key đã chắc chắn có trong file trước khi đẩy FTP
     - name: Verify appsettings.json
       run: cat ./publish/appsettings.json
 
-    # 6. Tạo file app_offline.htm để IIS nhả lock file
+    # 7. Tạo file app_offline.htm để IIS nhả lock file
     - name: Create app_offline.htm
       run: |
         echo "<html><head><meta charset='utf-8'></head><body><h2 style='text-align:center;margin-top:100px;'>Hệ thống đang bảo trì và cập nhật phiên bản mới. Vui lòng quay lại sau ít phút...</h2></body></html>" > ./publish/app_offline.htm
 
-    # 7. Đẩy CHỈ FILE app_offline.htm lên server trước
+    # 8. Đẩy file app_offline.htm lên trước
     - name: Take site offline on IIS
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -61,11 +62,11 @@ jobs:
           **/*
           !app_offline.htm
 
-    # 8. Tạm dừng 3 giây đợi IIS ngắt hoàn toàn tiến trình Web
+    # 9. Tạm dừng 3 giây đợi IIS ngắt hoàn toàn tiến trình Web
     - name: Wait for IIS to unlock files
       run: sleep 3
 
-    # 9. 🟢 Upload TOÀN BỘ source code lên server (Đã tối ưu Force Upload không bị nuốt file)
+    # 10. Upload TOÀN BỘ source code lên server
     - name: FTP Deploy full application
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -76,17 +77,17 @@ jobs:
         server-dir: /site1/
         passive: true
         timeout: 600000
-        force-upload: true
+        force-upload: true      # 🟢 Bắt buộc ghi đè toàn bộ file mới
         exclude: |
           **/.git*
           **/.git*/**
 
-    # 10. XÓA FILE app_offline.htm ở local
+    # 11. Xóa app_offline.htm ở local
     - name: Remove app_offline.htm locally
       run: |
         rm -f ./publish/app_offline.htm
 
-    # 11. Sync lại lần nữa để FTP xóa file app_offline.htm trên Server -> Site online trở lại
+    # 12. Sync lại để gỡ app_offline.htm trên Server -> Site online lại
     - name: Remove app_offline.htm on Server & Start Site
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
