@@ -83,6 +83,18 @@ jobs:
           **/.git*
           **/.git*/**
 
-    # 10. Xóa file app_offline.htm trên Runner để lần build sau không bị lưu cache rác
-    - name: Cleanup local app_offline.htm
-      run: rm -f ./publish/app_offline.htm
+    # 10. 🟢 XÓA FILE app_offline.htm CẢ Ở RUNNER VÀ TRÊN SERVER ĐỂ IIS KHỞI ĐỘNG LẠI
+    - name: Remove app_offline.htm locally and trigger online
+      run: |
+        rm -f ./publish/app_offline.htm
+
+    # 11. 🟢 Sync lại một lần nữa để FTP xóa file app_offline.htm trên Server
+    - name: Remove app_offline.htm on Server
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./publish/
+        server-dir: /site1/
+        passive: true
