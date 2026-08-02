@@ -51,7 +51,6 @@ E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\WebWeb.RazorAssemblyInfo.cs
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\staticwebassets.build.json
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\staticwebassets.development.json
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
-E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\scopedcss\Views\Shared\_LayoutAdmin.cshtml.rz.scp.css
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\scopedcss\bundle\WebWeb.styles.css
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\scopedcss\projectbundle\WebWeb.bundle.scp.css
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\WebWeb.csproj.CopyComplete

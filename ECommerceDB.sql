@@ -64,7 +64,7 @@ CREATE TABLE NongSan (
     CONSTRAINT FK_NongSan_NhaVuon FOREIGN KEY (nhaVuonID) REFERENCES NhaVuon(nhaVuonID)
 );
 
--- 18. Bảng PhieuNhapKho
+-- 6. Bảng PhieuNhapKho
 CREATE TABLE PhieuNhapKho (
     phieuNhapID INT IDENTITY(1,1) PRIMARY KEY,
     nhaVuonID INT NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE PhieuNhapKho (
     CONSTRAINT FK_PhieuNhap_NhanVien FOREIGN KEY (nhanVienID) REFERENCES NhanVien(nhanVienID)
 );
 
--- 6. Bảng LoHang
+-- 7. Bảng LoHang
 CREATE TABLE LoHang (
     LoHangID INT IDENTITY(1,1) PRIMARY KEY,
     PhieuNhapID INT NOT NULL,              
@@ -91,7 +91,7 @@ CREATE TABLE LoHang (
     CONSTRAINT FK_LoHang_NongSan FOREIGN KEY (NongSanID) REFERENCES NongSan(nongSanID)
 );
 
--- 16. Bảng KhuyenMai
+-- 8. Bảng KhuyenMai
 CREATE TABLE KhuyenMai (
     khuyenMaiID INT IDENTITY(1,1) PRIMARY KEY,
     NongSanId INT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE KhuyenMai (
     CONSTRAINT FK_KhuyenMai_DanhMuc FOREIGN KEY (DanhMucId) REFERENCES DanhMuc(DanhMucId)
 );
 
--- 7. Bảng KhachHang
+-- 9. Bảng KhachHang
 CREATE TABLE KhachHang (
     khachHangID INT IDENTITY(1,1) PRIMARY KEY,
     hoTen NVARCHAR(100) NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE KhachHang (
     diemTichLuy INT NOT NULL DEFAULT 0 CHECK (diemTichLuy >= 0)
 );
 
--- 8. Bảng SoDiaChi
+-- 10. Bảng SoDiaChi
 CREATE TABLE SoDiaChi (
     diaChiID INT IDENTITY(1,1) PRIMARY KEY,
     khachHangID INT NOT NULL,
@@ -135,7 +135,7 @@ CREATE TABLE SoDiaChi (
     CONSTRAINT FK_SoDiaChi_KhachHang FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID)
 );
 
--- 9. Bảng DonHangLe
+-- 11. Bảng DonHangLe
 CREATE TABLE DonHangLe (
     donHangLeID INT IDENTITY(1,1) PRIMARY KEY,
     khachHangID INT NULL, -- NULL nếu là khách vãng lai
@@ -159,7 +159,7 @@ CREATE TABLE DonHangLe (
     CONSTRAINT FK_DonHangLe_NhanVien FOREIGN KEY (nhanVienID) REFERENCES NhanVien(nhanVienID),
     CONSTRAINT FK_DonHangLe_KhuyenMai FOREIGN KEY (KhuyenMaiId) REFERENCES KhuyenMai(KhuyenMaiId)
 );
--- 10. Bảng ChiTietDonHangLe
+-- 12. Bảng ChiTietDonHangLe
 CREATE TABLE ChiTietDonHangLe (
     donHangLeID INT NOT NULL,
     nongSanID INT NOT NULL,
@@ -172,7 +172,7 @@ CREATE TABLE ChiTietDonHangLe (
     CONSTRAINT FK_CTDHL_NongSan FOREIGN KEY (nongSanID) REFERENCES NongSan(nongSanID)
 );
 
--- 11. Bảng GoiDangKyDinhKy
+-- 13. Bảng GoiDangKyDinhKy
 CREATE TABLE GoiDangKyDinhKy (
     goiID INT IDENTITY(1,1) PRIMARY KEY,
     khachHangID INT NOT NULL,
@@ -190,7 +190,7 @@ CREATE TABLE GoiDangKyDinhKy (
     CONSTRAINT FK_GoiDangKyDinhKy_KhuyenMai FOREIGN KEY (KhuyenMaiId) REFERENCES KhuyenMai(KhuyenMaiId)
 );
 
--- 12. Bảng ChiTietGoiDinhKy
+-- 14. Bảng ChiTietGoiDinhKy
 CREATE TABLE ChiTietGoiDinhKy (
     goiID INT NOT NULL,
     nongSanID INT NOT NULL,
@@ -200,7 +200,7 @@ CREATE TABLE ChiTietGoiDinhKy (
     CONSTRAINT FK_CTGDK_NongSan FOREIGN KEY (nongSanID) REFERENCES NongSan(nongSanID)
 );
 
--- 13. Bảng DotGiaoDinhKy
+-- 15. Bảng DotGiaoDinhKy
 CREATE TABLE DotGiaoDinhKy (
     dotGiaoID INT IDENTITY(1,1) PRIMARY KEY,
     goiID INT NOT NULL,
@@ -212,7 +212,7 @@ CREATE TABLE DotGiaoDinhKy (
     CONSTRAINT FK_DotGiao_NhanVien FOREIGN KEY (nhanVienID) REFERENCES NhanVien(nhanVienID)
 );
 
--- 14. Bảng BaoCaoHaoHut
+-- 16. Bảng BaoCaoHaoHut
 CREATE TABLE BaoCaoHaoHut (
     baoCaoID INT IDENTITY(1,1) PRIMARY KEY,
     nhanVienID INT NOT NULL,
@@ -222,7 +222,7 @@ CREATE TABLE BaoCaoHaoHut (
     CONSTRAINT FK_BaoCaoHH_NhanVien FOREIGN KEY (nhanVienID) REFERENCES NhanVien(nhanVienID)
 );
 
--- 15. Bảng ChiTietBaoCaoHaoHut
+-- 17. Bảng ChiTietBaoCaoHaoHut
 CREATE TABLE ChiTietBaoCaoHaoHut (
     baoCaoID INT NOT NULL,
     loHangID INT NOT NULL,
@@ -233,7 +233,7 @@ CREATE TABLE ChiTietBaoCaoHaoHut (
     CONSTRAINT FK_CTBCHH_LoHang FOREIGN KEY (loHangID) REFERENCES LoHang(loHangID)
 );
 
--- 17. Bảng KhieuNai
+-- 18. Bảng KhieuNai
 CREATE TABLE KhieuNai (
     khieuNaiID INT IDENTITY(1,1) PRIMARY KEY,
     khachHangID INT NOT NULL,
@@ -280,18 +280,7 @@ CREATE TABLE DanhGiaSanPham (
     CONSTRAINT FK_DanhGia_NongSan FOREIGN KEY (nongSanID) REFERENCES NongSan(nongSanID)
 );
 
--- 22. Bảng ChiTietGioHang
-CREATE TABLE ChiTietGioHang (
-    khachHangID INT NOT NULL,
-    nongSanID INT NOT NULL,
-    soLuong INT NOT NULL,
-    ngayCapNhat DATETIME NOT NULL DEFAULT GETDATE(),
-    PRIMARY KEY (khachHangID, nongSanID),
-    CONSTRAINT FK_GioHang_KhachHang FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID),
-    CONSTRAINT FK_GioHang_NongSan FOREIGN KEY (nongSanID) REFERENCES NongSan(nongSanID)
-);
-
--- 23. Bảng GiaoDichThanhToan
+-- 21. Bảng GiaoDichThanhToan
 CREATE TABLE GiaoDichThanhToan (
     giaoDichID INT IDENTITY(1,1) PRIMARY KEY,
     donHangLeID INT NULL,
@@ -305,14 +294,7 @@ CREATE TABLE GiaoDichThanhToan (
     CONSTRAINT FK_GiaoDich_GoiDinhKy FOREIGN KEY (goiDangKyID) REFERENCES GoiDangKyDinhKy(goiID)
 );
 
--- 24. Bảng ThamSo (Bảng lưu trữ thông số cấu hình hệ thống)
-CREATE TABLE ThamSo (
-    maThamSo VARCHAR(20) PRIMARY KEY,
-    giaTri DECIMAL(18,2) NOT NULL,
-    ghiChu NVARCHAR(250) NULL
-);
-
--- 25. Bảng ChatBot (Đã tối ưu cấu trúc và hiệu năng)
+-- 22. Bảng ChatBot (Đã tối ưu cấu trúc và hiệu năng)
 CREATE TABLE BotCache (
     botID INT IDENTITY(1,1) PRIMARY KEY,
     userQuery NVARCHAR(450) NOT NULL, -- Giới hạn độ dài để tạo Index và bắt buộc có dữ liệu
@@ -320,7 +302,7 @@ CREATE TABLE BotCache (
     createAt DATETIME NOT NULL DEFAULT GETDATE(),
     hitCount INT NOT NULL DEFAULT 1
 );
--- 26. Bảng SupportTicket 
+-- 23. Bảng SupportTicket 
 CREATE TABLE SupportTicket (
     ticketID INT IDENTITY(1,1) PRIMARY KEY,
     nhanVienID INT NULL,
@@ -448,7 +430,6 @@ select * from NongSan
 select * from DanhMuc
 select * from DanhGiaSanPham
 select * from LoHang
-select * from ChiTietGioHang
 select * from KhuyenMai
 select * from BotCache
 select * from SupportTicket

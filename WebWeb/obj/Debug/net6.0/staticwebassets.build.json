@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "CyyZ0YwcKy6fhbDIS65fIb/wQDsVv0jfQz/jX4TYSFA=",
+  "Hash": "tJmB5UEUxOuCepe8M311uXaCz840oB5jKGaOfjSgL04=",
   "Source": "WebWeb",
   "BasePath": "_content/WebWeb",
   "Mode": "Default",
@@ -136,12 +136,12 @@
       "OriginalItemSpec": "wwwroot\\css\\site.css"
     },
     {
-      "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\favicon.ico",
+      "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\favicon.svg",
       "SourceId": "WebWeb",
       "SourceType": "Discovered",
       "ContentRoot": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\",
       "BasePath": "_content/WebWeb",
-      "RelativePath": "favicon.ico",
+      "RelativePath": "favicon.svg",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -150,7 +150,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\favicon.ico"
+      "OriginalItemSpec": "wwwroot\\favicon.svg"
     },
     {
       "Identity": "E:\\WebBanNongSan\\WebWeb\\wwwroot\\images\\bong-cai-xanh.jpg",
