@@ -21,6 +21,8 @@ E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\Microsoft.IdentityModel.Protocols.dll
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\Microsoft.IdentityModel.Tokens.dll
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\Microsoft.Win32.SystemEvents.dll
+E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\Newtonsoft.Json.dll
+E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\OpenAI_API.dll
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\System.Configuration.ConfigurationManager.dll
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\System.Drawing.Common.dll
 E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\System.IdentityModel.Tokens.Jwt.dll
@@ -59,5 +61,3 @@ E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\refint\WebWeb.dll
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\WebWeb.pdb
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\WebWeb.genruntimeconfig.cache
 E:\WebBanNongSan\WebWeb\obj\Debug\net6.0\ref\WebWeb.dll
-E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\Newtonsoft.Json.dll
-E:\WebBanNongSan\WebWeb\bin\Debug\net6.0\OpenAI_API.dll

@@ -28,11 +28,41 @@ public class ProductController : Controller
         var product = await _context.NongSans
             .Include(n => n.NhaVuon)
             .Include(n => n.DanhGiaSanPhams)
+                .ThenInclude(dg => dg.KhachHang)
             .Include(n => n.LoHangs)
             .Include(n => n.DanhMuc)
             .FirstOrDefaultAsync(n => n.NongSanId == id);
 
         if (product == null) return NotFound();
+
+        // 🟢 BỔ SUNG / SỬA LẠI: Ép nạp & ghi đè HoTen chuẩn từ DB cho DanhGiaSanPhams
+        if (product.DanhGiaSanPhams != null && product.DanhGiaSanPhams.Any())
+        {
+            var khachHangIds = product.DanhGiaSanPhams.Select(dg => dg.KhachHangId).Distinct().ToList();
+            
+            // Query lấy danh sách khách hàng trực tiếp từ DB
+            var danhSachKhachHang = await _context.KhachHangs
+                .Where(kh => khachHangIds.Contains(kh.KhachHangId))
+                .ToListAsync();
+
+            var khachHangDict = danhSachKhachHang.ToDictionary(
+                kh => kh.KhachHangId, 
+                kh => string.IsNullOrWhiteSpace(kh.HoTen) ? "Khách hàng Green Fresh" : kh.HoTen
+            );
+
+            // Ép gán đè lại object KhachHang cho từng đánh giá
+            foreach (var dg in product.DanhGiaSanPhams)
+            {
+                if (khachHangDict.ContainsKey(dg.KhachHangId))
+                {
+                    dg.KhachHang = new KhachHang
+                    {
+                        KhachHangId = dg.KhachHangId,
+                        HoTen = khachHangDict[dg.KhachHangId]
+                    };
+                }
+            }
+        }
 
         // 🟢 Kiểm tra và Redirect 301 nếu Slug trên URL không khớp với tên sản phẩm hiện tại
         string expectedSlug = product.TenNongSan.ToSlug();
@@ -83,9 +113,7 @@ public class ProductController : Controller
                 likedProductIds = JsonSerializer.Deserialize<List<int>>(sessionData) ?? new List<int>();
             }
         }
-        
-        // Gửi danh sách ID này sang View
-        ViewBag.LikedProductIds = likedProductIds;
+
 
         // 🟢 BỔ SUNG: PHÂN TÍCH CẢM XÚC BÌNH LUẬN TRƯỚC KHI RENDER VIEW
         var camXucDict = new Dictionary<int, string>();
@@ -97,10 +125,11 @@ public class ProductController : Controller
                 camXucDict[review.DanhGiaId] = kq;
             }
         }
-        ViewBag.CamXucDict = camXucDict;
+
 
         // Gửi danh sách ID này sang View
         ViewBag.LikedProductIds = likedProductIds;
+        ViewBag.CamXucDict = camXucDict;
 
         return View(product);
     }
@@ -167,6 +196,17 @@ public class ProductController : Controller
             return Json(new { success = false, message = "Bạn cần đăng nhập để thực hiện đánh giá này!" });
         }
 
+        // 🟢 2. TRUY VẤN CHÍNH XÁC KhachHangId từ DB (Tránh lệch giữa TaiKhoanId và KhachHangId)
+        var khachHang = await _context.KhachHangs
+            .FirstOrDefaultAsync(kh => kh.KhachHangId == customerId);
+
+        if (khachHang == null)
+        {
+            return Json(new { success = false, message = "Không tìm thấy thông tin khách hàng trên hệ thống!" });
+        }
+
+        int realKhachHangId = khachHang.KhachHangId;
+
         if (soSao < 1 || soSao > 5)
         {
             return Json(new { success = false, message = "Số sao đánh giá phải từ 1 đến 5 sao!" });
@@ -190,7 +230,7 @@ public class ProductController : Controller
             SoSao = soSao,
             BinhLuan = string.IsNullOrWhiteSpace(binhLuan) ? "Khách hàng không để lại lời bình." : binhLuan.Trim(),
             NgayDanhGia = DateTime.Now,
-            KhachHangId = customerId,
+            KhachHangId = realKhachHangId,
             DonHangLeId = orderId
         };
 

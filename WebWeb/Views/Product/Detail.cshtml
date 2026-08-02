@@ -1,5 +1,4 @@
 @model WebWeb.Models.NongSan
-@using System.Text.Json
 @{
     ViewData["Title"] = Model.TenNongSan;
 
@@ -246,7 +245,10 @@
                                         <div class="d-flex align-items-center gap-2">
                                             <strong>
                                                 <!-- Đánh giá này chắc chắn thuộc về một khách hàng thân thiết tồn tại trong hệ thống -->
-                                                <span class="text-success"><i class="bi bi-patch-check-fill"></i> Khách hàng thân thiết</span>
+                                                <span class="text-success">
+                                                    <i class="bi bi-patch-check-fill"></i> 
+                                                    @(review.KhachHang?.HoTen ?? "Khách hàng Green Fresh")
+                                                </span>
                                             </strong>
                                             <!-- BADGE HIỂN THỊ PHÂN TÍCH CẢM XÚC CỦA AI -->
                                             @if (camXucClean.Contains("tot") || camXucClean.Contains("tich cuc") || camXucClean.Contains("positive"))

@@ -38,6 +38,16 @@ public class HomeController : Controller
 
         ViewBag.KhuyenMais = khuyenMais;
 
+        // 🟢 Lấy danh sách đánh giá thực tế từ Database (Ưu tiên đánh giá cao >= 4 sao)
+        var realReviews = await _context.DanhGiaSanPhams
+            .Include(d => d.KhachHang)
+            .Where(d => d.SoSao >= 4 && !string.IsNullOrEmpty(d.BinhLuan))
+            .OrderByDescending(d => d.NgayDanhGia)
+            .Take(12) // Lấy tối đa 12 đánh giá thật
+            .ToListAsync();
+
+        ViewBag.RealReviews = realReviews;
+
         var products = await _context.NongSans
             .Include(n => n.LoHangs)
             .Include(n => n.DanhGiaSanPhams)

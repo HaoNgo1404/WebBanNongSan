@@ -278,34 +278,87 @@
     </div>
 </section>
 
+<!-- 🟢 SECTION: KHÁCH HÀNG NÓI GÌ (TESTIMONIALS CAROUSEL) -->
+@{
+    // 1. Tạo Class DTO tạm cho Đánh giá
+    // 2. Lấy danh sách Đánh giá thật từ ViewBag
+    var dbReviews = ViewBag.RealReviews as List<WebWeb.Models.DanhGiaSanPham>;
+    
+    var allTestimonials = new List<dynamic>();
+
+    // 3. Đưa dữ liệu thật từ DB vào danh sách trước
+    if (dbReviews != null && dbReviews.Any())
+    {
+        foreach (var item in dbReviews)
+        {
+            int stars = item.SoSao;
+            string starString = new string('★', stars) + new string('☆', 5 - stars);
+            string tenKh = item.KhachHang != null && !string.IsNullOrWhiteSpace(item.KhachHang.HoTen)
+                ? item.KhachHang.HoTen
+                : "Khách hàng Green Fresh";
+
+            allTestimonials.Add(new {
+                Stars = starString,
+                Comment = $"“{item.BinhLuan}”",
+                Author = tenKh
+            });
+        }
+    }
+
+    // 4. Thêm dữ liệu gán cứng bổ sung
+    allTestimonials.Add(new { Stars = "★★★★★", Comment = "“Rau củ rất tươi, giao đúng giờ và giá hợp lý. Tôi sẽ tiếp tục đặt hàng.”", Author = "Minh Anh" });
+    allTestimonials.Add(new { Stars = "★★★★★", Comment = "“Mùi vị và độ tươi vượt mong đợi, phù hợp cho gia đình tôi.”", Author = "Hương Trần" });
+    allTestimonials.Add(new { Stars = "★★★★★", Comment = "“Green Fresh giúp doanh nghiệp của tôi có nguồn hàng ổn định và chất lượng.”", Author = "Quang Vũ" });
+
+    int totalReviews = allTestimonials.Count;
+    int reviewChunkSize = 3; // 3 đánh giá / slide
+}
+
 <section class="section-block">
-    <div class="section-heading">
+    <div class="section-heading d-flex justify-content-between align-items-center mb-4">
         <div>
             <p class="section-label">Khách hàng nói gì</p>
             <h2>Những phản hồi tích cực từ người mua</h2>
         </div>
+        
+        <!-- Nút ấn qua lại Carousel (Chỉ hiện khi tổng số đánh giá > 3) -->
+        @if (totalReviews > reviewChunkSize)
+        {
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-success rounded-circle p-2" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev" style="width:40px; height:40px;">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn btn-outline-success rounded-circle p-2" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next" style="width:40px; height:40px;">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        }
     </div>
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="testimonial-card">
-                <div class="stars">★★★★★</div>
-                <p>“Rau củ rất tươi, giao đúng giờ và giá hợp lý. Tôi sẽ tiếp tục đặt hàng.”</p>
-                <strong>Minh Anh</strong>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="testimonial-card">
-                <div class="stars">★★★★★</div>
-                <p>“Mùi vị và độ tươi vượt mong đợi, phù hợp cho gia đình tôi.”</p>
-                <strong>Hương Trần</strong>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="testimonial-card">
-                <div class="stars">★★★★★</div>
-                <p>“Green Fresh giúp doanh nghiệp của tôi có nguồn hàng ổn định và chất lượng.”</p>
-                <strong>Quang Vũ</strong>
-            </div>
+
+    <div id="testimonialCarousel" class="carousel slide" data-bs-ride="false">
+        <div class="carousel-inner">
+            @{
+                for (int i = 0; i < totalReviews; i += reviewChunkSize)
+                {
+                    var chunk = allTestimonials.Skip(i).Take(reviewChunkSize).ToList();
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        <div class="row g-4">
+                            @foreach (var item in chunk)
+                            {
+                                <div class="col-md-4">
+                                    <div class="testimonial-card h-100 p-4 rounded-3 border bg-white shadow-sm d-flex flex-column justify-content-between">
+                                        <div>
+                                            <div class="stars text-warning fs-5 mb-2">@item.Stars</div>
+                                            <p class="text-muted fst-italic mb-3">@item.Comment</p>
+                                        </div>
+                                        <strong class="text-dark d-block">@item.Author</strong>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
         </div>
     </div>
 </section>
