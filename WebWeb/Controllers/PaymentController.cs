@@ -84,12 +84,13 @@ namespace WebWeb.Controllers
         }
 
         // =================================================================
-        // 2. MOMO: SỬA ORDERID CHỈ CHỨA SỐ VÀ ĐÓNG GÓI DỮ LIỆU VÀO EXTRADATA
+        // 2. MOMO: CHUẨN ĐỊNH DẠNG TEXT KHÔNG DẤU GẠCH & ÉP KHỚP PAYLOAD JSON
         // =================================================================
         [HttpGet]
         public async Task<IActionResult> RedirectToMoMo(int orderId, string type = "le")
         {
             decimal? tongTien = 0;
+            // Chuỗi ký tự viết liền không dấu, không khoảng trắng
             string orderInfo = $"ThanhToanDonHang{type}Ma{orderId}";
 
             if (type == "dinhky")
@@ -110,26 +111,21 @@ namespace WebWeb.Controllers
             string secretKey = _configuration["PaymentSettings:Momo:SecretKey"];
             string endpoint = _configuration["PaymentSettings:Momo:Endpoint"];
 
+            // Lấy ReturnUrl từ appsettings, nếu không cấu hình sẽ tự fallback về localhost:5000
             string configReturnUrl = _configuration["PaymentSettings:Momo:ReturnUrl"];
             string redirectUrl = !string.IsNullOrEmpty(configReturnUrl) 
                 ? configReturnUrl 
                 : "http://localhost:5000/Payment/MomoReturn";
             
-            string configIpnUrl = _configuration["PaymentSettings:Momo:IpnUrl"];
-            string ipnUrl = !string.IsNullOrEmpty(configIpnUrl) 
-                ? configIpnUrl 
-                : redirectUrl;
+            string ipnUrl = redirectUrl;
 
-            // FIX NAPAS: orderId CHỈ CHỨA SỐ
-            string orderIdMomo = DateTime.Now.Ticks.ToString();
-            string requestId = orderIdMomo;
-            
-            // Đóng gói thông tin type và id gốc vào extraData (Mã hóa Base64)
-            string extraData = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{type}_{orderId}"));
+            string requestId = $"{type}_{orderId}_{DateTime.Now.Ticks}";
+            string orderIdMomo = requestId;
             long amountLong = (long)(tongTien ?? 0);
             string requestType = "payWithMethod";
+            string extraData = ""; 
 
-            // Chuỗi thô (Raw Hash) sắp xếp Alphabet bắt buộc khớp từng thuộc tính theo tài liệu MoMo
+            // Chuỗi thô (Raw Hash) sắp xếp Alphabet bắt buộc khớp từng thuộc tính theo tài liệu MoMo Developer
             string rawHash = $"accessKey={accessKey}" +
                              $"&amount={amountLong}" +
                              $"&extraData={extraData}" +
@@ -151,6 +147,7 @@ namespace WebWeb.Controllers
             System.Diagnostics.Debug.WriteLine("RAW HASH: " + rawHash);
             System.Diagnostics.Debug.WriteLine("SIGNATURE: " + signature);
 
+            // Payload JSON gửi đi
             var requestData = new
             {
                 partnerCode = partnerCode,
@@ -271,7 +268,7 @@ namespace WebWeb.Controllers
         }
 
         // =================================================================
-        // 4. ĐÓN KẾT QUẢ MOMO TRẢ VỀ (REDIRECT VIEW)
+        // 4. ĐÓN KẾT QUẢ MOMO TRẢ VỀ
         // =================================================================
         [HttpGet]
         public async Task<IActionResult> MomoReturn()
@@ -279,15 +276,12 @@ namespace WebWeb.Controllers
             try
             {
                 string resultCode = Request.Query["resultCode"];
-                string extraData = Request.Query["extraData"];
+                string orderIdMomo = Request.Query["orderId"];
                 string transId = Request.Query["transId"];
 
-                if (string.IsNullOrEmpty(extraData)) 
-                    return RedirectToAction("OrderFailed", "Notification");
+                if (string.IsNullOrEmpty(orderIdMomo)) return BadRequest();
 
-                // Giải mã Base64 từ extraData để lấy lại type và orderId
-                string decodedExtra = Encoding.UTF8.GetString(Convert.FromBase64String(extraData));
-                var parts = decodedExtra.Split('_');
+                var parts = orderIdMomo.Split('_');
                 string type = parts[0];
                 int orderId = int.Parse(parts[1]);
 
@@ -297,81 +291,6 @@ namespace WebWeb.Controllers
                     {
                         var goiKy = await _context.GoiDangKyDinhKies.FindAsync(orderId);
                         if (goiKy != null)
-                        {
-                            if (goiKy.TrangThaiGoi != OrderStatuses.HoatDong)
-                            {
-                                goiKy.TrangThaiGoi = OrderStatuses.HoatDong;
-                                _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
-                                {
-                                    MaGiaoDichCong = "MOMO-" + transId,
-                                    GoiDangKyId = goiKy.GoiId,
-                                    SoTien = goiKy.TongTienGoi,
-                                    PhuongThuc = "MOMO",
-                                    TrangThai = 1,
-                                    NgayGiaoDich = DateTime.Now
-                                });
-                                await _context.SaveChangesAsync();
-                            }
-                            return RedirectToAction("OrderPackageSuccess", "Notification", new { orderId = goiKy.GoiId, platform = "MOMO", amount = goiKy.TongTienGoi, type = "dinhky" });
-                        }
-                    }
-                    else
-                    {
-                        var donHang = await _context.DonHangLes.FindAsync(orderId);
-                        if (donHang != null)
-                        {
-                            if (donHang.TrangThaiThanhToan != OrderStatuses.DaThanhToan)
-                            {
-                                donHang.TrangThaiThanhToan = OrderStatuses.DaThanhToan;
-                                _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
-                                {
-                                    MaGiaoDichCong = "MOMO-" + transId,
-                                    DonHangLeId = donHang.DonHangLeId,
-                                    SoTien = donHang.TongTienThucTe,
-                                    PhuongThuc = "MOMO",
-                                    TrangThai = 1,
-                                    NgayGiaoDich = DateTime.Now
-                                });
-                                await _context.SaveChangesAsync();
-                            }
-                            return RedirectToAction("OrderSuccess", "Notification", new { orderId = donHang.DonHangLeId, platform = "MOMO", amount = donHang.TongTienThucTe, type = "le" });
-                        }
-                    }
-                }
-                TempData["Error"] = "Thanh toán MoMo thất bại hoặc đã bị hủy.";
-                return RedirectToAction("OrderFailed", "Notification");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("LỖI MOMO RETURN: " + ex.ToString());
-                return Content("Lỗi xử lý Return: " + ex.Message); 
-            } 
-        }
-
-        // =================================================================
-        // 5. IPN MOMO (SERVER-TO-SERVER WEBHOOK TRẢ VỀ NGẦM)
-        // =================================================================
-        [HttpPost]
-        [Route("Payment/MomoIPN")]
-        public async Task<IActionResult> MomoIPN([FromBody] JsonElement body)
-        {
-            try
-            {
-                string resultCode = body.GetProperty("resultCode").ToString();
-                string extraData = body.GetProperty("extraData").ToString();
-                string transId = body.GetProperty("transId").ToString();
-
-                if (resultCode == "0" && !string.IsNullOrEmpty(extraData))
-                {
-                    string decodedExtra = Encoding.UTF8.GetString(Convert.FromBase64String(extraData));
-                    var parts = decodedExtra.Split('_');
-                    string type = parts[0];
-                    int orderId = int.Parse(parts[1]);
-
-                    if (type == "dinhky")
-                    {
-                        var goiKy = await _context.GoiDangKyDinhKies.FindAsync(orderId);
-                        if (goiKy != null && goiKy.TrangThaiGoi != OrderStatuses.HoatDong)
                         {
                             goiKy.TrangThaiGoi = OrderStatuses.HoatDong;
                             _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
@@ -383,13 +302,22 @@ namespace WebWeb.Controllers
                                 TrangThai = 1,
                                 NgayGiaoDich = DateTime.Now
                             });
-                            await _context.SaveChangesAsync();
+                            try
+                            {
+                                await _context.SaveChangesAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                var message = ex.InnerException?.Message ?? ex.Message;
+                                return Content(message);
+                            }
+                            return RedirectToAction("OrderPackageSuccess", "Notification", new { orderId = goiKy.GoiId, platform = "MOMO", amount = goiKy.TongTienGoi, type = "dinhky" });
                         }
                     }
                     else
                     {
                         var donHang = await _context.DonHangLes.FindAsync(orderId);
-                        if (donHang != null && donHang.TrangThaiThanhToan != OrderStatuses.DaThanhToan)
+                        if (donHang != null)
                         {
                             donHang.TrangThaiThanhToan = OrderStatuses.DaThanhToan;
                             _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
@@ -401,16 +329,27 @@ namespace WebWeb.Controllers
                                 TrangThai = 1,
                                 NgayGiaoDich = DateTime.Now
                             });
-                            await _context.SaveChangesAsync();
+                            try
+                            {
+                                await _context.SaveChangesAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                return Content(ex.InnerException?.Message ?? ex.Message);
+                            }
+                            return RedirectToAction("OrderSuccess", "Notification", new { orderId = donHang.DonHangLeId, platform = "MOMO", amount = donHang.TongTienTamTinh, type = "le" });
                         }
                     }
                 }
-                return NoContent(); // HTTP 204
+                TempData["Error"] = "Thanh toán MoMo thất bại hoặc đã bị hủy.";
+                return RedirectToAction("OrderFailed", "Notification");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
-            }
+                // Ghi log lỗi ra để kiểm tra thay vì để trang xoay vòng crash
+                System.Diagnostics.Debug.WriteLine("LỖI MOMO RETURN: " + ex.ToString());
+                return Content("Lỗi xử lý Return: " + ex.Message); 
+            } 
         }
 
         [HttpGet]
@@ -433,7 +372,7 @@ namespace WebWeb.Controllers
 
                 _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
                 {
-                    MaGiaoDichCong = "MOMO-" + Guid.NewGuid().ToString("N")[..8],
+                    MaGiaoDichCong = "MOMO-DEMO-" + Guid.NewGuid().ToString("N")[..8],
                     GoiDangKyId = goiKy.GoiId,
                     SoTien = goiKy.TongTienGoi,
                     PhuongThuc = "MOMO",
@@ -455,7 +394,7 @@ namespace WebWeb.Controllers
 
             _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
             {
-                MaGiaoDichCong = "MOMO-" + Guid.NewGuid().ToString("N")[..8],
+                MaGiaoDichCong = "MOMO-DEMO-" + Guid.NewGuid().ToString("N")[..8],
                 DonHangLeId = donHang.DonHangLeId,
                 SoTien = donHang.TongTienThucTe,
                 PhuongThuc = "MOMO",
