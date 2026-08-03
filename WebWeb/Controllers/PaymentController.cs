@@ -273,74 +273,83 @@ namespace WebWeb.Controllers
         [HttpGet]
         public async Task<IActionResult> MomoReturn()
         {
-            string resultCode = Request.Query["resultCode"];
-            string orderIdMomo = Request.Query["orderId"];
-            string transId = Request.Query["transId"];
-
-            if (string.IsNullOrEmpty(orderIdMomo)) return BadRequest();
-
-            var parts = orderIdMomo.Split('_');
-            string type = parts[0];
-            int orderId = int.Parse(parts[1]);
-
-            if (resultCode == "0")
+            try
             {
-                if (type == "dinhky")
+                string resultCode = Request.Query["resultCode"];
+                string orderIdMomo = Request.Query["orderId"];
+                string transId = Request.Query["transId"];
+
+                if (string.IsNullOrEmpty(orderIdMomo)) return BadRequest();
+
+                var parts = orderIdMomo.Split('_');
+                string type = parts[0];
+                int orderId = int.Parse(parts[1]);
+
+                if (resultCode == "0")
                 {
-                    var goiKy = await _context.GoiDangKyDinhKies.FindAsync(orderId);
-                    if (goiKy != null)
+                    if (type == "dinhky")
                     {
-                        goiKy.TrangThaiGoi = OrderStatuses.HoatDong;
-                        _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
+                        var goiKy = await _context.GoiDangKyDinhKies.FindAsync(orderId);
+                        if (goiKy != null)
                         {
-                            MaGiaoDichCong = "MOMO-" + transId,
-                            GoiDangKyId = goiKy.GoiId,
-                            SoTien = goiKy.TongTienGoi,
-                            PhuongThuc = "MOMO",
-                            TrangThai = 1,
-                            NgayGiaoDich = DateTime.Now
-                        });
-                        try
-                        {
-                            await _context.SaveChangesAsync();
+                            goiKy.TrangThaiGoi = OrderStatuses.HoatDong;
+                            _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
+                            {
+                                MaGiaoDichCong = "MOMO-" + transId,
+                                GoiDangKyId = goiKy.GoiId,
+                                SoTien = goiKy.TongTienGoi,
+                                PhuongThuc = "MOMO",
+                                TrangThai = 1,
+                                NgayGiaoDich = DateTime.Now
+                            });
+                            try
+                            {
+                                await _context.SaveChangesAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                var message = ex.InnerException?.Message ?? ex.Message;
+                                return Content(message);
+                            }
+                            return RedirectToAction("OrderPackageSuccess", "Notification", new { orderId = goiKy.GoiId, platform = "MOMO", amount = goiKy.TongTienGoi, type = "dinhky" });
                         }
-                        catch (Exception ex)
+                    }
+                    else
+                    {
+                        var donHang = await _context.DonHangLes.FindAsync(orderId);
+                        if (donHang != null)
                         {
-                            var message = ex.InnerException?.Message ?? ex.Message;
-                            return Content(message);
+                            donHang.TrangThaiThanhToan = OrderStatuses.DaThanhToan;
+                            _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
+                            {
+                                MaGiaoDichCong = "MOMO-" + transId,
+                                DonHangLeId = donHang.DonHangLeId,
+                                SoTien = donHang.TongTienThucTe,
+                                PhuongThuc = "MOMO",
+                                TrangThai = 1,
+                                NgayGiaoDich = DateTime.Now
+                            });
+                            try
+                            {
+                                await _context.SaveChangesAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                return Content(ex.InnerException?.Message ?? ex.Message);
+                            }
+                            return RedirectToAction("OrderSuccess", "Notification", new { orderId = donHang.DonHangLeId, platform = "MOMO", amount = donHang.TongTienTamTinh, type = "le" });
                         }
-                        return RedirectToAction("OrderPackageSuccess", "Notification", new { orderId = goiKy.GoiId, platform = "MOMO", amount = goiKy.TongTienGoi, type = "dinhky" });
                     }
                 }
-                else
-                {
-                    var donHang = await _context.DonHangLes.FindAsync(orderId);
-                    if (donHang != null)
-                    {
-                        donHang.TrangThaiThanhToan = OrderStatuses.DaThanhToan;
-                        _context.GiaoDichThanhToans.Add(new GiaoDichThanhToan
-                        {
-                            MaGiaoDichCong = "MOMO-" + transId,
-                            DonHangLeId = donHang.DonHangLeId,
-                            SoTien = donHang.TongTienThucTe,
-                            PhuongThuc = "MOMO",
-                            TrangThai = 1,
-                            NgayGiaoDich = DateTime.Now
-                        });
-                        try
-                        {
-                            await _context.SaveChangesAsync();
-                        }
-                        catch (Exception ex)
-                        {
-                            return Content(ex.InnerException?.Message ?? ex.Message);
-                        }
-                        return RedirectToAction("OrderSuccess", "Notification", new { orderId = donHang.DonHangLeId, platform = "MOMO", amount = donHang.TongTienTamTinh, type = "le" });
-                    }
-                }
+                TempData["Error"] = "Thanh toán MoMo thất bại hoặc đã bị hủy.";
+                return RedirectToAction("OrderFailed", "Notification");
             }
-            TempData["Error"] = "Thanh toán MoMo thất bại hoặc đã bị hủy.";
-            return RedirectToAction("OrderFailed", "Notification"); 
+            catch (Exception ex)
+            {
+                // Ghi log lỗi ra để kiểm tra thay vì để trang xoay vòng crash
+                System.Diagnostics.Debug.WriteLine("LỖI MOMO RETURN: " + ex.ToString());
+                return Content("Lỗi xử lý Return: " + ex.Message); 
+            } 
         }
 
         [HttpGet]
